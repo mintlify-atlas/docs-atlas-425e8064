@@ -1,0 +1,231 @@
+{
+  "projectType": "general",
+  "projectName": "Vim",
+  "projectDescription": "Vi IMproved - an enhanced version of the Vi text editor with modern features and extensive customization.",
+  "theme": "aspen",
+  "primaryColor": "#019833",
+  "lightColor": "#57A143",
+  "darkColor": "#016D24",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart",
+              "first-steps"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/modes",
+              "concepts/buffers-windows",
+              "concepts/text-objects",
+              "concepts/registers",
+              "concepts/marks-jumps"
+            ]
+          },
+          {
+            "group": "Essential Commands",
+            "pages": [
+              "commands/motion",
+              "commands/editing",
+              "commands/visual-mode",
+              "commands/search-replace",
+              "commands/file-operations"
+            ]
+          },
+          {
+            "group": "Advanced Features",
+            "pages": [
+              "advanced/multiple-files",
+              "advanced/windows-tabs",
+              "advanced/macros",
+              "advanced/folding",
+              "advanced/quickfix"
+            ]
+          },
+          {
+            "group": "Customization",
+            "pages": [
+              "customization/vimrc",
+              "customization/mappings",
+              "customization/options",
+              "customization/autocommands",
+              "customization/colorschemes"
+            ]
+          },
+          {
+            "group": "Scripting",
+            "pages": [
+              "scripting/vimscript-basics",
+              "scripting/vim9script",
+              "scripting/functions",
+              "scripting/plugins",
+              "scripting/expressions"
+            ]
+          },
+          {
+            "group": "Language Support",
+            "pages": [
+              "language/syntax-highlighting",
+              "language/filetype-plugins",
+              "language/indentation",
+              "language/completion"
+            ]
+          },
+          {
+            "group": "Tools & Integration",
+            "pages": [
+              "tools/diff-mode",
+              "tools/spell-checking",
+              "tools/ctags",
+              "tools/external-commands",
+              "tools/terminal"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Reference",
+        "groups": [
+          {
+            "group": "Command Reference",
+            "pages": [
+              "reference/ex-commands",
+              "reference/normal-commands",
+              "reference/insert-commands",
+              "reference/cmdline-editing"
+            ]
+          },
+          {
+            "group": "Options",
+            "pages": [
+              "reference/options-overview",
+              "reference/editing-options",
+              "reference/display-options",
+              "reference/file-options"
+            ]
+          },
+          {
+            "group": "Scripting API",
+            "pages": [
+              "reference/builtin-functions",
+              "reference/vim9-functions",
+              "reference/variables",
+              "reference/channels-jobs"
+            ]
+          },
+          {
+            "group": "GUI & Terminal",
+            "pages": [
+              "reference/gui-features",
+              "reference/terminal-options",
+              "reference/key-notation"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Guides",
+        "groups": [
+          {
+            "group": "Tutorials",
+            "pages": [
+              "guides/vim-tutor",
+              "guides/mastering-movement",
+              "guides/efficient-editing",
+              "guides/text-manipulation"
+            ]
+          },
+          {
+            "group": "Use Cases",
+            "pages": [
+              "guides/programming",
+              "guides/writing-documentation",
+              "guides/system-administration",
+              "guides/data-editing"
+            ]
+          },
+          {
+            "group": "Migration",
+            "pages": [
+              "guides/from-vi",
+              "guides/from-other-editors",
+              "guides/vim9-migration"
+            ]
+          },
+          {
+            "group": "Platform Specific",
+            "pages": [
+              "guides/unix-linux",
+              "guides/windows",
+              "guides/macos"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Community",
+        "groups": [
+          {
+            "group": "Contributing",
+            "pages": [
+              "community/contributing",
+              "community/development",
+              "community/testing",
+              "community/documentation"
+            ]
+          },
+          {
+            "group": "Resources",
+            "pages": [
+              "community/support",
+              "community/faq",
+              "community/tips-tricks",
+              "community/plugins-ecosystem"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Modal editing (Normal, Insert, Visual, Command-line modes)",
+    "Extensive keyboard-driven commands and navigation",
+    "Multi-level undo/redo tree",
+    "Powerful search and replace with regular expressions",
+    "Syntax highlighting for 500+ languages",
+    "Customizable with Vim script and Vim9 script",
+    "Split windows and tab pages",
+    "Built-in diff mode",
+    "Plugin system and autocommands",
+    "Macro recording and playback",
+    "Text objects and operators",
+    "Integrated terminal support",
+    "Job control and asynchronous operations",
+    "Cross-platform (Unix, Windows, macOS, VMS)"
+  ],
+  "publicApiSurface": [
+    "vim (command-line executable)",
+    "gvim (GUI executable)",
+    "ex (ex mode)",
+    "view (read-only mode)",
+    "vimdiff (diff mode)",
+    "Vim script language (functions, commands, autocommands)",
+    "Vim9 script (modern, faster scripting)",
+    "Built-in functions (string, list, dict, file, system operations)",
+    "Ex commands (:edit, :write, :substitute, :global, etc.)",
+    "Normal mode commands (movement, editing, operators)",
+    "Visual mode operations (block selection, editing)",
+    "Job and channel API (asynchronous communication)",
+    "Terminal API (embedded terminal)",
+    "Plugin hooks and autocommand events",
+    "Remote server protocol (client-server communication)"
+  ]
+}
