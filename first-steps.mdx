@@ -1,0 +1,625 @@
+---
+title: First steps
+description: Master essential Vim commands for efficient text editing. Learn deletion, copying, visual mode, searching, and basic configuration.
+---
+
+# First steps
+
+Now that you can open files and make basic edits (see [Quickstart](/quickstart)), it's time to learn the commands that make Vim powerful.
+
+<Note>
+  All commands in this guide are executed in **normal mode** unless otherwise specified. Press `Esc` to ensure you're in normal mode before trying them.
+</Note>
+
+## Deleting text
+
+Vim's delete commands follow a pattern: `[count][operator][motion]`
+
+### Basic deletion
+
+```vim
+x       " Delete character under cursor
+X       " Delete character before cursor
+dw      " Delete from cursor to start of next word
+de      " Delete from cursor to end of current word
+db      " Delete from cursor to start of current word
+dd      " Delete entire line
+D       " Delete from cursor to end of line
+```
+
+### With counts
+
+Add a number before commands to repeat them:
+
+```vim
+3x      " Delete 3 characters
+2dw     " Delete 2 words
+5dd     " Delete 5 lines
+```
+
+### Practical examples
+
+<Steps>
+  <Step title="Delete a word">
+    Position cursor at the start of a word, then press `dw`
+  </Step>
+  
+  <Step title="Delete to end of line">
+    Position cursor anywhere on a line, press `D`
+  </Step>
+  
+  <Step title="Delete multiple lines">
+    Position cursor on first line, type `5dd` to delete 5 lines
+  </Step>
+</Steps>
+
+<Tip>
+  Deleted text goes into a register (Vim's clipboard). You can paste it back with `p` (paste after cursor) or `P` (paste before cursor).
+</Tip>
+
+## Copying and moving text
+
+In Vim, copying is called "yanking":
+
+### Yanking (copying)
+
+```vim
+yy      " Yank (copy) entire line
+y$      " Yank from cursor to end of line  
+yw      " Yank one word
+3yy     " Yank 3 lines
+y}      " Yank to end of paragraph
+```
+
+### Pasting
+
+```vim
+p       " Paste after cursor/line
+P       " Paste before cursor/line
+3p      " Paste 3 times
+```
+
+### Moving text
+
+Delete and paste to move text:
+
+<Steps>
+  <Step title="Cut a line">
+    Position cursor on the line and press `dd`
+  </Step>
+  
+  <Step title="Move to destination">
+    Navigate to where you want the line
+  </Step>
+  
+  <Step title="Paste">
+    Press `p` to paste below, or `P` to paste above
+  </Step>
+</Steps>
+
+## Changing text
+
+The change operator deletes and enters insert mode:
+
+```vim
+cw      " Change word (delete word and enter insert mode)
+c$      " Change to end of line
+cc      " Change entire line
+3cc     " Change 3 lines
+C       " Change to end of line (same as c$)
+s       " Substitute character (delete char and insert)
+S       " Substitute line (same as cc)
+```
+
+### Replace
+
+For quick single-character changes:
+
+```vim
+r       " Replace character under cursor (type new character)
+R       " Enter replace mode (like insert, but overwrites)
+```
+
+**Example**: To change "hello" to "hallo":
+
+1. Position cursor on the 'e'
+2. Press `r`
+3. Type `a`
+
+## Visual mode
+
+Visual mode lets you select text before operating on it:
+
+### Entering visual mode
+
+```vim
+v       " Character-wise visual mode
+V       " Line-wise visual mode
+Ctrl-v  " Block-wise visual mode
+```
+
+### Using visual mode
+
+<Steps>
+  <Step title="Enter visual mode">
+    Press `v` for character selection or `V` for line selection
+  </Step>
+  
+  <Step title="Select text">
+    Use movement keys (`h`, `j`, `k`, `l`, `w`, `$`, etc.) to expand selection
+  </Step>
+  
+  <Step title="Operate on selection">
+    - `d` - delete selection
+    - `y` - yank (copy) selection
+    - `c` - change selection
+    - `>` - indent right
+    - `<` - indent left
+    - `u` - make lowercase
+    - `U` - make uppercase
+  </Step>
+</Steps>
+
+### Visual block mode
+
+Visual block mode is powerful for columnar editing:
+
+<CodeGroup>
+```vim Select a column
+1. Position cursor at top-left of block
+2. Press Ctrl-v
+3. Move cursor to bottom-right
+4. Press d to delete, c to change, or y to copy
+```
+
+```vim Insert at multiple lines
+1. Press Ctrl-v
+2. Select lines (move down with j)
+3. Press I (capital i)
+4. Type text
+5. Press Esc (text appears on all lines)
+```
+</CodeGroup>
+
+**Example**: Add "//" comment to multiple lines:
+
+1. Position cursor at start of first line
+2. Press `Ctrl-v`
+3. Move down with `j` to select lines
+4. Press `I` (capital i)
+5. Type `// `
+6. Press `Esc`
+
+## Searching
+
+Search is one of Vim's most powerful features:
+
+### Basic search
+
+```vim
+/pattern        " Search forward for pattern
+?pattern        " Search backward for pattern
+n               " Next match (same direction)
+N               " Previous match (opposite direction)
+*               " Search forward for word under cursor
+#               " Search backward for word under cursor
+```
+
+### Search options
+
+<CodeGroup>
+```vim Case sensitivity
+/word           " Case-sensitive search
+/word\c         " Case-insensitive search (just this search)
+:set ignorecase " Case-insensitive by default
+:set smartcase  " Case-sensitive if pattern has uppercase
+```
+
+```vim Highlighting
+:set hlsearch   " Highlight all matches
+:set incsearch  " Show matches as you type
+:noh            " Clear highlight until next search
+```
+</CodeGroup>
+
+### Search and replace
+
+The substitute command is very powerful:
+
+```vim
+:s/old/new/         " Replace first occurrence on current line
+:s/old/new/g        " Replace all occurrences on current line
+:%s/old/new/g       " Replace all occurrences in entire file
+:%s/old/new/gc      " Replace all, but ask for confirmation
+:5,12s/old/new/g    " Replace in lines 5-12
+```
+
+**Examples**:
+
+<CodeGroup>
+```vim Simple replacement
+" Change all "color" to "colour"
+:%s/color/colour/g
+```
+
+```vim Case-insensitive replacement  
+" Change all "vim", "Vim", "VIM" to "Neovim"
+:%s/vim/Neovim/gi
+```
+
+```vim With confirmation
+" Replace with confirmation
+:%s/old/new/gc
+" You'll be prompted: y (yes), n (no), a (all), q (quit)
+```
+</CodeGroup>
+
+## Undo and redo
+
+Vim has powerful multi-level undo:
+
+```vim
+u           " Undo last change
+U           " Undo all changes on current line
+Ctrl-r      " Redo (undo the undo)
+```
+
+You can undo/redo repeatedly to move through your change history:
+
+```vim
+3u          " Undo last 3 changes
+5Ctrl-r     " Redo last 5 undos
+```
+
+<Tip>
+  Unlike Vi's single-level undo, Vim maintains a complete undo tree. You can even explore alternative editing paths with `:earlier` and `:later`.
+</Tip>
+
+## Repeating commands
+
+The dot command is one of Vim's most powerful features:
+
+```vim
+.           " Repeat last change
+```
+
+**Example workflow**:
+
+1. Delete a word: `dw`
+2. Move to next location: `w`
+3. Repeat deletion: `.`
+4. Move again: `w`
+5. Repeat: `.`
+
+<Note>
+  The `.` command repeats the last *change*, not the last movement. Movements don't affect what `.` will repeat.
+</Note>
+
+## Working with multiple files
+
+### Buffers
+
+Every file you open is loaded into a buffer:
+
+```vim
+:e filename     " Edit (open) a file
+:bnext          " Next buffer (also :bn)
+:bprev          " Previous buffer (also :bp)
+:buffer 3       " Switch to buffer 3 (also :b3)
+:buffers        " List all buffers (also :ls)
+:bdelete        " Close current buffer (also :bd)
+```
+
+### Windows (splits)
+
+Split your screen to view multiple files:
+
+<CodeGroup>
+```vim Horizontal splits
+:split          " Split window horizontally (also :sp)
+:split file.txt " Split and open file.txt
+Ctrl-w s        " Split current window
+```
+
+```vim Vertical splits
+:vsplit         " Split window vertically (also :vs)
+:vsplit file.txt " Vertical split and open file.txt
+Ctrl-w v        " Vertical split current window
+```
+
+```vim Navigate between windows
+Ctrl-w h        " Move to window on left
+Ctrl-w j        " Move to window below
+Ctrl-w k        " Move to window above
+Ctrl-w l        " Move to window on right
+Ctrl-w w        " Cycle through windows
+```
+
+```vim Resize windows
+Ctrl-w =        " Make windows equal size
+Ctrl-w _        " Maximize current window height
+Ctrl-w |        " Maximize current window width
+:resize 20      " Set window height to 20 lines
+```
+
+```vim Close windows
+:q              " Close current window
+:only           " Close all windows except current
+Ctrl-w c        " Close current window
+```
+</CodeGroup>
+
+### Tabs
+
+Tabs contain one or more windows:
+
+```vim
+:tabnew         " Open new tab
+:tabedit file   " Open file in new tab
+gt              " Next tab
+gT              " Previous tab
+:tabclose       " Close current tab (also :tabc)
+:tabonly        " Close all tabs except current
+```
+
+## Basic configuration
+
+Customize Vim by adding these to your `~/.vimrc` (Unix) or `$VIM/_vimrc` (Windows):
+
+```vim ~/.vimrc
+" Get sensible defaults
+source $VIMRUNTIME/defaults.vim
+
+" Display
+set number              " Show line numbers
+set relativenumber      " Show relative line numbers
+set showcmd             " Show command in status line
+set showmode            " Show current mode
+set ruler               " Show cursor position
+set cursorline          " Highlight current line
+
+" Searching
+set incsearch           " Incremental search
+set hlsearch            " Highlight search results
+set ignorecase          " Case-insensitive search
+set smartcase           " Case-sensitive if uppercase present
+
+" Indentation
+set tabstop=4           " Tab width
+set shiftwidth=4        " Indent width
+set expandtab           " Use spaces instead of tabs
+set autoindent          " Copy indent from current line
+
+" Editing
+set backspace=indent,eol,start  " Backspace over everything
+set mouse=a             " Enable mouse in all modes
+set clipboard=unnamed   " Use system clipboard
+
+" Files
+set backup              " Keep backup file
+set undofile            " Persistent undo
+set hidden              " Allow switching buffers without saving
+
+" Performance
+set lazyredraw          " Don't redraw during macros
+
+" Visual
+syntax on               " Enable syntax highlighting
+filetype plugin indent on  " Enable file type detection
+```
+
+<Tip>
+  Add settings gradually. Don't copy a huge vimrc until you understand what each option does. Start with the basics and add more as you learn.
+</Tip>
+
+## Essential key mappings
+
+Create shortcuts for common operations:
+
+```vim ~/.vimrc
+" Map leader key (prefix for custom mappings)
+let mapleader = ","
+
+" Clear search highlight
+nnoremap <leader><space> :noh<CR>
+
+" Quick save
+nnoremap <leader>w :w<CR>
+
+" Quick quit
+nnoremap <leader>q :q<CR>
+
+" Easy window navigation
+nnoremap <C-h> <C-w>h
+nnoremap <C-j> <C-w>j
+nnoremap <C-k> <C-w>k
+nnoremap <C-l> <C-w>l
+
+" Move lines up and down
+nnoremap <A-j> :m .+1<CR>==
+nnoremap <A-k> :m .-2<CR>==
+```
+
+<Note>
+  `nnoremap` creates a non-recursive normal mode mapping. The `<leader>` key (comma in example above) acts as a prefix for your custom commands.
+</Note>
+
+## Command-line tricks
+
+### Ranges
+
+Many commands accept line ranges:
+
+```vim
+:5,10d          " Delete lines 5-10
+:5,10y          " Yank lines 5-10
+:.,$d           " Delete from current line to end
+:1,.y           " Yank from line 1 to current line
+:%d             " Delete all lines (% means 1,$)
+:g/pattern/d    " Delete all lines matching pattern
+:v/pattern/d    " Delete all lines NOT matching pattern
+```
+
+### Command history
+
+```vim
+:               " Start command mode
+<Up>/<Down>     " Browse command history
+q:              " Open command history window
+```
+
+### External commands
+
+Run shell commands without leaving Vim:
+
+```vim
+:!ls            " Run 'ls' command
+:!make          " Run 'make'
+:r !date        " Insert output of 'date' command
+:.!sort         " Filter current line through 'sort'
+```
+
+## Next steps
+
+You now have the essential skills to edit efficiently in Vim. To continue learning:
+
+<CardGroup cols={2}>
+  <Card title="User manual" icon="book">
+    Read the comprehensive manual: `:help user-manual`
+  </Card>
+  
+  <Card title="Reference manual" icon="book-open">
+    Deep dive into every feature: `:help reference`
+  </Card>
+  
+  <Card title="Quick reference" icon="list">
+    Command cheat sheet: `:help quickref`
+  </Card>
+  
+  <Card title="Tips and tricks" icon="lightbulb">
+    Browse tips: `:help tips`
+  </Card>
+</CardGroup>
+
+### Practice exercises
+
+To build muscle memory:
+
+1. **Daily editing**: Use Vim for all text editing for at least 2 weeks
+2. **Vimtutor**: Complete it multiple times: `vimtutor`
+3. **Learn one command per day**: Pick a new command from `:help quickref`
+4. **Read help files**: Explore `:help` for topics that interest you
+5. **Join the community**: Visit `/r/vim` on Reddit or `#vim` on Libera.Chat IRC
+
+<Tip>
+  Don't try to learn everything at once. Master one concept before moving to the next. Vim has a steep learning curve, but the investment pays off with years of productive editing.
+</Tip>
+
+## Common workflows
+
+### Refactoring variable names
+
+```vim
+" Rename all occurrences of 'oldName' to 'newName'
+:%s/\<oldName\>/newName/gc
+```
+
+The `\<` and `\>` match word boundaries, and `c` asks for confirmation.
+
+### Editing multiple lines
+
+```vim
+" Add semicolon to end of multiple lines:
+1. Ctrl-v to enter visual block mode
+2. Select lines with j
+3. Press $ to go to end of lines
+4. Press A (capital A)
+5. Type ;
+6. Press Esc
+```
+
+### Working with code
+
+```vim
+=           " Auto-indent (with visual selection or motion)
+==          " Auto-indent current line
+=}          " Auto-indent paragraph
+=%          " Auto-indent code block (cursor on bracket)
+gq          " Format text (with visual selection or motion)
+gqap        " Format paragraph
+```
+
+### Macros for repetitive edits
+
+Record and replay sequences of commands:
+
+<Steps>
+  <Step title="Start recording">
+    Press `qa` to record into register 'a'
+  </Step>
+  
+  <Step title="Perform actions">
+    Execute the commands you want to repeat
+  </Step>
+  
+  <Step title="Stop recording">
+    Press `q`
+  </Step>
+  
+  <Step title="Replay macro">
+    Press `@a` to execute macro from register 'a'
+    
+    Use `@@` to repeat the last macro
+    
+    Use `10@a` to execute macro 10 times
+  </Step>
+</Steps>
+
+**Example**: Add quotes around words:
+
+1. Position cursor on word
+2. Press `qa` (start recording to register a)
+3. Press `i"` (insert quote before word)
+4. Press `Esc` (return to normal mode)
+5. Press `ea"` (append quote after word)
+6. Press `Esc`
+7. Press `w` (move to next word)
+8. Press `q` (stop recording)
+9. Press `@a` to repeat on next word
+10. Press `@@` to repeat again
+
+<Tip>
+  Macros are one of Vim's superpowers. They let you automate complex edits across hundreds of lines with just a few keystrokes.
+</Tip>
+
+## Getting help
+
+Vim's built-in help is excellent:
+
+```vim
+:help               " Open main help
+:help i_CTRL-R      " Help for Ctrl-R in insert mode
+:help :substitute   " Help for substitute command
+:help 'number'      " Help for 'number' option
+:help tips          " Helpful tips
+:help user-manual   " Full user manual
+:helpgrep pattern   " Search all help files
+```
+
+Inside help:
+- `Ctrl-]` - Jump to tag under cursor
+- `Ctrl-o` - Jump back
+- `:q` - Close help window
+
+## Resources
+
+- **Vim website**: https://www.vim.org
+- **Documentation**: https://www.vim.org/docs.php  
+- **Tips Wiki**: https://vim.fandom.com/wiki/Vim_Tips_Wiki
+- **Reddit**: https://reddit.com/r/vim
+- **IRC**: `#vim` on Libera.Chat
+- **Stack Exchange**: https://vi.stackexchange.com
+
+<Note>
+  This guide covers essential commands, but Vim has much more to offer. Explore the help system, experiment with new commands, and build your own efficient workflow.
+</Note>

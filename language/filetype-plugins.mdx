@@ -1,0 +1,337 @@
+---
+title: Filetype plugins
+description: Configure language-specific behavior with Vim's filetype plugin system
+---
+
+Filetype plugins provide language-specific settings, mappings, and commands that activate automatically when you open a file.
+
+## Enable filetype plugins
+
+Add to your vimrc:
+
+```vim
+" Enable filetype detection
+filetype on
+
+" Enable filetype plugins
+filetype plugin on
+
+" Enable filetype indentation
+filetype indent on
+
+" All at once
+filetype plugin indent on
+```
+
+## How it works
+
+When you open a file, Vim:
+1. Detects the file type (by extension, name, or content)
+2. Loads `ftplugin/{filetype}.vim`
+3. Loads `indent/{filetype}.vim`
+4. Sets buffer-local options and mappings
+
+## Filetype detection
+
+### By extension
+
+```vim
+" Automatically detected
+file.py    → python
+file.js    → javascript
+file.html  → html
+```
+
+### By filename
+
+```vim
+" Special files detected by exact name
+Makefile      → make
+CMakeLists.txt → cmake
+Dockerfile    → dockerfile
+.bashrc       → bash
+```
+
+### By content
+
+For files without distinctive names, Vim checks content:
+
+```vim
+" Shell scripts with shebang
+#!/bin/bash   → bash
+#!/usr/bin/env python3 → python
+```
+
+### Manual override
+
+```vim
+" Set filetype manually
+:set filetype=python
+
+" Or in the file (modeline)
+# vim: filetype=python
+```
+
+## Buffer-local settings
+
+Filetype plugins set options locally per buffer:
+
+```vim
+" Python ftplugin sets:
+setlocal expandtab
+setlocal tabstop=4
+setlocal shiftwidth=4
+setlocal textwidth=79
+
+" HTML ftplugin sets:
+setlocal shiftwidth=2
+setlocal tabstop=2
+```
+
+## Common filetypes
+
+### Python
+
+```vim
+" Automatic settings:
+" - 4 spaces per indent
+" - textwidth=79
+" - smart indentation
+" - include pattern for imports
+```
+
+### JavaScript
+
+```vim
+" Automatic settings:
+" - 2 spaces per indent
+" - JSDoc comment formatting
+" - include for imports
+```
+
+### C/C++
+
+```vim
+" Automatic settings:
+" - cindent (C indentation)
+" - comments formatting
+" - K mapped to man pages
+```
+
+### Markdown
+
+```vim
+" Automatic settings:
+" - textwidth=78
+" - comments formatting
+" - spell checking
+```
+
+## Creating ftplugins
+
+### Location
+
+Place in:
+- `~/.vim/ftplugin/{filetype}.vim` (Unix/macOS)
+- `~/vimfiles/ftplugin/{filetype}.vim` (Windows)
+
+### Example: Python ftplugin
+
+```vim
+" ~/.vim/ftplugin/python.vim
+if exists("b:did_ftplugin")
+  finish
+endif
+let b:did_ftplugin = 1
+
+" Use spaces, not tabs
+setlocal expandtab
+setlocal tabstop=4
+setlocal shiftwidth=4
+
+" Folding
+setlocal foldmethod=indent
+
+" Run Python file
+nnoremap <buffer> <F5> :!python3 %<CR>
+
+" Import sorting
+nnoremap <buffer> <Leader>i :!isort %<CR>
+
+" Let info for undo
+let b:undo_ftplugin = "setlocal expandtab< tabstop< shiftwidth< foldmethod<"
+```
+
+### Example: JavaScript ftplugin
+
+```vim
+" ~/.vim/ftplugin/javascript.vim
+setlocal shiftwidth=2
+setlocal tabstop=2
+setlocal expandtab
+
+" Run with Node.js
+nnoremap <buffer> <F5> :!node %<CR>
+
+" Format with prettier
+nnoremap <buffer> <Leader>f :!prettier --write %<CR>:e<CR>
+
+let b:undo_ftplugin = "setlocal shiftwidth< tabstop< expandtab<"
+```
+
+## Buffer-local mappings
+
+Use `<buffer>` to create mappings that only apply to specific file types:
+
+```vim
+" In ~/.vim/ftplugin/go.vim
+nnoremap <buffer> <F5> :!go run %<CR>
+nnoremap <buffer> <F6> :!go test<CR>
+nnoremap <buffer> <Leader>i :!goimports -w %<CR>:e<CR>
+```
+
+## Undo on buffer change
+
+Allow settings to be undone when buffer changes filetype:
+
+```vim
+let b:undo_ftplugin = "setlocal expandtab< shiftwidth< tabstop<"
+\ . "| unlet! b:match_words"
+```
+
+## Filetype-specific commands
+
+Define commands for specific filetypes:
+
+```vim
+" In ~/.vim/ftplugin/markdown.vim
+command! -buffer Preview !open -a "Marked 2" %
+command! -buffer Toc :Toc
+```
+
+## Override system ftplugins
+
+### After directory
+
+Place overrides in `~/.vim/after/ftplugin/{filetype}.vim`:
+
+```vim
+" ~/.vim/after/ftplugin/python.vim
+" This loads after system python ftplugin
+
+" Override textwidth
+setlocal textwidth=120
+
+" Add custom mapping
+nnoremap <buffer> <Leader>d :!python -m pdb %<CR>
+```
+
+## Advanced detection
+
+### Multiple extensions
+
+Create a filetype file for custom detection:
+
+```vim
+" ~/.vim/ftdetect/myformat.vim
+autocmd BufRead,BufNewFile *.myext setfiletype myformat
+autocmd BufRead,BufNewFile *.custom setfiletype myformat
+```
+
+### Content-based detection
+
+```vim
+" ~/.vim/ftdetect/jenkinsfile.vim
+autocmd BufRead,BufNewFile Jenkinsfile setfiletype groovy
+autocmd BufRead,BufNewFile *.jenkins setfiletype groovy
+```
+
+## Disable ftplugins
+
+### Globally
+
+```vim
+" Disable all ftplugins
+filetype plugin off
+```
+
+### Specific filetype
+
+```vim
+" Disable Python ftplugin
+let g:did_ftplugin_python = 1
+```
+
+### Temporarily
+
+```vim
+" Remove filetype
+:set filetype=
+
+" Restore
+:set filetype=python
+```
+
+## Built-in ftplugins
+
+View available ftplugins:
+
+```vim
+:echo globpath(&runtimepath, 'ftplugin/*.vim')
+```
+
+Common built-in ftplugins:
+- Text: `text`, `markdown`, `rst`
+- Shell: `sh`, `bash`, `zsh`
+- Web: `html`, `css`, `javascript`, `typescript`
+- Config: `vim`, `json`, `yaml`, `toml`
+- Programming: `python`, `c`, `cpp`, `rust`, `go`, `java`
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Filetype not detected">
+    Check detection:
+    ```vim
+    :set filetype?
+    :filetype
+    ```
+    
+    Force detection:
+    ```vim
+    :set filetype=python
+    ```
+  </Accordion>
+
+  <Accordion title="Wrong filetype">
+    Check what detected it:
+    ```vim
+    :verbose set filetype?
+    ```
+    
+    Override in ftdetect or modeline.
+  </Accordion>
+
+  <Accordion title="Settings not applying">
+    Ensure ftplugin is enabled:
+    ```vim
+    :filetype plugin on
+    ```
+    
+    Check load path:
+    ```vim
+    :echo &runtimepath
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## See also
+
+<CardGroup cols={2}>
+  <Card title="Syntax highlighting" href="/language/syntax-highlighting" icon="code">
+    Configure syntax colors
+  </Card>
+  <Card title="Indentation" href="/language/indentation" icon="indent">
+    Indentation settings
+  </Card>
+</CardGroup>

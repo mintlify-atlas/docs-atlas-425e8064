@@ -1,0 +1,597 @@
+---
+title: Plugin Ecosystem
+description: Extend Vim's functionality with plugins and learn about plugin management
+---
+
+## Plugin Management
+
+### Native Package Support (Vim 8+)
+
+Vim 8 introduced built-in package management. No external plugin manager needed!
+
+#### Directory Structure
+
+Create the following directory structure:
+
+```bash
+~/.vim/pack/
+└── plugins/
+    ├── start/      # Plugins loaded automatically on startup
+    └── opt/        # Plugins loaded manually with :packadd
+```
+
+#### Installing Plugins
+
+Clone plugins directly into the `start` directory:
+
+```bash
+mkdir -p ~/.vim/pack/plugins/start
+cd ~/.vim/pack/plugins/start
+git clone https://github.com/tpope/vim-surround.git
+```
+
+Restart Vim or run `:packloadall` to load the plugin.
+
+#### Optional Plugins
+
+For plugins you don't always need:
+
+```bash
+mkdir -p ~/.vim/pack/plugins/opt
+cd ~/.vim/pack/plugins/opt
+git clone https://github.com/tpope/vim-scriptease.git
+```
+
+Load when needed:
+
+```vim
+:packadd vim-scriptease
+```
+
+#### Generating Help Tags
+
+After installing plugins:
+
+```vim
+:helptags ALL
+```
+
+This makes plugin documentation available via `:help`.
+
+### Third-Party Plugin Managers
+
+While native packages work well, plugin managers offer additional features:
+
+#### vim-plug
+
+Minimal, fast plugin manager:
+
+**Installation:**
+```bash
+curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
+    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+```
+
+**Usage in vimrc:**
+```vim
+call plug#begin('~/.vim/plugged')
+
+Plug 'tpope/vim-surround'
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf.vim'
+
+call plug#end()
+```
+
+**Commands:**
+```vim
+:PlugInstall    " Install plugins
+:PlugUpdate     " Update plugins
+:PlugClean      " Remove unused plugins
+:PlugUpgrade    " Upgrade vim-plug itself
+```
+
+#### Vundle
+
+One of the original plugin managers:
+
+**Installation:**
+```bash
+git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
+```
+
+**Usage in vimrc:**
+```vim
+set nocompatible
+filetype off
+set rtp+=~/.vim/bundle/Vundle.vim
+
+call vundle#begin()
+Plugin 'VundleVim/Vundle.vim'
+Plugin 'tpope/vim-fugitive'
+call vundle#end()
+
+filetype plugin indent on
+```
+
+**Commands:**
+```vim
+:PluginInstall
+:PluginUpdate
+:PluginClean
+```
+
+#### Pathogen
+
+Simple, no-frills plugin management:
+
+**Installation:**
+```bash
+mkdir -p ~/.vim/autoload ~/.vim/bundle
+curl -LSso ~/.vim/autoload/pathogen.vim https://tpo.pe/pathogen.vim
+```
+
+**Usage in vimrc:**
+```vim
+execute pathogen#infect()
+syntax on
+filetype plugin indent on
+```
+
+Install plugins by cloning into `~/.vim/bundle/`.
+
+## Essential Plugins
+
+### File Navigation
+
+#### fzf.vim
+
+Fuzzy finder integration:
+
+```vim
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf.vim'
+```
+
+**Usage:**
+```vim
+:Files          " Find files
+:Buffers        " List open buffers
+:Rg <pattern>   " Search in files with ripgrep
+:Lines          " Search lines in open buffers
+:History        " Recently opened files
+```
+
+**Mappings:**
+```vim
+nnoremap <C-p> :Files<CR>
+nnoremap <C-b> :Buffers<CR>
+nnoremap <C-f> :Rg<CR>
+```
+
+#### NERDTree
+
+File system explorer:
+
+```vim
+Plug 'preservim/nerdtree'
+```
+
+**Usage:**
+```vim
+:NERDTree       " Open file tree
+:NERDTreeToggle " Toggle file tree
+```
+
+**Mappings:**
+```vim
+nnoremap <C-n> :NERDTreeToggle<CR>
+```
+
+### Text Manipulation
+
+#### vim-surround
+
+Easily manipulate surrounding characters:
+
+```vim
+Plug 'tpope/vim-surround'
+```
+
+**Usage:**
+- `cs"'` - Change surrounding " to '
+- `ds"` - Delete surrounding "
+- `ysiw]` - Surround word with []
+- `yss)` - Surround line with ()
+
+#### vim-commentary
+
+Comment/uncomment code:
+
+```vim
+Plug 'tpope/vim-commentary'
+```
+
+**Usage:**
+- `gcc` - Comment/uncomment line
+- `gc` in visual mode - Comment/uncomment selection
+- `gcap` - Comment/uncomment paragraph
+
+#### vim-repeat
+
+Repeat plugin commands with `.`:
+
+```vim
+Plug 'tpope/vim-repeat'
+```
+
+Enhances the `.` command to work with plugin mappings.
+
+### Git Integration
+
+#### vim-fugitive
+
+Comprehensive Git wrapper:
+
+```vim
+Plug 'tpope/vim-fugitive'
+```
+
+**Usage:**
+```vim
+:Git            " Run git commands
+:Git status     " Git status
+:Git commit     " Git commit
+:Git blame      " Git blame
+:Gdiff          " Git diff in split
+:Gread          " Git checkout file
+:Gwrite         " Git add file
+```
+
+#### vim-gitgutter
+
+Show git diff in the sign column:
+
+```vim
+Plug 'airblade/vim-gitgutter'
+```
+
+**Usage:**
+- Shows +/~/- for added/modified/removed lines
+- `]c` - Next hunk
+- `[c` - Previous hunk
+- `<leader>hp` - Preview hunk
+- `<leader>hs` - Stage hunk
+- `<leader>hu` - Undo hunk
+
+### Code Intelligence
+
+#### coc.nvim
+
+Intellisense engine with LSP support:
+
+```vim
+Plug 'neoclide/coc.nvim', {'branch': 'release'}
+```
+
+**Features:**
+- Auto-completion
+- Go to definition
+- Find references
+- Rename symbol
+- Code actions
+- Diagnostics
+
+**Setup:**
+```vim
+:CocInstall coc-tsserver coc-python coc-json
+```
+
+#### ALE (Asynchronous Lint Engine)
+
+Linting and fixing:
+
+```vim
+Plug 'dense-analysis/ale'
+```
+
+**Configuration:**
+```vim
+let g:ale_linters = {
+\   'javascript': ['eslint'],
+\   'python': ['flake8'],
+\}
+
+let g:ale_fixers = {
+\   '*': ['remove_trailing_lines', 'trim_whitespace'],
+\   'javascript': ['eslint'],
+\}
+
+let g:ale_fix_on_save = 1
+```
+
+### Status Line
+
+#### vim-airline
+
+Enhanced status line:
+
+```vim
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
+```
+
+**Configuration:**
+```vim
+let g:airline_theme='onedark'
+let g:airline_powerline_fonts = 1
+let g:airline#extensions#tabline#enabled = 1
+```
+
+#### lightline.vim
+
+Lightweight alternative:
+
+```vim
+Plug 'itchyny/lightline.vim'
+```
+
+### Color Schemes
+
+#### gruvbox
+
+```vim
+Plug 'morhetz/gruvbox'
+colorscheme gruvbox
+set background=dark
+```
+
+#### onedark
+
+```vim
+Plug 'joshdick/onedark.vim'
+colorscheme onedark
+```
+
+#### solarized
+
+```vim
+Plug 'altercation/vim-colors-solarized'
+colorscheme solarized
+set background=dark
+```
+
+### Language-Specific
+
+#### vim-polyglot
+
+Collection of language packs:
+
+```vim
+Plug 'sheerun/vim-polyglot'
+```
+
+Provides syntax highlighting and indentation for 100+ languages.
+
+#### vim-go
+
+Go development:
+
+```vim
+Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
+```
+
+#### rust.vim
+
+Rust development:
+
+```vim
+Plug 'rust-lang/rust.vim'
+```
+
+## Plugin Development
+
+### Creating Your Own Plugin
+
+#### Basic Structure
+
+```
+~/.vim/pack/myplugins/start/myplugin/
+├── plugin/
+│   └── myplugin.vim       # Loaded automatically
+├── autoload/
+│   └── myplugin.vim       # Loaded on demand
+├── ftplugin/
+│   └── python.vim         # Filetype-specific
+├── syntax/
+│   └── mysyntax.vim       # Syntax highlighting
+└── doc/
+    └── myplugin.txt       # Documentation
+```
+
+#### Example Plugin (plugin/myplugin.vim)
+
+```vim
+" Prevent loading twice
+if exists('g:loaded_myplugin')
+  finish
+endif
+let g:loaded_myplugin = 1
+
+" Save cpoptions
+let s:save_cpo = &cpo
+set cpo&vim
+
+" Plugin commands
+command! MyPluginCommand call myplugin#DoSomething()
+
+" Plugin mappings
+nnoremap <leader>mp :MyPluginCommand<CR>
+
+" Restore cpoptions
+let &cpo = s:save_cpo
+unlet s:save_cpo
+```
+
+#### Example Autoload Function (autoload/myplugin.vim)
+
+```vim
+function! myplugin#DoSomething()
+  echo "Hello from my plugin!"
+endfunction
+```
+
+#### Documentation (doc/myplugin.txt)
+
+```
+*myplugin.txt*  Description of my plugin
+
+MY PLUGIN                                            *myplugin*
+
+Description of what the plugin does.
+
+COMMANDS                                             *myplugin-commands*
+
+:MyPluginCommand                                     *:MyPluginCommand*
+    Does something useful.
+
+MAPPINGS                                             *myplugin-mappings*
+
+<leader>mp                                           *myplugin-mp*
+    Executes MyPluginCommand.
+
+vim:tw=78:ts=8:ft=help:norl:
+```
+
+Generate tags:
+```vim
+:helptags ~/.vim/pack/myplugins/start/myplugin/doc
+```
+
+### Vim9script Plugins
+
+Use Vim9script for better performance:
+
+```vim
+vim9script
+
+if exists('g:loaded_myplugin')
+  finish
+endif
+g:loaded_myplugin = true
+
+def myplugin#DoSomething(): void
+  echo "Hello from Vim9script!"
+enddef
+
+command! MyPluginCommand myplugin#DoSomething()
+```
+
+See `:help vim9-script` for more information.
+
+## Plugin Resources
+
+### Finding Plugins
+
+- [VimAwesome](https://vimawesome.com/) - Searchable plugin directory
+- [vim-scripts.org](http://vim-scripts.org/) - Mirror of vim.org scripts
+- [GitHub topics](https://github.com/topics/vim-plugin) - Search GitHub
+- [r/vim](https://reddit.com/r/vim) - Community recommendations
+
+### Learning More
+
+- `:help packages` - Native package system
+- `:help write-plugin` - Plugin writing guide
+- `:help plugin` - Plugin loading
+- `:help autoload` - Autoload functions
+- `:help usr_41.txt` - Write a Vim script
+- `:help vim9-script` - Vim9script guide
+
+### Best Practices
+
+1. **Use autoload** - Load functions on demand for faster startup
+2. **Check existence** - Use `if exists()` to prevent double-loading
+3. **Provide documentation** - Write help files for your plugins
+4. **Follow conventions** - Use standard directory structure
+5. **Make it configurable** - Use `g:` variables for options
+6. **Test thoroughly** - Test with minimal configuration
+7. **Use guard clauses** - Prevent conflicts with other plugins
+
+## Troubleshooting Plugins
+
+### Plugin Conflicts
+
+Find which plugin causes issues:
+
+```bash
+# Start with no plugins
+vim --noplugin
+
+# Or minimal vimrc
+vim -u NONE
+```
+
+### Debug Plugin Loading
+
+```vim
+" Profile plugin loading time
+vim --startuptime startup.log
+
+" Verbose logging
+vim -V9mylog.txt
+```
+
+### Common Issues
+
+1. **Plugin not loading**: Check directory structure and paths
+2. **Slow startup**: Profile and disable unnecessary plugins
+3. **Key conflicts**: Remap conflicting keys in vimrc
+4. **Missing dependencies**: Install required programs
+5. **Outdated plugins**: Update regularly
+
+## Recommended Plugin Sets
+
+### Minimal Setup
+
+```vim
+Plug 'tpope/vim-surround'
+Plug 'tpope/vim-commentary'
+Plug 'tpope/vim-repeat'
+```
+
+### Intermediate Setup
+
+```vim
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf.vim'
+Plug 'tpope/vim-surround'
+Plug 'tpope/vim-commentary'
+Plug 'tpope/vim-fugitive'
+Plug 'airblade/vim-gitgutter'
+Plug 'vim-airline/vim-airline'
+Plug 'sheerun/vim-polyglot'
+```
+
+### IDE-like Setup
+
+```vim
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf.vim'
+Plug 'preservim/nerdtree'
+Plug 'tpope/vim-surround'
+Plug 'tpope/vim-commentary'
+Plug 'tpope/vim-fugitive'
+Plug 'airblade/vim-gitgutter'
+Plug 'neoclide/coc.nvim', {'branch': 'release'}
+Plug 'dense-analysis/ale'
+Plug 'vim-airline/vim-airline'
+Plug 'sheerun/vim-polyglot'
+Plug 'morhetz/gruvbox'
+```
+
+## Next Steps
+
+- Explore the [Vim Tips Wiki](https://vim.fandom.com/wiki/Vim_Tips_Wiki) for plugin recommendations
+- Check [VimAwesome](https://vimawesome.com/) for trending plugins
+- Read plugin documentation with `:help <plugin-name>`
+- Join [r/vim](https://reddit.com/r/vim) to discover new plugins

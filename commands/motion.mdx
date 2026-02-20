@@ -1,0 +1,231 @@
+---
+title: Movement Commands
+description: Navigate efficiently through text with Vim's motion commands
+---
+
+## Overview
+
+Vim provides powerful commands for moving the cursor through your text. Mastering these motions is essential for efficient editing.
+
+## Basic Movement
+
+### Character Motion
+
+| Command | Description |
+|---------|-------------|
+| `h` | Move left one character |
+| `l` | Move right one character |
+| `j` | Move down one line |
+| `k` | Move up one line |
+| Arrow keys | Same as `h`, `j`, `k`, `l` |
+
+<Tip>
+Experienced users prefer `hjkl` because they're always under your fingers. Think of `j` as an arrow pointing downwards.
+</Tip>
+
+### Line Motion
+
+| Command | Description |
+|---------|-------------|
+| `0` | Move to first character of the line |
+| `^` | Move to first non-blank character of the line |
+| `$` | Move to end of the line |
+| `g_` | Move to last non-blank character of the line |
+| `gm` | Move to middle of the screen line |
+| `gM` | Move to middle of the text line |
+
+### Word Motion
+
+| Command | Description |
+|---------|-------------|
+| `w` | Move forward to start of next word |
+| `W` | Move forward to start of next WORD (space-separated) |
+| `e` | Move forward to end of word |
+| `E` | Move forward to end of WORD |
+| `b` | Move backward to start of word |
+| `B` | Move backward to start of WORD |
+| `ge` | Move backward to end of word |
+| `gE` | Move backward to end of WORD |
+
+<Info>
+**word** vs **WORD**: A word is separated by non-keyword characters. A WORD is separated by whitespace only.
+
+- `word` examples: `foo`, `bar123`, `baz_qux`
+- `WORD` examples: `foo-bar`, `file.txt`, `path/to/file`
+</Info>
+
+## Vertical Movement
+
+### Line Jumping
+
+| Command | Description |
+|---------|-------------|
+| `gg` | Go to first line of file |
+| `G` | Go to last line of file |
+| `{count}G` | Go to line {count} |
+| `:{num}` | Go to line {num} |
+| `{count}%` | Go to {count} percentage in file |
+
+### Screen Movement
+
+| Command | Description |
+|---------|-------------|
+| `H` | Move to top of screen (High) |
+| `M` | Move to middle of screen (Middle) |
+| `L` | Move to bottom of screen (Low) |
+| `CTRL-U` | Scroll up half page |
+| `CTRL-D` | Scroll down half page |
+| `CTRL-B` | Scroll up full page (Backward) |
+| `CTRL-F` | Scroll down full page (Forward) |
+| `CTRL-E` | Scroll down one line (Extra) |
+| `CTRL-Y` | Scroll up one line |
+
+## Text Object Motion
+
+### Paragraph and Sentence
+
+| Command | Description |
+|---------|-------------|
+| `{` | Move to previous paragraph |
+| `}` | Move to next paragraph |
+| `(` | Move to previous sentence |
+| `)` | Move to next sentence |
+
+### Section Motion
+
+| Command | Description |
+|---------|-------------|
+| `[[` | Move to previous section or function |
+| `]]` | Move to next section or function |
+| `[]` | Move to end of previous section |
+| `][` | Move to end of next section |
+
+## Character Search
+
+### In-Line Search
+
+| Command | Description |
+|---------|-------------|
+| `f{char}` | Move forward to next occurrence of {char} |
+| `F{char}` | Move backward to previous occurrence of {char} |
+| `t{char}` | Move forward until (before) next {char} |
+| `T{char}` | Move backward until (after) previous {char} |
+| `;` | Repeat last f, t, F, or T |
+| `,` | Repeat last f, t, F, or T in opposite direction |
+
+### Example Use Cases
+
+```vim
+" Move to the next '(' character
+f(
+
+" Delete until the next comma
+dt,
+
+" Change text from cursor to previous quote
+cT"
+```
+
+## Marks and Jumps
+
+### Setting Marks
+
+| Command | Description |
+|---------|-------------|
+| `m{a-z}` | Set mark {a-z} at cursor position |
+| `m{A-Z}` | Set global mark {A-Z} (works across files) |
+
+### Jumping to Marks
+
+| Command | Description |
+|---------|-------------|
+| `` `{mark} `` | Jump to exact position of mark |
+| `'{mark}` | Jump to first non-blank in line of mark |
+| `` `` `` | Jump to position before latest jump |
+| `''` | Jump to line before latest jump |
+| `CTRL-O` | Go to older cursor position in jump list |
+| `CTRL-I` | Go to newer cursor position in jump list |
+
+### Special Marks
+
+| Mark | Description |
+|------|-------------|
+| `` `. `` | Jump to position of last change |
+| `` `" `` | Jump to position when last exiting file |
+| `` `[ `` | Jump to start of last change/yank |
+| `` `] `` | Jump to end of last change/yank |
+| `` `< `` | Jump to start of last visual selection |
+| `` `> `` | Jump to end of last visual selection |
+
+## Matching Pairs
+
+| Command | Description |
+|---------|-------------|
+| `%` | Jump to matching bracket, paren, or brace |
+| `[{` | Jump to previous unmatched `{` |
+| `]}` | Jump to next unmatched `}` |
+| `[(` | Jump to previous unmatched `(` |
+| `])` | Jump to next unmatched `)` |
+
+## Practical Examples
+
+### Navigate a Function
+
+```vim
+" Jump to start of function
+[[
+
+" Jump to end of function
+]]
+
+" Jump to matching brace
+%
+```
+
+### Quick Navigation
+
+```vim
+" Go to line 42
+42G
+" or
+:42
+
+" Go to 50% through the file
+50%
+
+" Jump to first line
+gg
+
+" Jump to last line
+G
+```
+
+### Efficient Editing Pattern
+
+```vim
+" Find next occurrence of 'function' and change word
+/function
+cw
+
+" Repeat search and change
+n.
+```
+
+## Related Commands
+
+- [Editing Commands](/commands/editing) - Modify text with motion
+- [Visual Mode](/commands/visual-mode) - Select text with motion
+- [Search and Replace](/commands/search-replace) - Find and navigate
+
+## Tips
+
+<Tip>
+Combine motions with operators for powerful editing:
+- `d$` - Delete to end of line
+- `c3w` - Change next 3 words
+- `y}` - Yank to end of paragraph
+</Tip>
+
+<Warning>
+The count multiplies with the motion. For example, `2d3w` deletes 6 words (2 × 3).
+</Warning>

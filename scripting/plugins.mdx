@@ -1,0 +1,703 @@
+---
+title: 'Creating Plugins'
+description: 'Build and distribute Vim plugins'
+---
+
+## Plugin Structure
+
+A typical Vim plugin follows a standard directory structure:
+
+```
+myplugin/
+├── plugin/           # Loaded automatically at startup
+│   └── myplugin.vim
+├── autoload/         # Loaded on-demand
+│   └── myplugin.vim
+├── ftplugin/         # Filetype-specific settings
+│   └── python.vim
+├── syntax/           # Syntax definitions
+│   └── mylang.vim
+├── doc/              # Help documentation
+│   └── myplugin.txt
+└── after/            # Loaded after default settings
+    └── plugin/
+        └── myplugin.vim
+```
+
+<Note>
+Place your plugin in Vim's `runtimepath`. Common locations:
+- `~/.vim/pack/*/start/myplugin/` (Vim 8+ native package manager)
+- `~/.vim/bundle/myplugin/` (with plugin managers like Pathogen)
+</Note>
+
+## Simple Plugin Example
+
+Let's create a simple plugin that adds line numbers to selected text.
+
+<Tabs>
+  <Tab title="Vim9 Script">
+```vim title="plugin/numberer.vim"
+vim9script
+
+# Only load once
+if exists('g:loaded_numberer')
+  finish
+endif
+g:loaded_numberer = true
+
+# User configuration with defaults
+if !exists('g:numberer_format')
+  g:numberer_format = '%d. '
+endif
+
+# Command definition
+command -range NumberLines <line1>,<line2>call numberer#AddNumbers()
+
+# Key mapping (only if not already mapped)
+if !hasmapto('<Plug>NumbererAdd')
+  nmap <unique> <leader>n <Plug>NumbererAdd
+endif
+
+nnoremap <silent> <Plug>NumbererAdd :set opfunc=numberer#Operator<CR>g@
+vnoremap <silent> <Plug>NumbererAdd :<C-u>call numberer#AddNumbers()<CR>
+```
+
+```vim title="autoload/numberer.vim"
+vim9script
+
+# Add line numbers to range
+export def AddNumbers(): void
+  var start = line("'<")
+  var end = line("'>")
+  
+  for lnum in range(start, end)
+    var line_text = getline(lnum)
+    var number = lnum - start + 1
+    var new_text = printf(g:numberer_format, number) .. line_text
+    setline(lnum, new_text)
+  endfor
+enddef
+
+# Operator function for motion-based use
+export def Operator(type: string): void
+  var start = line("'[")
+  var end = line("']")
+  
+  for lnum in range(start, end)
+    var line_text = getline(lnum)
+    var number = lnum - start + 1
+    var new_text = printf(g:numberer_format, number) .. line_text
+    setline(lnum, new_text)
+  endfor
+enddef
+```
+  </Tab>
+  <Tab title="Legacy Script">
+```vim title="plugin/numberer.vim"
+" Only load once
+if exists('g:loaded_numberer')
+  finish
+endif
+let g:loaded_numberer = 1
+
+" User configuration with defaults
+if !exists('g:numberer_format')
+  let g:numberer_format = '%d. '
+endif
+
+" Command definition
+command -range NumberLines <line1>,<line2>call numberer#AddNumbers()
+
+" Key mapping
+if !hasmapto('<Plug>NumbererAdd')
+  nmap <unique> <leader>n <Plug>NumbererAdd
+endif
+
+nnoremap <silent> <Plug>NumbererAdd :set opfunc=numberer#Operator<CR>g@
+vnoremap <silent> <Plug>NumbererAdd :<C-u>call numberer#AddNumbers()<CR>
+```
+
+```vim title="autoload/numberer.vim"
+" Add line numbers to range
+function! numberer#AddNumbers() abort
+  let start = line("'<")
+  let end = line("'>")
+  
+  for lnum in range(start, end)
+    let line_text = getline(lnum)
+    let number = lnum - start + 1
+    let new_text = printf(g:numberer_format, number) . line_text
+    call setline(lnum, new_text)
+  endfor
+endfunction
+
+" Operator function
+function! numberer#Operator(type) abort
+  let start = line("'[")
+  let end = line("']")
+  
+  for lnum in range(start, end)
+    let line_text = getline(lnum)
+    let number = lnum - start + 1
+    let new_text = printf(g:numberer_format, number) . line_text
+    call setline(lnum, new_text)
+  endfor
+endfunction
+```
+  </Tab>
+</Tabs>
+
+## Autoload Functions
+
+Autoload functions are loaded only when called, improving startup time:
+
+<Info>
+**Autoload path:** `autoload/namespace/file.vim`  
+**Function name:** `namespace#file#FunctionName()`
+</Info>
+
+```vim title="autoload/mylib/strings.vim"
+vim9script
+
+export def Capitalize(text: string): string
+  return toupper(text[0]) .. text[1:]
+enddef
+
+export def Slugify(text: string): string
+  return tolower(substitute(text, '\s\+', '-', 'g'))
+enddef
+```
+
+Usage:
+```vim
+# Functions loaded when first called
+echo mylib#strings#Capitalize('hello')  # "Hello"
+echo mylib#strings#Slugify('My Title')  # "my-title"
+```
+
+## User Configuration
+
+### Provide Sensible Defaults
+
+<Tabs>
+  <Tab title="Vim9 Script">
+```vim
+vim9script
+
+# Allow users to override defaults
+if !exists('g:myplugin_enabled')
+  g:myplugin_enabled = true
+endif
+
+if !exists('g:myplugin_max_items')
+  g:myplugin_max_items = 100
+endif
+
+if !exists('g:myplugin_highlight')
+  g:myplugin_highlight = 'Search'
+endif
+
+# Use configuration
+def Setup(): void
+  if !g:myplugin_enabled
+    return
+  endif
+  # Use g:myplugin_max_items and g:myplugin_highlight
+enddef
+```
+  </Tab>
+  <Tab title="Legacy Script">
+```vim
+" Allow users to override defaults
+if !exists('g:myplugin_enabled')
+  let g:myplugin_enabled = 1
+endif
+
+if !exists('g:myplugin_max_items')
+  let g:myplugin_max_items = 100
+endif
+
+if !exists('g:myplugin_highlight')
+  let g:myplugin_highlight = 'Search'
+endif
+```
+  </Tab>
+</Tabs>
+
+### Document Configuration
+
+In `doc/myplugin.txt`:
+```vimdoc
+*myplugin-configuration*
+
+g:myplugin_enabled                              *g:myplugin_enabled*
+    Enable or disable the plugin.
+    Default: 1
+
+g:myplugin_max_items                            *g:myplugin_max_items*
+    Maximum number of items to process.
+    Default: 100
+
+g:myplugin_highlight                            *g:myplugin_highlight*
+    Highlight group to use for matches.
+    Default: 'Search'
+```
+
+## Commands and Mappings
+
+### Creating Commands
+
+```vim
+vim9script
+
+# Simple command
+command MyCommand echo 'Hello!'
+
+# Command with arguments
+command -nargs=1 Greet echo 'Hello ' .. <q-args> .. '!'
+
+# Command with range
+command -range ProcessLines <line1>,<line2>call ProcessRange()
+
+# Command with completion
+command -nargs=1 -complete=file OpenConfig edit <args>
+
+# Complex command with multiple options
+command -nargs=* -range -bang -complete=customlist,CompleteFunc
+  \ MyComplexCmd call HandleCommand(<line1>, <line2>, <bang>0, <f-args>)
+
+def HandleCommand(line1: number, line2: number, bang: number, ...args: list<string>): void
+  # Implementation
+enddef
+
+def CompleteFunc(ArgLead: string, CmdLine: string, CursorPos: number): list<string>
+  return ['option1', 'option2', 'option3']
+enddef
+```
+
+### Creating Mappings
+
+```vim
+vim9script
+
+# Use <Plug> mappings for user customization
+nnoremap <silent> <Plug>MyPluginAction :call DoAction()<CR>
+vnoremap <silent> <Plug>MyPluginAction :<C-u>call DoActionVisual()<CR>
+
+# Provide default mappings (user can disable)
+if !hasmapto('<Plug>MyPluginAction')
+  nmap <unique> <leader>ma <Plug>MyPluginAction
+  vmap <unique> <leader>ma <Plug>MyPluginAction
+endif
+
+# User can remap in their vimrc:
+# nmap <leader>x <Plug>MyPluginAction
+# Or disable default mapping:
+# let g:myplugin_no_mappings = 1
+```
+
+## Filetype Plugins
+
+Filetype-specific functionality:
+
+```vim title="ftplugin/python.vim"
+vim9script
+
+# Only load once per buffer
+if exists('b:did_python_ftplugin')
+  finish
+endif
+b:did_python_ftplugin = true
+
+# Buffer-local settings
+setlocal expandtab
+setlocal shiftwidth=4
+setlocal tabstop=4
+setlocal textwidth=79
+
+# Buffer-local mappings
+nnoremap <buffer> <F5> :!python %<CR>
+nnoremap <buffer> <F6> :!python -m pdb %<CR>
+
+# Buffer-local commands
+command -buffer RunTests !pytest
+command -buffer FormatCode !black %
+
+# Cleanup when filetype changes
+b:undo_ftplugin = 'setlocal expandtab< shiftwidth< tabstop< textwidth<'
+  .. '| nunmap <buffer> <F5>'
+  .. '| nunmap <buffer> <F6>'
+  .. '| delcommand RunTests'
+  .. '| delcommand FormatCode'
+```
+
+## Working with Buffers and Windows
+
+```vim
+vim9script
+
+# Buffer operations
+def CreateScratchBuffer(): number
+  # Create new empty buffer
+  var bufnr = bufadd('scratch')
+  bufload(bufnr)
+  
+  # Configure buffer
+  setbufvar(bufnr, '&buftype', 'nofile')
+  setbufvar(bufnr, '&bufhidden', 'hide')
+  setbufvar(bufnr, '&swapfile', 0)
+  
+  return bufnr
+enddef
+
+# Window operations
+def OpenInSplit(filename: string): void
+  # Open in vertical split
+  execute 'vsplit ' .. fnameescape(filename)
+  
+  # Or horizontal split
+  # execute 'split ' .. fnameescape(filename)
+  
+  # Or new tab
+  # execute 'tabedit ' .. fnameescape(filename)
+enddef
+
+# Save and restore window layout
+def WithTemporaryWindow(callback: func()): void
+  var saved_view = winsaveview()
+  var saved_win = winnr()
+  
+  try
+    callback()
+  finally
+    execute saved_win .. 'wincmd w'
+    winrestview(saved_view)
+  endtry
+enddef
+```
+
+## Async Operations (Jobs and Channels)
+
+```vim
+vim9script
+
+# Run external command asynchronously
+def RunAsync(cmd: string, callback: func(list<string>)): job
+  var output = []
+  
+  var job = job_start(cmd, {
+    out_cb: (channel, msg) => {
+      output->add(msg)
+    },
+    exit_cb: (job, status) => {
+      callback(output)
+    }
+  })
+  
+  return job
+enddef
+
+# Usage
+RunAsync('ls -la', (output) => {
+  echo 'Command completed'
+  for line in output
+    echo line
+  endfor
+})
+
+# Channel communication (TCP/socket)
+def ConnectToServer(host: string, port: number): channel
+  var channel = ch_open($'{host}:{port}', {
+    mode: 'json',
+    callback: (channel, msg) => {
+      echo 'Received: ' .. string(msg)
+    }
+  })
+  
+  return channel
+enddef
+```
+
+## Error Handling
+
+```vim
+vim9script
+
+# Try-catch for error handling
+def SafeOperation(): bool
+  try
+    # Risky operation
+    execute 'edit ' .. expand('%:h') .. '/file.txt'
+    return true
+  catch /^Vim\%(\a\+\)\?:E/
+    echohl ErrorMsg
+    echo 'Error: ' .. v:exception
+    echohl None
+    return false
+  finally
+    # Cleanup (always runs)
+    echo 'Operation attempted'
+  endtry
+enddef
+
+# Throw custom errors
+def ValidateInput(value: number): void
+  if value < 0
+    throw 'InvalidInput: Value must be non-negative'
+  endif
+  if value > 100
+    throw 'InvalidInput: Value must be <= 100'
+  endif
+enddef
+
+# Use errors
+try
+  ValidateInput(150)
+catch /^InvalidInput:/
+  echo 'Validation failed: ' .. v:exception
+endtry
+```
+
+## Testing Your Plugin
+
+```vim title="test/test_numberer.vim"
+vim9script
+
+# Simple test framework
+def RunTests(): void
+  var passed = 0
+  var failed = 0
+  
+  for test in [
+    Test_AddNumbers,
+    Test_CustomFormat,
+    Test_EmptyRange
+  ]
+    try
+      test()
+      passed += 1
+      echo 'PASS: ' .. string(test)
+    catch
+      failed += 1
+      echohl ErrorMsg
+      echo 'FAIL: ' .. string(test) .. ' - ' .. v:exception
+      echohl None
+    endtry
+  endfor
+  
+  echo $'\nResults: {passed} passed, {failed} failed'
+enddef
+
+def Test_AddNumbers(): void
+  # Setup
+  new
+  setline(1, ['line1', 'line2', 'line3'])
+  
+  # Execute
+  normal! ggVG
+  numberer#AddNumbers()
+  
+  # Assert
+  assert_equal('1. line1', getline(1))
+  assert_equal('2. line2', getline(2))
+  assert_equal('3. line3', getline(3))
+  
+  # Cleanup
+  bdelete!
+enddef
+
+def Test_CustomFormat(): void
+  g:numberer_format = '[%d] '
+  new
+  setline(1, ['test'])
+  
+  normal! ggVG
+  numberer#AddNumbers()
+  
+  assert_equal('[1] test', getline(1))
+  
+  bdelete!
+  unlet g:numberer_format
+enddef
+
+def Test_EmptyRange(): void
+  new
+  
+  numberer#AddNumbers()
+  
+  assert_equal([''], getline(1, '$'))
+  
+  bdelete!
+enddef
+
+# Run tests
+RunTests()
+```
+
+## Documentation
+
+Create help documentation in `doc/myplugin.txt`:
+
+```vimdoc
+*myplugin.txt*  Plugin description
+
+Author: Your Name
+License: MIT
+
+==============================================================================
+CONTENTS                                          *myplugin-contents*
+
+1. Introduction .................. |myplugin-introduction|
+2. Usage ......................... |myplugin-usage|
+3. Configuration ................. |myplugin-configuration|
+4. Commands ...................... |myplugin-commands|
+5. Mappings ...................... |myplugin-mappings|
+6. Functions ..................... |myplugin-functions|
+7. License ....................... |myplugin-license|
+
+==============================================================================
+1. INTRODUCTION                               *myplugin-introduction*
+
+Short description of what your plugin does.
+
+==============================================================================
+2. USAGE                                      *myplugin-usage*
+
+How to use the plugin with examples.
+
+==============================================================================
+3. CONFIGURATION                              *myplugin-configuration*
+
+g:myplugin_option                             *g:myplugin_option*
+    Description of the option.
+    Default: value
+
+==============================================================================
+4. COMMANDS                                   *myplugin-commands*
+
+:MyCommand                                    *:MyCommand*
+    Description of command.
+
+==============================================================================
+5. MAPPINGS                                   *myplugin-mappings*
+
+<Plug>MyPluginAction                          *<Plug>MyPluginAction*
+    Description of mapping.
+    Default: <leader>ma
+
+ vim:tw=78:ts=8:ft=help:norl:
+```
+
+Generate help tags:
+```vim
+:helptags ~/.vim/pack/*/start/myplugin/doc/
+```
+
+## Distribution
+
+### GitHub Repository Structure
+
+```
+myplugin/
+├── .github/
+│   └── workflows/
+│       └── test.yml
+├── autoload/
+│   └── myplugin.vim
+├── doc/
+│   └── myplugin.txt
+├── plugin/
+│   └── myplugin.vim
+├── test/
+│   └── test_myplugin.vim
+├── LICENSE
+├── README.md
+└── .gitignore
+```
+
+### README.md Template
+
+```markdown
+# myplugin
+
+One-line description of your plugin.
+
+## Features
+
+- Feature 1
+- Feature 2
+- Feature 3
+
+## Installation
+
+### vim-plug
+```vim
+Plug 'username/myplugin'
+```
+
+### Native packages (Vim 8+)
+```bash
+git clone https://github.com/username/myplugin.git \
+  ~/.vim/pack/plugins/start/myplugin
+```
+
+## Usage
+
+Basic usage examples.
+
+## Configuration
+
+```vim
+let g:myplugin_option = value
+```
+
+## Documentation
+
+See `:help myplugin` for complete documentation.
+
+## License
+
+MIT
+```
+
+## Best Practices
+
+**Use unique prefixes**: Prefix all global variables, functions, and commands with your plugin name (e.g., `g:myplugin_enabled`, `myplugin#function()`, `:MyPluginCommand`).
+
+**Load only once**: Prevent multiple loads with a guard:
+```vim
+if exists('g:loaded_myplugin')
+  finish
+endif
+let g:loaded_myplugin = 1
+```
+
+**Use autoload for large code**: Keep startup fast by using autoload for functions not needed immediately.
+
+**Respect user settings**: Don't override user mappings without permission using `hasmapto()` and `<unique>`.
+
+**Clean up properly**: Provide cleanup for buffer-local settings with `b:undo_ftplugin`.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Vim9 Script" icon="bolt" href="/scripting/vim9script">
+    Use modern syntax for better performance
+  </Card>
+  <Card title="Functions" icon="function" href="/scripting/functions">
+    Advanced function techniques
+  </Card>
+  <Card title="Expressions" icon="calculator" href="/scripting/expressions">
+    Master Vimscript expressions
+  </Card>
+  <Card title="Vimscript Basics" icon="book" href="/scripting/vimscript-basics">
+    Review fundamentals
+  </Card>
+</CardGroup>
+
+## See Also
+
+- `:help write-plugin` - Plugin writing guide
+- `:help autoload` - Autoload mechanism
+- `:help packages` - Native package management
+- `:help write-filetype-plugin` - Filetype plugin guide

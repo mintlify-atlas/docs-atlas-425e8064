@@ -1,0 +1,518 @@
+---
+title: Visual Mode Operations
+description: Select and manipulate text with Vim's visual selection modes
+---
+
+## Overview
+
+Visual mode allows you to select text before applying operations. It provides an intuitive way to see what you're operating on.
+
+## Visual Mode Types
+
+### Entering Visual Mode
+
+| Command | Description |
+|---------|-------------|
+| `v` | Character-wise visual mode |
+| `V` | Line-wise visual mode |
+| `CTRL-V` | Block-wise (column) visual mode |
+| `gv` | Re-select last visual selection |
+
+### Switching Between Modes
+
+| Command | Description |
+|---------|-------------|
+| `v` | Switch to character-wise (from other visual modes) |
+| `V` | Switch to line-wise |
+| `CTRL-V` | Switch to block-wise |
+| `<Esc>` | Exit visual mode |
+| `o` | Move to other end of selection |
+| `O` | Move to other corner (block mode) |
+
+## Character-wise Visual Mode
+
+### Basic Selection
+
+```vim
+" Select a word
+vw
+
+" Select inside quotes
+vi"
+
+" Select from cursor to line end
+v$
+
+" Select entire line (without newline)
+v^o$
+```
+
+### Use Cases
+
+- Selecting partial words or characters
+- Selecting text across multiple lines
+- Selecting within delimiters
+
+## Line-wise Visual Mode
+
+### Basic Selection
+
+```vim
+" Select current line
+V
+
+" Select 3 lines
+Vjj
+" or
+V2j
+
+" Select to end of paragraph
+V}
+
+" Select entire file
+Vgg
+VG
+```
+
+### Use Cases
+
+- Moving or copying entire lines
+- Deleting blocks of code
+- Indenting multiple lines
+- Commenting code blocks
+
+## Block-wise Visual Mode
+
+### Basic Selection
+
+```vim
+" Select a column
+CTRL-V
+jjj
+
+" Select rectangular block
+CTRL-V
+3j4l
+
+" Select to end of lines
+CTRL-V
+jjj$
+```
+
+### Use Cases
+
+- Editing columns of text
+- Inserting/deleting at multiple positions
+- Working with tabular data
+- Code alignment
+
+### Block Insert/Append
+
+```vim
+" Insert at the start of multiple lines
+CTRL-V
+jjj
+I
+text<Esc>
+
+" Append at the end of multiple lines
+CTRL-V
+jjj$
+A
+text<Esc>
+```
+
+## Text Objects in Visual Mode
+
+### Inside/Around Objects
+
+| Command | Description |
+|---------|-------------|
+| `iw` | Inner word |
+| `aw` | A word (with whitespace) |
+| `is` | Inner sentence |
+| `as` | A sentence |
+| `ip` | Inner paragraph |
+| `ap` | A paragraph |
+
+### Delimiter Objects
+
+| Command | Description |
+|---------|-------------|
+| `i(` or `ib` | Inner parentheses |
+| `a(` or `ab` | A parentheses (including parens) |
+| `i{` or `iB` | Inner braces |
+| `a{` or `aB` | A braces (including braces) |
+| `i[` | Inner brackets |
+| `a[` | A brackets (including brackets) |
+| `i<` | Inner angle brackets |
+| `a<` | A angle brackets (including brackets) |
+| `i'` | Inner single quotes |
+| `a'` | A single quotes (including quotes) |
+| `i"` | Inner double quotes |
+| `a"` | A double quotes (including quotes) |
+| `` i` `` | Inner backticks |
+| `` a` `` | A backticks (including backticks) |
+| `it` | Inner tag (HTML/XML) |
+| `at` | A tag (including tags) |
+
+### Text Object Examples
+
+```vim
+" Select word
+viw
+
+" Select sentence
+vas
+
+" Select paragraph
+vip
+
+" Select inside parentheses
+vi(
+
+" Select function arguments
+vi(
+
+" Select HTML tag contents
+vit
+```
+
+## Operations in Visual Mode
+
+### Basic Operations
+
+| Command | Description |
+|---------|-------------|
+| `d` | Delete selection |
+| `c` | Change selection (delete and enter insert) |
+| `y` | Yank (copy) selection |
+| `~` | Toggle case |
+| `u` | Make lowercase |
+| `U` | Make uppercase |
+| `>` | Shift right |
+| `<` | Shift left |
+| `=` | Auto-indent |
+| `J` | Join lines |
+| `gJ` | Join lines without space |
+
+### Advanced Operations
+
+| Command | Description |
+|---------|-------------|
+| `r{char}` | Replace all selected characters with {char} |
+| `:` | Start command for selection |
+| `!` | Filter through external program |
+| `g?` | ROT13 encode |
+| `gq` | Format text |
+
+## Visual Mode Commands
+
+### Selection Adjustment
+
+| Command | Description |
+|---------|-------------|
+| `o` | Move to opposite end of selection |
+| `O` | Move to opposite corner (block mode only) |
+| `e` | Extend to end of word |
+| `iw`, `aw`, etc. | Extend using text objects |
+
+### Visual Mode Tricks
+
+```vim
+" Reselect last visual selection and indent
+gv>
+
+" Select and delete inside function
+vi{d
+
+" Swap visual selection
+viwp
+
+" Increment numbers in visual block
+CTRL-V
+jjjjg CTRL-A
+```
+
+## Practical Examples
+
+### Example 1: Comment Multiple Lines
+
+```vim
+" Select lines
+Vjjj
+
+" Insert comment characters
+:s/^/# /
+```
+
+### Example 2: Column Editing
+
+```vim
+" Select column
+CTRL-V
+jjjj
+
+" Insert at the beginning
+I
+text<Esc>
+```
+
+### Example 3: Align Assignments
+
+```vim
+" Before:
+let foo = 1
+let barbaz = 2
+let x = 3
+
+" 1. Select the column where '=' appears
+CTRL-V
+jj
+f=
+
+" 2. Align using a plugin or manual spacing
+```
+
+### Example 4: Extract Function Arguments
+
+```vim
+" In: foo(bar, baz, qux)
+" Select inside parentheses
+vi(
+
+" Yank
+y
+
+" Paste elsewhere
+p
+```
+
+### Example 5: Surround with Quotes
+
+```vim
+" Select word
+viw
+
+" Surround with quotes (using surround plugin)
+S"
+
+" Or manually
+c"CTRL-R""<Esc>
+```
+
+## Visual Mode Patterns
+
+### Quick Edits
+
+```vim
+" Change inside quotes
+ci"
+
+" Delete inside brackets
+di[
+
+" Yank inside braces
+yi{
+
+" Visual select inside braces, then operate
+vi{
+```
+
+### Block Operations
+
+```vim
+" Insert '#' at start of multiple lines
+CTRL-V
+jjjj
+I#<Esc>
+
+" Append ';' at end of multiple lines
+CTRL-V
+jjjj$
+A;<Esc>
+
+" Delete a column
+CTRL-V
+jjjj
+ld
+```
+
+### Reformatting
+
+```vim
+" Format paragraph
+vip
+gq
+
+" Indent code block
+vi{
+>
+
+" Align visual selection
+vip
+=
+```
+
+## Special Visual Features
+
+### Visual Replace
+
+```vim
+" Select text
+v
+jjj
+
+" Replace with character
+r*
+```
+
+### Visual Substitute
+
+```vim
+" Select lines
+Vjjj
+
+" Substitute in selection
+:s/old/new/g
+
+" Note: range is automatically added as '<,'>
+```
+
+### Incrementing Numbers
+
+```vim
+" Create numbered list
+1.  item
+1.  item  
+1.  item
+1.  item
+
+" Select the numbers (visual block on '1')
+CTRL-V
+jjj
+
+" Increment sequentially
+g CTRL-A
+
+" Result:
+1.  item
+2.  item
+3.  item
+4.  item
+```
+
+## Visual Mode with Registers
+
+```vim
+" Yank to register 'a'
+viw"ay
+
+" Delete to register 'b'
+vi{"bd
+
+" Paste from register 'a'
+"ap
+
+" Copy to system clipboard
+viw"+y
+```
+
+## Combining Visual with Search
+
+```vim
+" Select to next search match
+v/pattern<CR>
+
+" Select to previous match
+v?pattern<CR>
+
+" Extend selection to next match
+n
+```
+
+## Common Workflows
+
+### Workflow 1: Extract and Move Code
+
+```vim
+" 1. Select function
+vi{
+
+" 2. Cut
+d
+
+" 3. Navigate to destination
+/destination
+
+" 4. Paste
+P
+```
+
+### Workflow 2: Duplicate Lines
+
+```vim
+" 1. Select lines
+Vjjj
+
+" 2. Yank
+y
+
+" 3. Paste below
+p
+```
+
+### Workflow 3: Reindent Code Block
+
+```vim
+" 1. Select block
+vi{
+
+" 2. Auto-indent
+=
+
+" Or manual indent
+>>
+```
+
+### Workflow 4: Column Editing in Table
+
+```vim
+" Add column to CSV
+" 1. Position at column
+CTRL-V
+
+" 2. Select column down
+jjjj
+
+" 3. Insert
+I
+newdata,<Esc>
+```
+
+## Related Commands
+
+- [Movement Commands](/commands/motion) - Navigate within visual selection
+- [Editing Commands](/commands/editing) - Operations to perform on selection
+- [Search and Replace](/commands/search-replace) - Search within visual selection
+
+## Tips
+
+<Tip>
+**Pro tip**: Use `gv` to reselect your last visual selection. This is incredibly useful when you need to perform multiple operations on the same text.
+</Tip>
+
+<Tip>
+Combine visual mode with text objects for efficient selection:
+- `vip` - Select paragraph
+- `vi{` - Select inside braces
+- `va"` - Select including quotes
+</Tip>
+
+<Warning>
+In block-wise visual mode, `$` extends each line to its end, creating a ragged right edge rather than a rectangular block.
+</Warning>
+
+<Info>
+Visual mode operations can be repeated with `.` but the selection size is fixed. Use macros for more flexible repetition.
+</Info>

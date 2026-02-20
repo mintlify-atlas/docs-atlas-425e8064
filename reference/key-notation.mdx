@@ -1,0 +1,611 @@
+---
+title: Key Notation
+description: Key notation, special keys, and modifiers in Vim
+---
+
+## Overview
+
+Vim uses a special notation to represent keys, especially non-printable characters, function keys, and modified keys. Understanding this notation is essential for creating mappings, reading documentation, and configuring Vim effectively.
+
+## Basic Notation Rules
+
+### Printable Characters
+
+Most printable characters are typed directly:
+
+```vim
+" Letters, numbers, punctuation
+:map a :echo "a pressed"<CR>
+:map 5 :echo "5 pressed"<CR>
+:map , :echo "comma pressed"<CR>
+```
+
+### Special Character Escaping
+
+Some characters require escaping:
+
+```vim
+" Backslash - use \\ or <Bslash>
+:map \\ :echo "backslash"<CR>
+:map <Bslash> :echo "backslash"<CR>
+
+" Less-than - use \< or <lt>
+:map \< :echo "less-than"<CR>
+:map <lt> :echo "less-than"<CR>
+
+" Space - use <Space>
+:map <Space> :echo "space"<CR>
+
+" Bar - use <Bar>
+:map <Bar> :echo "pipe"<CR>
+```
+
+### Angle Bracket Notation
+
+Special keys use angle brackets:
+
+```vim
+" Format: <KeyName>
+:map <Esc> :echo "escape"<CR>
+:map <CR> :echo "enter"<CR>
+:map <Tab> :echo "tab"<CR>
+:map <F1> :echo "function key 1"<CR>
+```
+
+## Control Keys
+
+### Notation
+
+Control keys use `CTRL-` or `<C->`:
+
+```vim
+" Both notations are equivalent
+CTRL-G    " In documentation
+<C-G>     " In mappings
+
+" Examples
+:map <C-S> :w<CR>         " Ctrl-S to save
+:map <C-N> :bnext<CR>     " Ctrl-N for next buffer
+:map <C-P> :bprev<CR>     " Ctrl-P for previous buffer
+```
+
+### Case Insensitivity
+
+`CTRL-A` and `CTRL-a` are equivalent:
+
+```vim
+:map <C-A> :echo "A"<CR>
+:map <C-a> :echo "a"<CR>
+" Both mappings are the same
+```
+
+### Special Control Characters
+
+| Notation | Key | Decimal | Description |
+|----------|-----|---------|-------------|
+| `<Nul>` | CTRL-@ | 0 | Null character |
+| `<BS>` | CTRL-H | 8 | Backspace |
+| `<Tab>` | CTRL-I | 9 | Tab |
+| `<NL>` | CTRL-J | 10 | Newline |
+| `<CR>` | CTRL-M | 13 | Carriage return |
+| `<Esc>` | CTRL-[ | 27 | Escape |
+
+## Common Special Keys
+
+### Navigation Keys
+
+| Notation | Key |
+|----------|-----|
+| `<Up>` | Cursor up |
+| `<Down>` | Cursor down |
+| `<Left>` | Cursor left |
+| `<Right>` | Cursor right |
+| `<Home>` | Home |
+| `<End>` | End |
+| `<PageUp>` | Page up |
+| `<PageDown>` | Page down |
+
+**Example mappings:**
+
+```vim
+" Navigate buffers with Ctrl-arrows
+map <C-Left> :bprev<CR>
+map <C-Right> :bnext<CR>
+
+" Move between windows
+map <C-Up> <C-W>k
+map <C-Down> <C-W>j
+```
+
+### Editing Keys
+
+| Notation | Key |
+|----------|-----|
+| `<Insert>` | Insert |
+| `<Del>` | Delete |
+| `<BS>` | Backspace |
+| `<Space>` | Space |
+| `<CR>` | Enter/Return |
+| `<Enter>` | Same as `<CR>` |
+| `<Return>` | Same as `<CR>` |
+| `<Tab>` | Tab |
+| `<Esc>` | Escape |
+
+### Function Keys
+
+| Notation | Key |
+|----------|-----|
+| `<F1>` to `<F12>` | Function keys 1-12 |
+| `<F13>` to `<F19>` | Extended function keys |
+
+**Example:**
+
+```vim
+" Function key mappings
+map <F1> :help<CR>
+map <F2> :w<CR>
+map <F3> /
+map <F4> :%s/
+map <F5> :make<CR>
+```
+
+### Special Keys
+
+| Notation | Key |
+|----------|-----|
+| `<Help>` | Help key |
+| `<Undo>` | Undo key |
+| `<CSI>` | Command sequence intro |
+| `<EOL>` | End of line |
+
+## Modifier Keys
+
+### Shift Modifier
+
+Use `S-` or `<S->`:
+
+```vim
+" Shifted keys
+<S-F1>      " Shift-F1
+<S-Left>    " Shift-Left arrow
+<S-Tab>     " Shift-Tab (back-tab)
+
+" Examples
+map <S-F1> :help index<CR>
+map <S-Tab> <<
+vmap <S-Tab> <gv
+```
+
+### Control Modifier  
+
+Use `C-` or `<C->`:
+
+```vim
+" Control combinations
+<C-F>       " Ctrl-F
+<C-S>       " Ctrl-S
+<C-Left>    " Ctrl-Left arrow
+
+" Examples
+map <C-S> :w<CR>
+map <C-Left> b
+map <C-Right> w
+```
+
+### Alt/Meta Modifier
+
+Use `M-`, `A-`, `<M->`, or `<A->`:
+
+```vim
+" Alt combinations (M- and A- are equivalent)
+<M-a>       " Alt-a
+<A-a>       " Alt-a (same as above)
+<M-F4>      " Alt-F4
+
+" Examples
+map <M-h> <C-W>h
+map <M-j> <C-W>j
+map <M-k> <C-W>k  
+map <M-l> <C-W>l
+```
+
+**Note:** Alt key may not work in all terminals. Test with:
+
+```vim
+:echo "\<M-a>"
+```
+
+If it shows `a`, the terminal doesn't send Alt properly.
+
+### Command/Super Modifier
+
+Use `D-` or `<D->` (primarily macOS and GTK):
+
+```vim
+" Command key (macOS) / Super key (Linux)
+<D-s>       " Cmd-S (macOS)
+<D-w>       " Cmd-W
+
+" Examples (macOS)
+map <D-s> :w<CR>
+map <D-w> :q<CR>
+map <D-n> :enew<CR>
+```
+
+### Combined Modifiers
+
+Multiple modifiers can be combined:
+
+```vim
+" Multiple modifiers
+<C-S-F>     " Ctrl-Shift-F
+<M-C-j>     " Alt-Ctrl-j
+<C-S-Left>  " Ctrl-Shift-Left
+
+" Examples
+map <C-S-P> :Commands<CR>
+map <M-C-k> :move .-2<CR>
+map <M-C-j> :move .+1<CR>
+```
+
+## Mouse Notation
+
+### Mouse Buttons
+
+| Notation | Action |
+|----------|--------|
+| `<LeftMouse>` | Left button click |
+| `<RightMouse>` | Right button click |
+| `<MiddleMouse>` | Middle button click |
+| `<LeftDrag>` | Left button drag |
+| `<LeftRelease>` | Left button release |
+
+### Mouse with Modifiers
+
+```vim
+" Modified mouse clicks
+<C-LeftMouse>   " Ctrl-Left click
+<S-LeftMouse>   " Shift-Left click
+<M-LeftMouse>   " Alt-Left click
+
+" Examples
+map <C-LeftMouse> <C-]>           " Jump to tag
+map <S-LeftMouse> *               " Search word
+map <RightMouse> <C-O>            " Go back
+```
+
+### Multi-Click
+
+```vim
+" Double-click, triple-click
+<2-LeftMouse>   " Double-click
+<3-LeftMouse>   " Triple-click  
+<4-LeftMouse>   " Quadruple-click
+
+" Examples
+map <2-LeftMouse> :e <cfile><CR>  " Open file under cursor
+```
+
+### Mouse Movement
+
+```vim
+" Requires 'mousemoveevent' option
+set mousemoveevent
+map <MouseMove> :echo "Mouse moved"<CR>
+```
+
+## Keypad Keys
+
+### Keypad Notation
+
+| Notation | Key |
+|----------|-----|
+| `<k0>` to `<k9>` | Keypad 0-9 |
+| `<kHome>` | Keypad Home |
+| `<kEnd>` | Keypad End |
+| `<kPageUp>` | Keypad Page Up |
+| `<kPageDown>` | Keypad Page Down |
+| `<kPlus>` | Keypad + |
+| `<kMinus>` | Keypad - |
+| `<kMultiply>` | Keypad * |
+| `<kDivide>` | Keypad / |
+| `<kEnter>` | Keypad Enter |
+| `<kPoint>` | Keypad decimal point |
+
+**Note:** Keypad keys behave like their normal equivalents unless explicitly mapped.
+
+### Keypad Decimal Point
+
+Some keyboards use comma instead of point:
+
+```vim
+" Map keypad comma to decimal point
+noremap <kPoint> ,
+noremap! <kPoint> ,
+```
+
+## Terminal-Specific Keys
+
+### xterm Keys
+
+xterm sends different codes for some keys:
+
+| Notation | Key | Mode |
+|----------|-----|------|
+| `<xF1>` to `<xF4>` | F1-F4 | VT100 mode |
+| `<xHome>` | Home | Alternative |
+| `<xEnd>` | End | Alternative |
+
+Vim maps these to standard keys by default:
+
+```vim
+" These are equivalent
+<F1> and <xF1>
+<Home> and <xHome>
+```
+
+### Alternative Arrow Keys
+
+```vim
+" For terminals with multiple arrow codes
+<xUp>       " Alternative up
+<xDown>     " Alternative down  
+<xLeft>     " Alternative left
+<xRight>    " Alternative right
+```
+
+### Shifted Function Keys
+
+```vim
+" Shifted function keys  
+<S-F1> to <S-F12>
+<S-xF1> to <S-xF4>  " Alternative shifted
+```
+
+## Termcap Options
+
+Access terminal capability codes:
+
+```vim
+" Termcap format: <t_xx>
+<t_xx>      " Where xx is termcap code
+
+" Examples
+<t_ku>      " Up arrow termcap
+<t_kd>      " Down arrow termcap
+<t_Co>      " Color count
+```
+
+## Special Sequences
+
+### Bracketed Paste
+
+```vim
+<PasteStart>    " Start of pasted text
+<PasteEnd>      " End of pasted text
+```
+
+### Focus Events
+
+```vim
+<FocusGained>   " Vim gained focus
+<FocusLost>     " Vim lost focus
+
+" Example
+autocmd FocusGained * checktime
+autocmd FocusLost * silent! wall
+```
+
+## Mapping Examples
+
+### Basic Mappings
+
+```vim
+" Normal mode mappings
+nnoremap <F5> :make<CR>
+nnoremap <F6> :make test<CR>
+nnoremap <C-s> :w<CR>
+
+" Insert mode mappings  
+inoremap <C-s> <Esc>:w<CR>a
+inoremap <C-u> <C-g>u<C-u>
+
+" Visual mode mappings
+vnoremap <C-c> "+y
+vnoremap <C-x> "+x
+```
+
+### Leader Mappings
+
+```vim
+" Set leader key
+let mapleader = "\<Space>"
+
+" Leader-based mappings
+nnoremap <Leader>w :w<CR>
+nnoremap <Leader>q :q<CR>
+nnoremap <Leader>e :e 
+nnoremap <Leader>b :ls<CR>:b<Space>
+```
+
+### Complex Key Sequences
+
+```vim
+" Multiple key sequence
+nnoremap <Leader>fc /\<<C-r><C-w>\><CR>
+nnoremap <Leader>fr :%s/\<<C-r><C-w>\>//gc<Left><Left><Left>
+```
+
+### Mode-Specific Mappings
+
+```vim
+" Different behavior per mode
+nnoremap <C-l> :nohlsearch<CR>:diffupdate<CR><C-l>
+inoremap <C-l> <Right>
+vnoremap <C-l> <Esc>
+```
+
+## Creating Custom Notation
+
+### Defining Custom Keys
+
+```vim
+" Define custom key codes
+set <F13>=^[[25~
+set <F14>=^[[26~
+
+" Now can map them
+map <F13> :echo "Custom F13"<CR>
+```
+
+### Checking Key Codes
+
+Find what code a key sends:
+
+```vim
+" In insert mode, type:
+Ctrl-V <key>
+
+" Or check in normal mode:
+:echo "\<C-V><key>"
+```
+
+## Best Practices
+
+### Use Non-Recursive Mappings
+
+```vim
+" Prefer noremap variants
+nnoremap <C-s> :w<CR>       " Good
+map <C-s> :w<CR>            " Avoid (can be recursive)
+```
+
+### Be Explicit with Modes
+
+```vim
+" Specify mode clearly
+nnoremap <F2> :w<CR>        " Normal mode
+inoremap <F2> <Esc>:w<CR>   " Insert mode  
+vnoremap <F2> <Esc>:w<CR>   " Visual mode
+```
+
+### Document Complex Mappings
+
+```vim
+" Search for word under cursor
+nnoremap <Leader>* /\<<C-r><C-w>\><CR>
+
+" Replace word under cursor
+nnoremap <Leader># :%s/\<<C-r><C-w>\>//gc<Left><Left><Left>
+```
+
+### Avoid Overriding Defaults
+
+```vim
+" Check if mapping exists
+if maparg('<C-n>', 'n') ==# ''
+  nnoremap <C-n> :bnext<CR>
+endif
+```
+
+### Use Silent Mappings
+
+```vim
+" Suppress command echo
+nnoremap <silent> <F5> :make<CR>
+nnoremap <silent> <Leader>w :w<CR>
+```
+
+## Notation in Different Contexts
+
+### In Mappings
+
+```vim
+" Use <> notation
+:map <C-s> :w<CR>
+:imap <C-s> <Esc>:w<CR>a
+```
+
+### In Scripts
+
+```vim
+" Use \< prefix in strings
+let key = "\<C-S>"
+execute "map " . key . " :w<CR>"
+```
+
+### In Functions
+
+```vim
+function! s:SaveFile()
+  " Use \< in strings
+  return "\<Esc>:w\<CR>"
+endfunction
+
+inoremap <expr> <C-s> <SID>SaveFile()
+```
+
+### In Commands
+
+```vim
+" Cannot use <> notation
+set wildchar=<Tab>     " Wrong
+set wildchar=9         " Correct (Tab's ASCII value)
+```
+
+## Troubleshooting
+
+### Key Not Working
+
+Determine what Vim receives:
+
+```vim
+" In insert mode
+Ctrl-V <key>
+
+" In normal mode  
+:set showcmd
+" Press keys, watch bottom-right
+```
+
+### Terminal Doesn't Send Key
+
+Some terminals don't support all keys:
+
+```vim
+" Test if key works
+:echo "Press key now:"
+:let c = getchar()
+:echo c
+```
+
+### Mapping Conflicts
+
+Check existing mappings:
+
+```vim
+" List all mappings
+:map
+:map <C-s>
+
+" Check specific mapping
+:verbose map <C-s>
+```
+
+### Timeout Issues
+
+Adjust timeouts if keys are slow:
+
+```vim
+" Wait longer for key sequences
+set timeout timeoutlen=3000
+
+" Reduce escape timeout
+set ttimeout ttimeoutlen=100
+```
+
+## See Also
+
+- [Key Mapping](/reference/mapping) - Complete mapping reference
+- [Terminal Options](/reference/terminal-options) - Terminal configuration
+- [GUI Features](/reference/gui-features) - GUI-specific features

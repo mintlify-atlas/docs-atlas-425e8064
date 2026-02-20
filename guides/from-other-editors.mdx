@@ -1,0 +1,502 @@
+---
+title: Coming from Other Editors
+description: Transition guide for users of Emacs, nano, VS Code, and other popular text editors
+---
+
+## Overview
+
+Vim's modal editing approach differs significantly from most modern editors. This guide helps users of other editors understand Vim's paradigm and find equivalent functionality.
+
+## Modal Editing Concept
+
+Unlike most editors that use modifier keys (Ctrl, Alt) for commands, Vim uses different **modes**:
+
+- **Normal Mode**: Navigate and manipulate text (default)
+- **Insert Mode**: Type text like traditional editors
+- **Visual Mode**: Select text before operating on it
+- **Command Mode**: Execute Ex commands
+
+<Note>
+Press `Esc` to return to Normal mode from any other mode. This is the most important Vim habit to develop.
+</Note>
+
+## From Emacs
+
+### Philosophy Differences
+
+| Aspect | Emacs | Vim |
+|--------|-------|-----|
+| **Editing Model** | Modeless | Modal |
+| **Extension** | Emacs Lisp | Vimscript/Vim9/Lua |
+| **Key Bindings** | Chord-based (C-x C-s) | Mode-based (`:w`) |
+| **Buffer Management** | Multiple buffers visible | Windows, tabs, buffers |
+| **Philosophy** | "Everything in one" | "Do one thing well" |
+
+### Key Binding Equivalents
+
+#### File Operations
+
+| Action | Emacs | Vim |
+|--------|-------|-----|
+| **Open file** | `C-x C-f` | `:e filename` or `:find filename` |
+| **Save file** | `C-x C-s` | `:w` |
+| **Save as** | `C-x C-w` | `:w filename` |
+| **Close file** | `C-x k` | `:bd` (buffer delete) or `:q` |
+| **Quit** | `C-x C-c` | `:q` or `:qa` (quit all) |
+| **Save and quit** | `C-x C-c` (with save prompt) | `:wq` or `ZZ` |
+
+#### Navigation
+
+| Action | Emacs | Vim (Normal Mode) |
+|--------|-------|------------------|
+| **Next char** | `C-f` | `l` or `<Right>` |
+| **Previous char** | `C-b` | `h` or `<Left>` |
+| **Next line** | `C-n` | `j` or `<Down>` |
+| **Previous line** | `C-p` | `k` or `<Up>` |
+| **Start of line** | `C-a` | `0` (column 0) or `^` (first non-blank) |
+| **End of line** | `C-e` | `$` |
+| **Next word** | `M-f` | `w` (word start) or `e` (word end) |
+| **Previous word** | `M-b` | `b` |
+| **Page down** | `C-v` | `CTRL-F` |
+| **Page up** | `M-v` | `CTRL-B` |
+| **Start of file** | `M-<` | `gg` |
+| **End of file** | `M->` | `G` |
+| **Go to line** | `M-g g` | `:{line}` or `{line}G` |
+
+#### Editing
+
+| Action | Emacs | Vim |
+|--------|-------|-----|
+| **Delete char** | `C-d` | `x` (under cursor) or `X` (before) |
+| **Delete line** | `C-k` | `dd` |
+| **Delete word** | `M-d` | `dw` |
+| **Delete to end** | `C-k` | `d$` or `D` |
+| **Undo** | `C-/` or `C-_` | `u` |
+| **Redo** | `C-?` or `M-_` | `CTRL-R` |
+| **Cut** | `C-w` | `dd` (line) or `d{motion}` |
+| **Copy** | `M-w` | `yy` (line) or `y{motion}` |
+| **Paste** | `C-y` | `p` (after) or `P` (before) |
+| **Select all** | `C-x h` | `ggVG` |
+
+#### Search and Replace
+
+| Action | Emacs | Vim |
+|--------|-------|-----|
+| **Search** | `C-s` | `/pattern` (forward) or `?pattern` (backward) |
+| **Next match** | `C-s` | `n` |
+| **Previous match** | `C-r` | `N` |
+| **Replace** | `M-%` | `:%s/old/new/g` |
+| **Query replace** | `M-%` (then `y`/`n`) | `:%s/old/new/gc` |
+
+#### Windows and Buffers
+
+| Action | Emacs | Vim |
+|--------|-------|-----|
+| **Split horizontal** | `C-x 2` | `:split` or `CTRL-W s` |
+| **Split vertical** | `C-x 3` | `:vsplit` or `CTRL-W v` |
+| **Close window** | `C-x 0` | `:close` or `CTRL-W c` |
+| **Other window** | `C-x o` | `CTRL-W w` |
+| **List buffers** | `C-x C-b` | `:ls` or `:buffers` |
+| **Switch buffer** | `C-x b` | `:b {name/number}` |
+
+### Evil Mode (Emacs Vi Layer)
+
+If you want Vim keybindings in Emacs, try **Evil mode**:
+
+```elisp
+;; Add to ~/.emacs or ~/.emacs.d/init.el
+(require 'evil)
+(evil-mode 1)
+```
+
+### Vim Configuration for Emacs Users
+
+```vim
+" ~/.vimrc - Emacs-friendly settings
+
+" Make Vim behave more like Emacs in Insert mode
+inoremap <C-a> <Home>
+inoremap <C-e> <End>
+inoremap <C-k> <C-o>d$
+inoremap <C-d> <Del>
+inoremap <C-f> <Right>
+inoremap <C-b> <Left>
+
+" Buffer navigation
+nnoremap <C-x><C-f> :edit 
+nnoremap <C-x><C-s> :write<CR>
+nnoremap <C-x><C-c> :qa<CR>
+
+" Window management (already similar)
+" C-w s = split horizontal
+" C-w v = split vertical
+" C-w w = switch windows
+```
+
+## From Nano/Pico
+
+### Interface Differences
+
+Nano shows available commands at the bottom; Vim requires learning commands.
+
+| Action | Nano | Vim |
+|--------|------|-----|
+| **Help** | `^G` | `:help` or `:help {topic}` |
+| **Exit** | `^X` | `:q` (quit) or `:q!` (quit without saving) |
+| **Save** | `^O` | `:w` |
+| **Cut line** | `^K` | `dd` |
+| **Paste** | `^U` | `p` |
+| **Search** | `^W` | `/pattern` |
+| **Replace** | `^\` | `:%s/old/new/g` |
+| **Go to line** | `^_` | `:{line}` or `{line}G` |
+| **Justify** | `^J` | `gq{motion}` or `gwip` (paragraph) |
+| **Cursor position** | `^C` | `CTRL-G` or `:set ruler` |
+
+### Nano-like Configuration
+
+For users who want a more familiar experience:
+
+```vim
+" ~/.vimrc - Nano-like behavior
+
+" Always show command menu at bottom
+set ruler
+set showcmd
+set laststatus=2
+
+" Display line numbers
+set number
+
+" Enable mouse
+set mouse=a
+
+" Map nano-like keys (Insert mode)
+inoremap <C-o> <Esc>:w<CR>a
+inoremap <C-x> <Esc>:q<CR>
+
+" Arrow keys work naturally
+set nocompatible
+
+" Easier for beginners
+set showmode
+set wildmenu
+set wildmode=longest:full,full
+```
+
+## From VS Code / Sublime Text / Atom
+
+### Modern Editor Features in Vim
+
+| Feature | VS Code/Sublime | Vim Equivalent |
+|---------|----------------|----------------|
+| **Command Palette** | `Ctrl+Shift+P` | `:command` or `q:` |
+| **Quick Open** | `Ctrl+P` | `:find` or use fuzzy finder plugin |
+| **Multi-cursor** | `Ctrl+D` | Visual Block mode (`CTRL-V`) or `:g/pattern/` |
+| **Go to Definition** | `F12` | `CTRL-]` (with tags) or `gd` |
+| **Go to Symbol** | `Ctrl+Shift+O` | `:tag` or `/pattern` |
+| **Find in Files** | `Ctrl+Shift+F` | `:vimgrep /pattern/ **/*` or `:grep` |
+| **Sidebar** | `Ctrl+B` | `:Explore` or netrw/NERDTree |
+| **Terminal** | ``Ctrl+` `` | `:terminal` |
+| **Split Editor** | `Ctrl+\` | `:vsplit` or `CTRL-W v` |
+| **Zen Mode** | `Ctrl+K Z` | `:set lines=999 columns=999` |
+
+### Keyboard Shortcuts
+
+#### Common Actions
+
+| Action | VS Code | Vim |
+|--------|---------|-----|
+| **Save** | `Ctrl+S` | `:w` |
+| **Save All** | `Ctrl+K S` | `:wa` |
+| **Close Tab** | `Ctrl+W` | `:bd` or `:q` |
+| **Undo** | `Ctrl+Z` | `u` |
+| **Redo** | `Ctrl+Y` | `CTRL-R` |
+| **Cut** | `Ctrl+X` | `dd` or visual select + `d` |
+| **Copy** | `Ctrl+C` | `yy` or visual select + `y` |
+| **Paste** | `Ctrl+V` | `p` |
+| **Select All** | `Ctrl+A` | `ggVG` |
+| **Find** | `Ctrl+F` | `/pattern` |
+| **Replace** | `Ctrl+H` | `:%s/old/new/gc` |
+| **Comment Line** | `Ctrl+/` | `gcc` (with commentary plugin) |
+| **Indent** | `Tab` | `>>` or visual select + `>` |
+| **Outdent** | `Shift+Tab` | `<<` or visual select + `<` |
+| **Move Line Up** | `Alt+Up` | `:m -2` or `ddkP` |
+| **Move Line Down** | `Alt+Down` | `:m +1` or `ddp` |
+| **Duplicate Line** | `Shift+Alt+Down` | `yyp` |
+
+### VSCode Vim Extension
+
+The most popular option for VS Code users is the **Vim extension**:
+
+```json
+// settings.json
+{
+  "vim.leader": "<space>",
+  "vim.useSystemClipboard": true,
+  "vim.hlsearch": true,
+  "vim.incsearch": true,
+  "vim.easymotion": true,
+  "vim.sneak": true,
+  "vim.normalModeKeyBindingsNonRecursive": [
+    {
+      "before": ["<leader>", "w"],
+      "commands": ["workbench.action.files.save"]
+    }
+  ]
+}
+```
+
+### Vim Configuration for Modern Editor Users
+
+```vim
+" ~/.vimrc - Modern editor-like settings
+
+" Enable modern features
+set nocompatible
+filetype plugin indent on
+syntax on
+
+" Visual improvements
+set number relativenumber    " Hybrid line numbers
+set cursorline               " Highlight current line
+set signcolumn=yes           " Always show sign column
+set colorcolumn=80           " Show column limit
+
+" Better search
+set ignorecase smartcase
+set incsearch hlsearch
+
+" Tab completion
+set wildmenu
+set wildmode=longest:full,full
+
+" Mouse support
+set mouse=a
+
+" Clipboard integration
+set clipboard=unnamedplus    " Use system clipboard
+
+" Sensible splits
+set splitright
+set splitbelow
+
+" Fast updates
+set updatetime=300
+
+" Better display
+set signcolumn=yes
+set cmdheight=2
+
+" Modern keybindings
+nnoremap <C-s> :w<CR>
+nnoremap <C-q> :q<CR>
+nnoremap <C-z> u
+nnoremap <C-y> <C-r>
+
+" Tab navigation (like browser tabs)
+nnoremap <C-t> :tabnew<CR>
+nnoremap <C-Tab> :tabnext<CR>
+nnoremap <C-S-Tab> :tabprevious<CR>
+
+" Easy window navigation
+nnoremap <C-h> <C-w>h
+nnoremap <C-j> <C-w>j
+nnoremap <C-k> <C-w>k
+nnoremap <C-l> <C-w>l
+```
+
+## From Notepad++
+
+| Action | Notepad++ | Vim |
+|--------|-----------|-----|
+| **New File** | `Ctrl+N` | `:enew` |
+| **Open** | `Ctrl+O` | `:e filename` |
+| **Save** | `Ctrl+S` | `:w` |
+| **Print** | `Ctrl+P` | `:hardcopy` |
+| **Find** | `Ctrl+F` | `/pattern` |
+| **Find Next** | `F3` | `n` |
+| **Replace** | `Ctrl+H` | `:%s/old/new/g` |
+| **Go to Line** | `Ctrl+G` | `:{line}` |
+| **Duplicate Line** | `Ctrl+D` | `yyp` |
+| **Delete Line** | `Ctrl+L` | `dd` |
+| **Move Line Up** | `Ctrl+Shift+Up` | `ddkP` |
+| **Move Line Down** | `Ctrl+Shift+Down` | `ddp` |
+| **Block Comment** | `Ctrl+Q` | Visual Block + `I#<Esc>` |
+| **Fold All** | `Alt+0` | `zM` |
+| **Unfold All** | `Alt+Shift+0` | `zR` |
+
+## From TextMate / BBEdit (macOS)
+
+| Action | TextMate/BBEdit | Vim |
+|--------|----------------|-----|
+| **Command Palette** | `Cmd+T` | `:` or use fuzzy finder |
+| **Go to File** | `Cmd+T` | `:find` or `:FZF` |
+| **Go to Symbol** | `Cmd+Shift+T` | `:tag` or `/^function` |
+| **Column Selection** | `Option+drag` | `CTRL-V` (Visual Block) |
+| **Multiple Cursors** | `Cmd+click` | `:g/pattern/normal A` |
+| **Indent Selection** | `Cmd+]` | `>` in Visual mode |
+| **Outdent Selection** | `Cmd+[` | `<` in Visual mode |
+| **Hard Wrap** | `Ctrl+Q` | `gq{motion}` |
+
+## Common Workflows
+
+### Multiple File Editing
+
+```vim
+" Open multiple files
+vim file1.txt file2.txt file3.txt
+
+" Navigate buffers
+:bnext           " Next buffer
+:bprevious       " Previous buffer
+:buffer 2        " Go to buffer 2
+:ls              " List all buffers
+
+" Use argument list
+:args *.txt      " Load all .txt files
+:next            " Next file in args
+:previous        " Previous file in args
+:argdo %s/old/new/ge | update  " Replace in all files
+```
+
+### Multi-line Editing
+
+```vim
+" Visual Block mode (like multi-cursor)
+CTRL-V           " Start Visual Block
+j j j            " Select multiple lines
+I                " Insert at beginning of all lines
+text<Esc>        " Insert 'text' on all lines
+
+" Append to multiple lines
+CTRL-V           " Start Visual Block
+j j j            " Select lines
+$                " Go to end
+A                " Append to all lines
+text<Esc>        " Add 'text' to all line ends
+```
+
+### Project-wide Search and Replace
+
+```vim
+" Search in multiple files
+:vimgrep /pattern/ **/*.js
+:copen           " Open quickfix list
+
+" Replace in multiple files
+:args **/*.js    " Load all .js files
+:argdo %s/old/new/ge | update
+```
+
+## Essential Plugins for Editor Transitions
+
+Popular plugins that provide familiar functionality:
+
+| Feature | Plugin |
+|---------|--------|
+| **Fuzzy File Finder** | fzf.vim, Telescope (Neovim) |
+| **File Explorer** | NERDTree, vim-vinegar, nvim-tree |
+| **Status Line** | vim-airline, lightline, lualine |
+| **Git Integration** | vim-fugitive, gitsigns |
+| **Auto-completion** | coc.nvim, YouCompleteMe, nvim-cmp |
+| **Snippets** | UltiSnips, vim-snippets, LuaSnip |
+| **Commenting** | vim-commentary, nerdcommenter |
+| **Surround** | vim-surround (add/change/delete brackets/quotes) |
+| **Multiple Cursors** | vim-multiple-cursors |
+| **Auto-pairs** | auto-pairs, nvim-autopairs |
+
+## Learning Path
+
+### Week 1: Basics
+- Use `:Tutor` built-in tutorial
+- Learn modal navigation (hjkl, w, b, e, 0, $)
+- Practice entering/exiting Insert mode
+- Basic file operations (`:w`, `:q`, `:e`)
+
+### Week 2: Editing
+- Text objects (`dw`, `ciw`, `yap`, `dit`)
+- Visual mode selections
+- Copy/paste with registers
+- Basic search and replace
+
+### Week 3: Advanced Navigation
+- Marks and jumps
+- Buffer/window management
+- Using tags
+- Macros (recording with `q`)
+
+### Week 4: Customization
+- Create `.vimrc` configuration
+- Install plugin manager
+- Add essential plugins
+- Customize keybindings
+
+## Quick Reference Card
+
+### Mode Transitions
+
+```
+Normal Mode
+    i → Insert mode (before cursor)
+    a → Insert mode (after cursor)
+    v → Visual mode
+    : → Command mode
+    
+Insert/Visual/Command Mode
+    Esc → Normal mode
+```
+
+### Essential Commands
+
+```vim
+" File operations
+:e filename      " Edit file
+:w               " Save
+:q               " Quit
+:wq              " Save and quit
+:q!              " Quit without saving
+
+" Navigation (Normal mode)
+hjkl             " Left, down, up, right
+w/b              " Next/previous word
+0/$              " Start/end of line
+gg/G             " Start/end of file
+
+" Editing (Normal mode)
+dd               " Delete line
+yy               " Copy line
+p                " Paste
+u                " Undo
+CTRL-R           " Redo
+
+" Search
+/pattern         " Search forward
+?pattern         " Search backward
+n/N              " Next/previous match
+
+" Visual mode
+v                " Character-wise visual
+V                " Line-wise visual
+CTRL-V           " Block-wise visual
+```
+
+## Getting Help
+
+```vim
+:help            " Open help
+:help {topic}    " Help on specific topic
+:helpgrep {pattern}  " Search all help files
+K                " Help for word under cursor (Normal mode)
+:Tutor           " Start interactive tutorial
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="From Vi" href="/guides/from-vi" icon="terminal">
+    Understand Vim enhancements over Vi
+  </Card>
+  <Card title="Vim9 Script" href="/guides/vim9-migration" icon="code">
+    Learn modern Vim9 scripting
+  </Card>
+</CardGroup>

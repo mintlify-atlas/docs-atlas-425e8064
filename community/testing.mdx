@@ -1,0 +1,503 @@
+---
+title: Testing Guidelines
+description: Learn how to write and run tests for Vim core and plugins
+---
+
+Vim includes a comprehensive testing framework to ensure code quality and prevent regressions. This guide covers how to write and run tests for Vim core and plugins.
+
+## Overview
+
+Testing is a critical part of Vim development. All new functionality should be tested, and bug fixes should be tested for regressions: the test should fail before the fix and pass after the fix.
+
+<Info>
+The tests are located in the `src/testdir` directory.
+</Info>
+
+## Running Tests
+
+Vim can be tested after building it:
+
+```bash
+cd src
+make test
+```
+
+This will run the complete test suite. You can also run individual tests:
+
+```bash
+# Run a specific test file
+make test_<feature>
+
+# Example: run the syntax tests
+make test_syntax
+```
+
+## Test Types
+
+There are two types of tests in Vim:
+
+### New Style Tests (Recommended)
+
+New style tests are the preferred format for all new tests. These tests:
+
+- Are named `test_<feature>.vim`
+- Use assert functions like `assert_equal()` to keep test commands and expected results together
+- Work with the `+eval` feature
+- Are more maintainable and easier to read
+
+### Old Style Tests
+
+- Named `test20.in` (and similar)
+- Only used for testing Vim without the `+eval` feature
+- Only for tiny builds
+- Not recommended for new tests
+
+<Warning>
+Always write new tests in the new style format unless you have a specific reason to use the old format.
+</Warning>
+
+## Writing New Style Tests
+
+Here's the structure of a new style test file:
+
+```vim
+" Test for <feature description>
+
+source check.vim
+
+func Test_basic_feature()
+  " Setup
+  new
+  call setline(1, 'test text')
+  
+  " Execute the feature
+  normal! gg
+  normal! dw
+  
+  " Assert the result
+  call assert_equal(' text', getline(1))
+  
+  " Cleanup
+  bwipe!
+endfunc
+
+func Test_edge_case()
+  " Test edge cases and error conditions
+  call assert_fails('command_that_should_fail', 'E123:')
+endfunc
+```
+
+### Test Function Naming
+
+All test functions must:
+- Start with `Test_` (capital T)
+- Have descriptive names that indicate what is being tested
+- Use underscores to separate words
+
+Examples:
+- `Test_delete_word()`
+- `Test_syntax_highlighting_error()`
+- `Test_completion_with_spaces()`
+
+### Using Check Functions
+
+The `check.vim` script provides functions to skip tests when features are missing:
+
+```vim
+source check.vim
+
+func Test_terminal_feature()
+  CheckFeature terminal
+  
+  " Test will be skipped if +terminal is not available
+  " Your terminal test code here
+endfunc
+
+func Test_unix_specific()
+  CheckUnix
+  
+  " Test will be skipped on non-Unix systems
+  " Your Unix-specific test here
+endfunc
+```
+
+Common check functions:
+- `CheckFeature <feature>` - Skip if feature is not available
+- `CheckNotFeature <feature>` - Skip if feature IS available
+- `CheckUnix` - Skip on non-Unix systems
+- `CheckNotMSWindows` - Skip on MS-Windows
+- `CheckGui` - Skip in terminal mode
+
+## Assert Functions
+
+Vim provides several assert functions for testing:
+
+### Basic Assertions
+
+```vim
+" Test equality
+call assert_equal(expected, actual)
+call assert_equal(expected, actual, 'custom message')
+
+" Test inequality
+call assert_notequal(expected, actual)
+
+" Test true/false
+call assert_true(expr)
+call assert_false(expr)
+```
+
+### Pattern Matching
+
+```vim
+" Test that pattern matches
+call assert_match('pattern', actual)
+
+" Test that pattern does NOT match
+call assert_notmatch('pattern', actual)
+```
+
+### Range Testing
+
+```vim
+" Test that value is within range
+call assert_inrange(lower, upper, actual)
+
+" Example
+call assert_inrange(5, 10, result_value)
+```
+
+### Error Testing
+
+```vim
+" Test that command produces an error
+call assert_fails('command', 'E123:')
+
+" Test that command produces a beep
+call assert_beeps('command')
+
+" Test that command does NOT produce a beep
+call assert_nobeep('command')
+
+" Test exception messages
+try
+  command_that_fails
+  call assert_false(1, 'command should have failed')
+catch
+  call assert_exception('E492:')
+endtry
+```
+
+### File Comparison
+
+```vim
+" Test that two files are identical
+call assert_equalfile('expected.txt', 'actual.txt')
+```
+
+### Advanced Assertions
+
+```vim
+" Always report a test failure
+call assert_report('This test failed because...')
+```
+
+## Test Helpers
+
+Vim provides several test helper functions:
+
+### Input Simulation
+
+```vim
+" Feed input as if typed by user
+call test_feedinput("iHello\<Esc>")
+
+" Set mouse position for next mouse action
+call test_setmouse(4, 20)
+call feedkeys("\<LeftMouse>", "xt")
+```
+
+### Time Control
+
+```vim
+" Set the time Vim uses internally
+call test_settime(12345)
+
+" Reset to normal behavior
+call test_settime(0)
+```
+
+### Test Overrides
+
+```vim
+" Override internal Vim behavior for testing
+call test_override('char_avail', 1)
+
+" Test code here
+
+" Reset override
+call test_override('char_avail', 0)
+
+" Using defer to ensure cleanup
+call test_override('unreachable', 1)
+defer call test_override('unreachable', 0)
+```
+
+Common override options:
+- `'char_avail'` - Disable char_avail() function
+- `'redraw'` - Disable redrawing() function
+- `'starting'` - Reset the "starting" variable
+- `'ui_delay'` - Override UI delay timing
+- `'ALL'` - Clear all overrides
+
+### Null Values for Testing
+
+```vim
+" Create null values for testing
+let null_blob = test_null_blob()
+let null_dict = test_null_dict()
+let null_list = test_null_list()
+let null_string = test_null_string()
+let null_function = test_null_function()
+```
+
+## Testing Best Practices
+
+### 1. Test One Thing
+
+Each test function should test one specific behavior:
+
+```vim
+" Good - tests one thing
+func Test_delete_word_at_line_start()
+  new
+  call setline(1, 'word rest')
+  normal! ggdw
+  call assert_equal('rest', getline(1))
+  bwipe!
+endfunc
+
+" Good - tests a different thing
+func Test_delete_word_at_line_end()
+  new
+  call setline(1, 'start word')
+  normal! G$bdw
+  call assert_equal('start ', getline(1))
+  bwipe!
+endfunc
+```
+
+### 2. Always Clean Up
+
+Ensure tests clean up after themselves:
+
+```vim
+func Test_with_cleanup()
+  " Save original state
+  let save_option = &option
+  
+  " Test code
+  set option=testvalue
+  " ... test assertions ...
+  
+  " Restore state
+  let &option = save_option
+  
+  " Close buffers
+  bwipe!
+endfunc
+```
+
+### 3. Use Descriptive Messages
+
+```vim
+" Add context to assertion failures
+call assert_equal(expected, actual, 'when processing empty buffer')
+```
+
+### 4. Test Error Cases
+
+Don't just test the happy path:
+
+```vim
+func Test_command_errors()
+  " Test with invalid argument
+  call assert_fails('command invalid', 'E123:')
+  
+  " Test with missing argument  
+  call assert_fails('command', 'E471:')
+  
+  " Test boundary conditions
+  call assert_equal(-1, function_with_bounds(-1))
+endfunc
+```
+
+### 5. Make Tests Reproducible
+
+Tests should produce the same results every time:
+
+```vim
+" Use fixed seeds for random values
+call test_srand_seed(12345)
+
+" Use fixed times
+call test_settime(1234567890)
+```
+
+## Testing Regression Fixes
+
+When fixing a bug, add a test that:
+
+1. Would fail with the bug present
+2. Passes with the fix applied
+
+```vim
+" Test for issue #12345
+func Test_bug_12345_buffer_overflow()
+  new
+  " Steps to reproduce the bug
+  call setline(1, repeat('x', 1000))
+  
+  " This would crash before the fix
+  normal! gg
+  normal! 999l
+  
+  " Verify correct behavior
+  call assert_equal(999, col('.'))
+  bwipe!
+endfunc
+```
+
+## Platform-Specific Tests
+
+Some features only work on specific platforms:
+
+```vim
+func Test_unix_specific_feature()
+  CheckUnix
+  
+  " Unix-only test code
+  call assert_equal(1, has('unix'))
+endfunc
+
+func Test_windows_specific_feature()
+  CheckMSWindows
+  
+  " Windows-only test code
+  call assert_equal(1, has('win32'))
+endfunc
+```
+
+## GUI Testing
+
+For GUI-specific features:
+
+```vim
+func Test_gui_mouse_click()
+  CheckGui
+  CheckFeature mouse
+  
+  " Generate GUI events
+  call test_gui_event('mouse', #{
+    \ button: 0,
+    \ row: 1,
+    \ col: 1,
+    \ })
+  
+  " Process the event
+  call feedkeys("y", 'Lx!')
+  
+  " Verify result
+  call assert_equal(expected, actual)
+endfunc
+```
+
+## Terminal Testing
+
+For terminal feature testing:
+
+```vim
+func Test_terminal_output()
+  CheckFeature terminal
+  
+  let buf = term_start('echo hello')
+  call term_wait(buf)
+  
+  " Check terminal output
+  let output = term_getline(buf, 1)
+  call assert_match('hello', output)
+  
+  " Cleanup
+  call term_wait(buf, 100)
+  exe buf . 'bwipe!'
+endfunc
+```
+
+## Continuous Integration
+
+When you create a pull request on GitHub:
+
+<Steps>
+  <Step title="CI Triggers Automatically">
+    The test suite runs automatically on multiple platforms.
+  </Step>
+  
+  <Step title="Review Results">
+    Check the CI output for any test failures or warnings.
+    
+    <Info>
+    You can ignore coverage warnings - they're noisy.
+    </Info>
+  </Step>
+  
+  <Step title="Fix Failures">
+    If tests fail, review the output and fix the issues.
+  </Step>
+  
+  <Step title="Code Style Check">
+    Ensure `test_codestyle.vim` passes without errors.
+  </Step>
+</Steps>
+
+## Debugging Test Failures
+
+If a test fails:
+
+```bash
+# Run just the failing test
+cd src/testdir
+vim -u NONE -U NONE -N --noplugin -S runtest.vim test_feature.vim
+
+# Check the messages
+vim messages
+
+# Look at test.log for details
+vim test.log
+```
+
+### Common Issues
+
+1. **Timing issues**: Use `sleep` or `test_override()` to control timing
+2. **Platform differences**: Use appropriate `Check*` functions
+3. **State pollution**: Ensure proper cleanup between tests
+4. **Feature dependencies**: Check for required features with `CheckFeature`
+
+## Test Coverage
+
+Aim for comprehensive test coverage:
+
+- ✅ Normal operation
+- ✅ Edge cases (empty input, maximum values, etc.)
+- ✅ Error conditions
+- ✅ Platform-specific behavior
+- ✅ Interaction with other features
+- ✅ Regression tests for fixed bugs
+
+## Related Resources
+
+- [Contributing Guide](/community/contributing)
+- [Development Setup](/community/development)
+- [Documentation Style](/community/documentation)
+- `:help testing` - Complete testing reference
+- `:help test-functions-details` - Test function details
+- `:help assert-functions-details` - Assert function details

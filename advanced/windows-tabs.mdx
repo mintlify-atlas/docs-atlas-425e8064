@@ -1,0 +1,524 @@
+---
+title: Windows and Tab Pages
+description: Master Vim's window splitting and tab page management for efficient multi-pane editing
+---
+
+Vim's window and tab system allows you to view and edit multiple files (or different parts of the same file) simultaneously. Understanding windows and tabs is crucial for efficient navigation and workflow organization.
+
+## Understanding the Layout
+
+**Key Concept**: A **buffer** contains file content, a **window** is a viewport on a buffer, and a **tab page** is a collection of windows.
+
+```vim
+Buffer → Contains file text
+Window → Viewport on a buffer
+Tab Page → Collection of windows
+```
+
+You can have:
+- Multiple windows showing the same buffer
+- Multiple windows showing different buffers
+- Multiple tab pages, each with their own window layout
+
+## Split Windows
+
+### Creating Splits
+
+**Horizontal Splits** (stack vertically):
+
+```vim
+CTRL-W s         " Split current window horizontally
+:split           " Same as above
+:split file.txt  " Split and open file.txt
+:10split         " Split with new window 10 lines high
+:new             " Split with new empty buffer
+```
+
+**Vertical Splits** (side by side):
+
+```vim
+CTRL-W v         " Split current window vertically
+:vsplit          " Same as above
+:vsplit file.txt " Split vertically and open file.txt
+:30vsplit        " Split with new window 30 columns wide
+:vnew            " Vertical split with new empty buffer
+```
+
+<Steps>
+  <Step title="Create your first split">
+    Open a file and split the window:
+    ```vim
+    :vsplit
+    ```
+    You'll see the same file in two side-by-side windows.
+  </Step>
+  
+  <Step title="Open a different file in split">
+    Navigate to the split and open another file:
+    ```vim
+    CTRL-W w      " Move to other window
+    :e file2.txt  " Open different file
+    ```
+  </Step>
+  
+  <Step title="Experiment with movement">
+    Practice moving between windows:
+    ```vim
+    CTRL-W h  " Move left
+    CTRL-W l  " Move right
+    CTRL-W j  " Move down
+    CTRL-W k  " Move up
+    ```
+  </Step>
+</Steps>
+
+### Split Modifiers
+
+Control where splits appear:
+
+```vim
+:aboveleft split     " Open above/left
+:belowright split    " Open below/right
+:topleft split       " Use full width/height at top/left
+:botright split      " Use full width/height at bottom/right
+:vertical topleft split  " Combine modifiers
+```
+
+<Tip>
+Use `:vertical` to make horizontal split commands create vertical splits:
+```vim
+:vertical help windows
+:vertical wincmd =
+```
+</Tip>
+
+## Navigating Windows
+
+### Moving Between Windows
+
+```vim
+" Arrow key style (hjkl)
+CTRL-W h         " Move to window on left
+CTRL-W j         " Move to window below
+CTRL-W k         " Move to window above
+CTRL-W l         " Move to window on right
+
+" Sequential movement
+CTRL-W w         " Move to next window (cycles)
+CTRL-W W         " Move to previous window
+
+" Position-based
+CTRL-W t         " Move to top-left window
+CTRL-W b         " Move to bottom-right window
+CTRL-W p         " Move to previous (last accessed) window
+```
+
+<Note>
+You can also click on a window with the mouse if `set mouse=a` is enabled.
+</Note>
+
+### Window Numbers
+
+Each window has a number, shown in the status line. Jump directly:
+
+```vim
+:3wincmd w       " Jump to window 3
+```
+
+## Closing Windows
+
+```vim
+CTRL-W q         " Quit current window (same as :quit)
+CTRL-W c         " Close current window (same as :close)
+CTRL-W o         " Close all windows except current (same as :only)
+
+:quit            " Quit window (may exit Vim if last window)
+:close           " Close window (fails if last window)
+:only            " Make current window the only one
+:hide            " Quit window and hide buffer
+```
+
+<Warning>
+`:quit!` or `CTRL-W q!` will discard changes. Use carefully!
+</Warning>
+
+## Resizing Windows
+
+### Manual Resizing
+
+**Height**:
+
+```vim
+CTRL-W +         " Increase height
+CTRL-W -         " Decrease height
+CTRL-W _         " Maximize height
+:resize 20       " Set height to 20 lines
+:resize +5       " Increase by 5 lines
+:resize -5       " Decrease by 5 lines
+```
+
+**Width**:
+
+```vim
+CTRL-W >         " Increase width
+CTRL-W <         " Decrease width
+CTRL-W |         " Maximize width
+:vertical resize 40    " Set width to 40 columns
+:vertical resize +10   " Increase by 10 columns
+```
+
+**Equal Sizes**:
+
+```vim
+CTRL-W =         " Make all windows equal size
+:vertical wincmd =     " Equalize only width
+:horizontal wincmd =   " Equalize only height
+```
+
+<Tip>
+You can drag window borders with the mouse if `set mouse=a` is enabled.
+</Tip>
+
+### Window Size Options
+
+```vim
+" Set minimum sizes
+:set winheight=10    " Minimum height for current window
+:set winwidth=20     " Minimum width for current window
+:set winminheight=0  " Minimum height for non-current windows
+:set winminwidth=0   " Minimum width for non-current windows
+
+" Auto-equalize windows
+:set equalalways     " Make windows equal when splitting/closing
+:set noequalalways   " Keep manual sizes
+```
+
+## Moving and Rearranging Windows
+
+### Rotating Windows
+
+```vim
+CTRL-W r         " Rotate windows downwards/rightwards
+CTRL-W R         " Rotate windows upwards/leftwards
+CTRL-W x         " Exchange with next window
+```
+
+### Repositioning Windows
+
+Change window position and layout:
+
+```vim
+CTRL-W K         " Move window to top (full width)
+CTRL-W J         " Move window to bottom (full width)
+CTRL-W H         " Move window to far left (full height)
+CTRL-W L         " Move window to far right (full height)
+CTRL-W T         " Move window to new tab page
+```
+
+<Steps>
+  <Step title="Create multiple splits">
+    ```vim
+    :split
+    :vsplit
+    :vsplit
+    ```
+  </Step>
+  
+  <Step title="Rearrange layout">
+    Move to a window and try:
+    ```vim
+    CTRL-W K  " Move to top (becomes full-width horizontal)
+    ```
+  </Step>
+  
+  <Step title="Extract to tab">
+    Extract a window into its own tab:
+    ```vim
+    CTRL-W T
+    ```
+  </Step>
+</Steps>
+
+## Tab Pages
+
+Tab pages allow you to organize different window layouts for different tasks.
+
+### Creating Tabs
+
+```vim
+:tabnew          " Open new tab with empty buffer
+:tabnew file.txt " Open new tab with file
+:tabedit file    " Same as :tabnew
+:tabfind file    " Find file in 'path' and open in new tab
+
+" Split into new tab
+:tab split       " Open current buffer in new tab
+:tab help windows " Open help in new tab
+
+" Position-specific
+:0tabnew         " Open tab before first tab
+:$tabnew         " Open tab after last tab
+:+tabnew         " Open tab after current
+:-tabnew         " Open tab before current
+```
+
+Start Vim with tabs:
+
+```bash
+# Open each file in a tab
+vim -p file1.txt file2.txt file3.txt
+```
+
+### Navigating Tabs
+
+```vim
+gt               " Next tab (or CTRL-PageDown)
+gT               " Previous tab (or CTRL-PageUp)
+3gt              " Jump to tab 3
+g<Tab>           " Last accessed tab
+
+:tabnext         " Next tab (or :tabn)
+:tabprevious     " Previous tab (or :tabp, :tabN)
+:tabfirst        " First tab (or :tabfir)
+:tablast         " Last tab (or :tabl)
+:tabs            " List all tabs
+```
+
+<Tip>
+In GUI Vim, you can click on tab labels to switch tabs or use the mouse wheel over the tab line.
+</Tip>
+
+### Managing Tabs
+
+```vim
+:tabclose        " Close current tab (or :tabc)
+:tabonly         " Close all other tabs (or :tabo)
+:tabclose 2      " Close tab 2
+:1,3tabclose     " Close tabs 1-3
+
+" Reorder tabs
+:tabmove         " Move to end
+:tabmove 0       " Move to beginning
+:tabmove 3       " Move after tab 3
+:tabmove +1      " Move one position right
+:tabmove -1      " Move one position left
+```
+
+### Tab-Specific Commands
+
+Execute a command in all tabs:
+
+```vim
+:tabdo {cmd}     " Execute cmd in each tab
+:tabdo %s/old/new/ge  " Replace in all tabs
+```
+
+## Advanced Window Techniques
+
+### Preview Window
+
+A special window for previewing tags and definitions:
+
+```vim
+:ptag function   " Open tag in preview window
+CTRL-W }         " Open tag under cursor in preview
+CTRL-W z         " Close preview window (or :pclose)
+
+:pedit file      " Edit file in preview window
+:psearch pattern " Search and show in preview
+```
+
+Set preview window height:
+
+```vim
+:set previewheight=15
+```
+
+### Opening Files in Splits
+
+```vim
+" Split and open file under cursor
+CTRL-W f         " Horizontal split
+CTRL-W F         " Horizontal split, jump to line number
+CTRL-W gf        " Open in new tab
+
+" Split and open tag
+CTRL-W ]         " Horizontal split, jump to tag
+CTRL-W g]        " Horizontal split, select from matches
+```
+
+### Diff Mode in Windows
+
+```vim
+:vert diffsplit file2.txt  " Vertical diff
+:diffsplit file2.txt       " Horizontal diff
+
+" In split windows
+:windo diffthis            " Start diff in all windows
+:diffoff                   " Turn off diff
+```
+
+## Practical Workflows
+
+### Side-by-Side Code Review
+
+```vim
+:vsplit original.c
+CTRL-W w
+:e modified.c
+:windo diffthis
+```
+
+### Three-Way Merge
+
+```vim
+:e base.txt
+:vsplit mine.txt
+:vsplit theirs.txt
+:windo diffthis
+```
+
+### Reference Window
+
+Keep a reference file visible:
+
+```vim
+:topleft 10split notes.txt
+:set winfixheight  " Keep height fixed
+```
+
+### Project Layout
+
+Organize by task:
+
+```vim
+" Tab 1: Main code
+:tabedit src/main.c
+:vsplit src/utils.c
+
+" Tab 2: Tests
+:tabnew test/main_test.c
+:split test/utils_test.c
+
+" Tab 3: Documentation
+:tabnew README.md
+:vsplit CHANGELOG.md
+```
+
+## Status Line Configuration
+
+Show useful info in window status lines:
+
+```vim
+" Show status line always
+:set laststatus=2
+
+" Custom status line
+:set statusline=%f\ %h%w%m%r\ %=%(%l,%c%V\ %=\ %P%)
+
+" Show tab line
+:set showtabline=2  " 0=never, 1=if multiple tabs, 2=always
+```
+
+## Window-Local Settings
+
+Some options are local to windows:
+
+```vim
+:setlocal number        " Only in current window
+:setlocal scrollbind    " Link scrolling between windows
+:setlocal cursorbind    " Link cursor position
+```
+
+Scroll binding example:
+
+```vim
+:split
+:windo setlocal scrollbind
+```
+
+## Tips and Tricks
+
+### Quick Split Shortcuts
+
+Add to your `.vimrc`:
+
+```vim
+" Easier split navigation
+nnoremap <C-J> <C-W>j
+nnoremap <C-K> <C-W>k
+nnoremap <C-L> <C-W>l
+nnoremap <C-H> <C-W>h
+
+" Easier split creation
+nnoremap <Leader>v :vsplit<CR>
+nnoremap <Leader>s :split<CR>
+
+" Resize splits
+nnoremap <Leader>+ :resize +5<CR>
+nnoremap <Leader>- :resize -5<CR>
+nnoremap <Leader>> :vertical resize +5<CR>
+nnoremap <Leader>< :vertical resize -5<CR>
+```
+
+### Natural Split Opening
+
+```vim
+" Open splits below and right (more natural)
+:set splitbelow
+:set splitright
+```
+
+### Zoom Window Toggle
+
+Create a "zoom" for focusing on one window:
+
+```vim
+function! ToggleZoom()
+  if winnr('$') > 1
+    tab split
+  elseif tabpagenr('$') > 1
+    tabclose
+  endif
+endfunction
+
+nnoremap <Leader>z :call ToggleZoom()<CR>
+```
+
+## Best Practices
+
+<Check>Use splits for files you're actively editing together</Check>
+<Check>Use tabs to separate different contexts or projects</Check>
+<Check>Set `:set splitbelow` and `:set splitright` for intuitive split behavior</Check>
+<Check>Enable `:set mouse=a` for easier window resizing</Check>
+<Check>Use `CTRL-W =` to fix window sizes after terminal resizes</Check>
+
+<Warning>
+Don't rely on tabs like browser tabs—Vim tabs are really "layouts" or "workspaces". Use buffers for file switching.
+</Warning>
+
+## Troubleshooting
+
+### Window Too Small
+
+If you get "Not enough room" errors:
+
+```vim
+:set winminheight=0
+:set winminwidth=0
+```
+
+### Lost Window Focus
+
+If you lose track of the current window:
+
+```vim
+:set cursorline  " Highlight current line
+:set number      " Show line numbers
+```
+
+## See Also
+
+- [Multiple Files](/advanced/multiple-files) - Buffer and argument list management
+- [Macros](/advanced/macros) - Automate window operations
+- [Folding](/advanced/folding) - Manage code visibility within windows

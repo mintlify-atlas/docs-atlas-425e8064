@@ -1,0 +1,371 @@
+---
+title: 'Vimscript Basics'
+description: 'Learn the fundamentals of Vim scripting language'
+---
+
+## Introduction
+
+Vimscript is Vim's built-in scripting language that allows you to customize Vim's behavior, automate tasks, and create plugins. This page covers the legacy Vimscript syntax, which remains widely compatible across all Vim versions.
+
+<Info>
+For modern, faster syntax, see [Vim9 script](/scripting/vim9script) which offers 10-100x performance improvements.
+</Info>
+
+## Variables and Data Types
+
+### Variable Declaration
+
+In legacy Vimscript, variables are declared with `:let`:
+
+```vim
+" Basic variable assignment
+let myvar = 42
+let mystring = "Hello, Vim!"
+let mylist = [1, 2, 3]
+let mydict = {'key': 'value'}
+```
+
+### Variable Scopes
+
+Variables can have different scopes indicated by prefixes:
+
+| Prefix | Scope | Description |
+|--------|-------|-------------|
+| `g:` | Global | Available everywhere |
+| `s:` | Script | Local to script file |
+| `l:` | Local | Local to function (default in functions) |
+| `a:` | Argument | Function arguments |
+| `v:` | Vim | Predefined by Vim |
+| `b:` | Buffer | Local to buffer |
+| `w:` | Window | Local to window |
+| `t:` | Tab | Local to tab page |
+
+```vim
+let g:global_var = 'accessible everywhere'
+let s:script_var = 'only in this script'
+
+function! MyFunc(arg)
+  let l:local_var = 'only in this function'
+  echo a:arg  " access function argument
+endfunction
+```
+
+### Data Types
+
+Vimscript supports eleven data types:
+
+<CodeGroup>
+
+```vim Number
+" 32 or 64 bit signed integers
+let decimal = 123
+let hex = 0x10
+let octal = 0o177
+let binary = 0b1011
+```
+
+```vim String
+" NUL terminated 8-bit byte strings
+let double_quoted = "supports\nescape\tsequences"
+let single_quoted = 'literal string, '' to include single quote'
+```
+
+```vim List
+" Ordered sequence, mutable
+let mylist = [1, 2, ['nested', 'list']]
+let first = mylist[0]
+let last = mylist[-1]
+```
+
+```vim Dictionary
+" Associative array, unordered
+let mydict = {'one': 1, 'two': 2}
+let value = mydict['one']
+let value2 = mydict.one  " dot notation
+```
+
+</CodeGroup>
+
+## Expressions and Operators
+
+### Arithmetic Operators
+
+```vim
+let sum = 5 + 3        " Addition: 8
+let diff = 5 - 3       " Subtraction: 2
+let product = 5 * 3    " Multiplication: 15
+let quotient = 5 / 3   " Division: 1
+let remainder = 5 % 3  " Modulo: 2
+```
+
+### String Operators
+
+```vim
+" String concatenation
+let result = 'Hello' . ' ' . 'World'  " "Hello World"
+let result = 'Hello' .. ' ' .. 'World'  " Preferred in modern Vim
+```
+
+### Comparison Operators
+
+```vim
+" Numeric comparisons
+echo 5 == 5    " 1 (true)
+echo 5 != 3    " 1 (true)
+echo 5 > 3     " 1 (true)
+echo 5 >= 5    " 1 (true)
+echo 3 < 5     " 1 (true)
+echo 3 <= 5    " 1 (true)
+
+" String comparisons (case-sensitive)
+echo 'abc' ==# 'ABC'   " 0 (false)
+echo 'abc' ==? 'ABC'   " 1 (true, ignore case)
+
+" Pattern matching
+echo 'hello' =~ 'hel'   " 1 (matches)
+echo 'hello' !~ 'xyz'   " 1 (doesn't match)
+```
+
+### Logical Operators
+
+```vim
+" Logical AND
+if exists('var') && var > 0
+  echo 'var exists and is positive'
+endif
+
+" Logical OR
+if !exists('var') || var == 0
+  echo 'var does not exist or is zero'
+endif
+
+" Ternary operator
+let result = condition ? 'yes' : 'no'
+```
+
+## Control Flow
+
+### Conditional Statements
+
+```vim
+" if-elseif-else
+if score >= 90
+  echo 'A grade'
+elseif score >= 80
+  echo 'B grade'
+elseif score >= 70
+  echo 'C grade'
+else
+  echo 'Need improvement'
+endif
+```
+
+### Loops
+
+<Tabs>
+  <Tab title="for loop">
+```vim
+" Iterate over list
+for item in [1, 2, 3, 4, 5]
+  echo item
+endfor
+
+" Iterate over range
+for i in range(1, 5)
+  echo 'Number: ' .. i
+endfor
+
+" Iterate over dictionary keys
+for key in keys(mydict)
+  echo key .. ': ' .. mydict[key]
+endfor
+
+" Iterate over key-value pairs
+for [key, value] in items(mydict)
+  echo key .. ': ' .. value
+endfor
+```
+  </Tab>
+  <Tab title="while loop">
+```vim
+let count = 0
+while count < 5
+  echo 'Count: ' .. count
+  let count += 1
+endwhile
+
+" Loop control
+let i = 0
+while i < 10
+  let i += 1
+  if i == 3
+    continue  " skip to next iteration
+  endif
+  if i == 8
+    break  " exit loop
+  endif
+  echo i
+endwhile
+```
+  </Tab>
+</Tabs>
+
+## Working with Lists
+
+```vim
+" Create a list
+let mylist = [1, 2, 3]
+
+" Add items
+call add(mylist, 4)           " append: [1, 2, 3, 4]
+call insert(mylist, 0, 0)     " prepend: [0, 1, 2, 3, 4]
+
+" Remove items
+let removed = remove(mylist, 2)  " remove index 2
+unlet mylist[1]                  " remove index 1
+
+" List slicing
+let slice = mylist[1:3]       " items 1-3 (inclusive)
+let tail = mylist[2:]         " from index 2 to end
+let head = mylist[:2]         " from start to index 2
+
+" List operations
+let length = len(mylist)
+let maximum = max(mylist)
+let minimum = min(mylist)
+let joined = join(mylist, ', ')  " '1, 2, 3'
+
+" List modification
+call sort(mylist)             " sort in place
+call reverse(mylist)          " reverse in place
+call map(mylist, 'v:val * 2') " multiply each by 2
+call filter(mylist, 'v:val > 5')  " keep only items > 5
+```
+
+## Working with Dictionaries
+
+```vim
+" Create dictionary
+let mydict = {'name': 'Vim', 'version': 9}
+let mydict = #{name: 'Vim', version: 9}  " literal keys (no quotes)
+
+" Access values
+echo mydict['name']           " "Vim"
+echo mydict.name              " "Vim" (dot notation)
+
+" Add or modify entries
+let mydict['year'] = 1991
+let mydict.author = 'Bram Moolenaar'
+
+" Remove entries
+call remove(mydict, 'year')
+unlet mydict['author']
+
+" Dictionary operations
+echo has_key(mydict, 'name')  " 1 (true)
+echo len(mydict)              " number of entries
+let all_keys = keys(mydict)   " ['name', 'version']
+let all_values = values(mydict)
+
+" Merge dictionaries
+call extend(dict1, dict2)     " merge dict2 into dict1
+
+" Filter dictionary
+call filter(mydict, 'v:val > 0')
+```
+
+## Comments
+
+In legacy Vimscript, comments start with a double quote:
+
+```vim
+" This is a comment
+let var = 42  " inline comment
+
+" Multi-line comments
+" can be done by starting
+" each line with a quote
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use explicit scoping">
+    Always use scope prefixes (`s:`, `l:`, etc.) to make variable scope clear:
+    ```vim
+    let s:script_var = 'clear scope'
+    let l:local_var = 'explicit local'
+    ```
+  </Accordion>
+
+  <Accordion title="Check existence before use">
+    Use `exists()` to check if variables or functions exist:
+    ```vim
+    if exists('g:my_plugin_loaded')
+      finish
+    endif
+    let g:my_plugin_loaded = 1
+    ```
+  </Accordion>
+
+  <Accordion title="Use abort attribute">
+    Add `abort` to functions to stop on first error:
+    ```vim
+    function! MyFunc() abort
+      " function stops on any error
+    endfunction
+    ```
+  </Accordion>
+
+  <Accordion title="Quote dictionary keys">
+    Always use quotes for non-alphanumeric dictionary keys:
+    ```vim
+    let dict = {'key-with-dash': 1}  " Good
+    let dict = {key-with-dash: 1}    " Error!
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Type Conversion
+
+```vim
+" String to Number
+let num = str2nr('42')        " 42
+let num = str2nr('0xFF', 16)  " 255 (hexadecimal)
+
+" Number to String
+let str = string(42)          " '42'
+let str = 42 . ''             " '42' (concatenation trick)
+
+" String to Float
+let flt = str2float('3.14')   " 3.14
+
+" Float to Number
+let num = float2nr(3.14)      " 3
+
+" Any to String
+let str = string([1, 2, 3])   " '[1, 2, 3]'
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Vim9 Script" icon="bolt" href="/scripting/vim9script">
+    Learn the modern, faster Vim scripting syntax
+  </Card>
+  <Card title="Functions" icon="function" href="/scripting/functions">
+    Define and use custom functions
+  </Card>
+  <Card title="Expressions" icon="calculator" href="/scripting/expressions">
+    Master Vimscript expressions and operators
+  </Card>
+  <Card title="Creating Plugins" icon="plug" href="/scripting/plugins">
+    Build your own Vim plugins
+  </Card>
+</CardGroup>
+
+## See Also
+
+- `:help eval.txt` - Complete expression evaluation reference
+- `:help variables` - Variable types and scopes
+- `:help expression-syntax` - Expression syntax details

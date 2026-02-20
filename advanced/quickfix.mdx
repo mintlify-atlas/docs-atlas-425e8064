@@ -1,0 +1,613 @@
+---
+title: Quickfix List
+description: Navigate compilation errors and search results efficiently with Vim's quickfix system
+---
+
+The quickfix list is one of Vim's most powerful features for navigating compilation errors, search results, and any other list of file locations. It enables efficient workflows for the edit-compile-fix cycle and project-wide navigation.
+
+## What is the Quickfix List?
+
+The quickfix list is a **list of positions in files**. Originally designed for compiler errors, it's now used for:
+
+- Compilation errors and warnings
+- Search results (`:grep`, `:vimgrep`)
+- Lint/style checker output
+- Test failures
+- Custom tool output
+
+Each entry contains:
+- Filename
+- Line number
+- Column number (optional)
+- Error type/message
+
+## Basic Workflow
+
+<Steps>
+  <Step title="Generate a quickfix list">
+    Compile your code or search:
+    ```vim
+    :make
+    ```
+    Or search for a pattern:
+    ```vim
+    :vimgrep /TODO/ **/*.js
+    ```
+  </Step>
+  
+  <Step title="Navigate errors">
+    Jump between items:
+    ```vim
+    :cnext     " Next item
+    :cprevious " Previous item
+    ```
+  </Step>
+  
+  <Step title="View the list">
+    Open the quickfix window:
+    ```vim
+    :copen
+    ```
+    You'll see all items in a split window.
+  </Step>
+  
+  <Step title="Fix and iterate">
+    Make changes and recompile:
+    ```vim
+    :make
+    ```
+    The quickfix list updates automatically.
+  </Step>
+</Steps>
+
+## Quickfix Commands
+
+### Navigation
+
+```vim
+:cc [nr]         " Jump to error [nr] (or current)
+:cnext           " Next error (or :cn)
+:cprevious       " Previous error (or :cp, :cN, :cNext)
+:cfirst          " First error (or :cfir, :cr, :crewind)
+:clast           " Last error (or :cla)
+
+" With count
+:cc 5            " Jump to error 5
+:3cnext          " Jump 3 errors forward
+
+" By file
+:cnfile          " First error in next file (or :cnf)
+:cpfile          " Last error in previous file (or :cpf, :cNf)
+```
+
+<Tip>
+Use `:cc` in the quickfix window with `.` for current line or `$` for last: `:cc .` or `:cc $`
+</Tip>
+
+### Position-Based Navigation
+
+Jump relative to cursor position:
+
+```vim
+:cabove          " Next error above cursor in current file
+:cbelow          " Next error below cursor in current file
+:cbefore         " Next error before cursor position (line+column)
+:cafter          " Next error after cursor position
+```
+
+### Quickfix Window
+
+```vim
+:copen           " Open quickfix window
+:copen 15        " Open with height of 15 lines
+:cclose          " Close quickfix window (or :ccl)
+:cwindow         " Open only if there are errors (or :cw)
+:cbottom         " Scroll to bottom (useful for async updates)
+```
+
+In the quickfix window:
+- Press `Enter` on a line to jump to that location
+- Use `:cc .` to jump to the item under cursor
+- Window closes when you quit Vim
+
+### Viewing the List
+
+```vim
+:clist           " List all errors (or :cl)
+:clist 1,5       " List errors 1 through 5
+:clist +3        " List current and next 3 errors
+:clist!          " List all entries (including non-errors)
+
+" Filter display
+:filter /pattern/ clist
+```
+
+Example output:
+```
+1 main.c:12: error: undefined variable 'foo'
+2 utils.c:45: warning: unused parameter 'bar'
+3 test.c:89: error: syntax error
+```
+
+## Using :make
+
+The `:make` command runs your build tool and populates the quickfix list:
+
+```vim
+:make            " Run 'make' (or whatever 'makeprg' is)
+:make clean      " Run 'make clean'
+:make! test      " Run without jumping to first error
+```
+
+### Configuring Make
+
+Set your build command:
+
+```vim
+:set makeprg=npm\ run\ build     " For Node.js
+:set makeprg=cargo\ build        " For Rust
+:set makeprg=go\ build           " For Go
+:set makeprg=python\ -m\ pytest  " For Python tests
+```
+
+In `.vimrc`:
+
+```vim
+autocmd FileType javascript setlocal makeprg=npm\ run\ build
+autocmd FileType rust setlocal makeprg=cargo\ build
+autocmd FileType python setlocal makeprg=python\ -m\ pytest
+```
+
+### Error Format
+
+Vim parses output using `errorformat`:
+
+```vim
+" GCC/Clang format: file.c:12:5: error: message
+:set errorformat=%f:%l:%c:\ %m
+
+" Python traceback: File "file.py", line 12, in function
+:set errorformat=%C\ %.%#,%A\ \ File\ \"%f\"\\,\ line\ %l%.%#,%Z%m
+
+" Custom format
+:set errorformat=%f(%l):\ %m
+```
+
+Common format strings:
+- `%f` - File name
+- `%l` - Line number
+- `%c` - Column number
+- `%m` - Error message
+- `%t` - Error type (e, w, i, n)
+- `%n` - Error number
+
+## Grep and Search
+
+### External Grep
+
+```vim
+:grep pattern *.c        " Search in all .c files
+:grep -r TODO src/       " Recursive search
+:grep! pattern *.py      " Don't jump to first match
+:lgrep pattern *.js      " Use location list instead
+```
+
+Configure grep program:
+
+```vim
+:set grepprg=rg\ --vimgrep    " Use ripgrep
+:set grepprg=ag\ --vimgrep    " Use silver searcher
+:set grepformat=%f:%l:%c:%m  " Match ripgrep output
+```
+
+### Vim's Internal Grep
+
+```vim
+:vimgrep /pattern/ **/*.js   " Search all JS files recursively
+:vimgrep /\<TODO\>/ src/*    " Word boundary search
+:vim /function/gj *.py       " All matches (g), don't jump (j)
+
+" With fuzzy matching (Vim 9.0+)
+:vimgrep /pattern/f **/*.txt
+```
+
+Flags:
+- `g` - All matches per line (not just first)
+- `j` - Don't jump to first match
+- `f` - Fuzzy matching
+
+<Tip>
+Use `:vimgrep` for Vim regex patterns and features. Use `:grep` with external tools for speed on large codebases.
+</Tip>
+
+### Append to Quickfix
+
+```vim
+:grepadd pattern *.c     " Add to current list (don't replace)
+:vimgrepadd /TODO/ **    " Append vimgrep results
+```
+
+## Advanced Quickfix Usage
+
+### Execute Commands on Quickfix Items
+
+```vim
+:cdo {cmd}           " Execute cmd on each quickfix entry
+:cfdo {cmd}          " Execute cmd on each file in quickfix
+
+" Examples
+:cdo s/old/new/g | update        " Replace in all matches and save
+:cfdo %s/foo/bar/g | update      " Replace in all files
+:cdo normal @a                   " Run macro on each match
+```
+
+<Steps>
+  <Step title="Search for pattern">
+    ```vim
+    :vimgrep /oldFunction/ **/*.js
+    ```
+  </Step>
+  
+  <Step title="Preview changes">
+    ```vim
+    :copen
+    ```
+    Review the matches.
+  </Step>
+  
+  <Step title="Apply changes">
+    ```vim
+    :cdo s/oldFunction/newFunction/g | update
+    ```
+  </Step>
+</Steps>
+
+<Warning>
+`:cdo` and `:cfdo` make real changes. Test your commands first or ensure you have backups/version control!
+</Warning>
+
+### Filter Quickfix List
+
+Use the `cfilter` plugin (built-in):
+
+```vim
+:packadd cfilter
+
+:Cfilter /pattern/       " Keep only matching entries
+:Cfilter! /pattern/      " Remove matching entries
+:Lfilter /pattern/       " Filter location list
+```
+
+Example:
+
+```vim
+:vimgrep /error/ *.log
+:Cfilter /critical/      " Show only critical errors
+```
+
+## Location Lists
+
+Location lists are like quickfix lists but **window-local**. Each window can have its own list.
+
+```vim
+" Location list commands (l prefix instead of c)
+:lmake           " Make, use location list
+:lgrep           " Grep to location list
+:lvimgrep        " Vimgrep to location list
+
+:lopen           " Open location list window
+:lclose          " Close location list window
+:lnext           " Next item (or :ln)
+:lprevious       " Previous item (or :lp, :lN)
+:lfirst          " First item
+:llast           " Last item
+:llist           " List all items
+
+:ldo {cmd}       " Execute on each entry
+:lfdo {cmd}      " Execute on each file
+```
+
+### Quickfix vs. Location List
+
+| Feature | Quickfix | Location List |
+|---------|----------|---------------|
+| Scope | Global | Per-window |
+| Prefix | `c` | `l` |
+| Use case | Project errors | Window-specific searches |
+| Count | One list | One per window |
+
+Use quickfix for project-wide tasks, location lists for window-specific navigation.
+
+## Multiple Lists (Stack)
+
+Vim maintains a **stack** of quickfix lists:
+
+```vim
+:colder          " Go to older list in stack
+:cnewer          " Go to newer list in stack
+:chistory        " Show all lists (or :chi)
+```
+
+Example workflow:
+
+```vim
+:vimgrep /TODO/ **     " Creates list 1
+:vimgrep /FIXME/ **    " Creates list 2
+:colder                " Back to list 1 (TODO results)
+:cnewer                " Forward to list 2 (FIXME results)
+```
+
+History size:
+
+```vim
+:set chistory=50       " Keep 50 lists (default 10)
+```
+
+## Reading from Files/Buffers
+
+Populate quickfix from various sources:
+
+```vim
+:cfile errors.txt      " Read from file
+:cgetfile errors.txt   " Read without jumping
+:caddfile errors.txt   " Append from file
+
+:cbuffer               " Read from current buffer
+:cgetbuffer 3          " Read from buffer 3
+:caddbuffer            " Append from current buffer
+
+:cexpr system('grep -n foo *.c')   " From expression
+:cgetexpr getline(1, '$')          " From buffer lines
+:caddexpr 'file.txt:10:Error'      " Add single entry
+```
+
+## Customizing the Quickfix Window
+
+### Window Title
+
+The quickfix window has a special variable:
+
+```vim
+:echo w:quickfix_title
+```
+
+Set it when creating lists:
+
+```vim
+:call setqflist([], ' ', {'title': 'My Search Results'})
+```
+
+### Quickfix Autocommands
+
+Run commands before/after quickfix operations:
+
+```vim
+autocmd QuickFixCmdPre make echo "Building..."
+autocmd QuickFixCmdPost make cwindow
+
+" Convert encoding of results
+autocmd QuickFixCmdPost make call FixQfEncoding()
+```
+
+### Status Line
+
+Show quickfix info in status line:
+
+```vim
+set statusline+=%{get(w:,'quickfix_title','')}
+```
+
+## Practical Examples
+
+### Project-Wide Refactoring
+
+```vim
+" 1. Find all occurrences
+:vimgrep /oldName/ **/*.js
+
+" 2. Review in quickfix
+:copen
+
+" 3. Replace in all files
+:cfdo %s/oldName/newName/gc | update
+```
+
+### Find and Fix TODOs
+
+```vim
+" Find TODOs
+:vimgrep /TODO/ src/**/*.py
+
+" Review
+:copen
+
+" Navigate and fix
+:cnext
+" Fix the TODO...
+:cnext
+" Fix another...
+```
+
+### Lint Integration
+
+```vim
+" Run ESLint
+:set makeprg=eslint\ --format\ compact\ %
+:set errorformat=%f:\ line\ %l\,\ col\ %c\,\ %m
+:make
+
+" Jump through errors
+:cnext
+```
+
+### Test Failures
+
+```vim
+" Run tests
+:set makeprg=pytest\ -v
+:set errorformat=%f:%l:\ %m
+:make
+
+" Navigate failures
+:copen
+:cnext
+```
+
+### Search Project Documentation
+
+```vim
+" Search all docs
+:vimgrep /\<API\>/ docs/**/*.md
+
+" Filter for specific section
+:Cfilter /Authentication/
+
+" Review results
+:copen
+```
+
+## Quickfix Functions
+
+Programmatically work with quickfix:
+
+```vim
+" Get quickfix list
+let qflist = getqflist()
+echo qflist[0].text
+
+" Set quickfix list
+call setqflist([{'filename': 'file.txt', 'lnum': 10, 'text': 'Error'}])
+
+" Modify list
+call setqflist([], 'a', {'title': 'New Title'})
+
+" Get info
+let info = getqflist({'idx': 0, 'size': 0})
+echo "Current: " . info.idx . " of " . info.size
+```
+
+Useful getqflist/setqflist options:
+- `title` - List title
+- `idx` - Current position
+- `items` - List items
+- `context` - Custom data
+- `id` - List identifier
+- `nr` - List number in stack
+
+## Compiler Integration
+
+Vim provides compiler plugins:
+
+```vim
+:compiler gcc        " Set up for GCC
+:compiler javac      " Set up for Java
+:compiler eslint     " Set up for ESLint
+:compiler pytest     " Set up for pytest
+
+" Then use :make
+:make
+```
+
+Create custom compilers in `~/.vim/compiler/mycompiler.vim`:
+
+```vim
+" ~/.vim/compiler/mycompiler.vim
+if exists("current_compiler")
+  finish
+endif
+let current_compiler = "mycompiler"
+
+CompilerSet makeprg=mycompiler\ %
+CompilerSet errorformat=%f:%l:%c:\ %m
+```
+
+Use it:
+
+```vim
+:compiler mycompiler
+:make
+```
+
+## Tips and Tricks
+
+### Quick Error Navigation
+
+Map keys for faster navigation:
+
+```vim
+nnoremap <Leader>n :cnext<CR>
+nnoremap <Leader>p :cprevious<CR>
+nnoremap <Leader>o :copen<CR>
+nnoremap <Leader>c :cclose<CR>
+```
+
+### Auto-Open Quickfix
+
+Open quickfix automatically if there are errors:
+
+```vim
+autocmd QuickFixCmdPost [^l]* cwindow
+autocmd QuickFixCmdPost l* lwindow
+```
+
+### Search Word Under Cursor
+
+```vim
+nnoremap <Leader>g :vimgrep /<C-R><C-W>/ **/*.js<CR>:copen<CR>
+```
+
+### Custom Search Command
+
+```vim
+command! -nargs=+ NewGrep execute 'silent grep! <args>' | copen 40
+
+:NewGrep TODO src/
+```
+
+## Best Practices
+
+<Check>Use `:cwindow` instead of `:copen` to only open when there are items</Check>
+<Check>Combine `:grep!` or `:make!` with `:copen` to prevent auto-jump</Check>
+<Check>Use location lists for window-specific searches</Check>
+<Check>Filter quickfix lists to focus on relevant items</Check>
+<Check>Test `:cdo` commands before applying to all items</Check>
+
+<Warning>
+`:cdo` and `:cfdo` execute on real files. Always have backups or use version control before running commands that modify many files.
+</Warning>
+
+## Common Workflows
+
+### Find and Replace Across Project
+
+```vim
+:args **/*.py
+:vimgrep /oldVar/ ##
+:Cfilter! /test/        " Exclude test files
+:cdo s/oldVar/newVar/gc | update
+```
+
+### Browse Search Results Like a File
+
+```vim
+:vimgrep /function/ **/*.js
+:copen
+" Use j/k to browse
+" Press Enter to jump
+" Use :cn/:cp for navigation
+```
+
+### Multiple Searches
+
+```vim
+:vimgrep /ERROR/ *.log   " Search errors
+:vimgrep /WARNING/ *.log " New search (creates new list)
+:colder                  " Back to errors
+:cnewer                  " Forward to warnings
+```
+
+## See Also
+
+- [Multiple Files](/advanced/multiple-files) - Combine with :argdo and :bufdo
+- [Macros](/advanced/macros) - Automate fixes with :cdo normal @a
+- [Grep](/search/grep) - Advanced grep techniques

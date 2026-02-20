@@ -1,0 +1,451 @@
+---
+title: Display Options
+description: Options that control the visual appearance and UI of Vim
+---
+
+These options control how Vim displays text and manages the user interface, including line numbers, colors, windows, and visual feedback.
+
+## Line Numbers and Columns
+
+### number and relativenumber
+
+```vim
+:set number           " nu - Show absolute line numbers
+:set relativenumber   " rnu - Show relative line numbers
+:set number relativenumber  " Show both (current line absolute)
+```
+
+| Setting | Result |
+|---------|--------|
+| `number` | Absolute line numbers |
+| `relativenumber` | Relative from current line |
+| Both | Hybrid (absolute at cursor, relative elsewhere) |
+
+### numberwidth
+
+```vim
+:set numberwidth=4    " nuw - Minimum width of line number column
+```
+
+## Visual Guides
+
+### colorcolumn
+
+```vim
+:set colorcolumn=80       " cc - Highlight column 80
+:set colorcolumn=+1       " Highlight one column after 'textwidth'
+:set colorcolumn=+1,+2,+3 " Multiple columns
+```
+
+```vim
+" Example with highlighting
+:set cc=80
+:highlight ColorColumn ctermbg=lightgrey guibg=lightgrey
+```
+
+### cursorline and cursorcolumn
+
+```vim
+:set cursorline       " cul - Highlight the current line
+:set cursorcolumn     " cuc - Highlight the current column
+```
+
+<Warning>
+These options can slow down screen redrawing in large files.
+</Warning>
+
+## Wrapping and Line Display
+
+### wrap
+
+```vim
+:set wrap             " Wrap long lines visually
+:set nowrap           " Don't wrap lines
+```
+
+### linebreak
+
+```vim
+:set linebreak        " lbr - Wrap at word boundaries
+:set nolinebreak      " Break anywhere
+```
+
+Only works when `wrap` is on. Breaks at characters in `breakat` option.
+
+### breakindent
+
+```vim
+:set breakindent      " bri - Wrapped lines continue indented
+:set breakindentopt=shift:2  " Indent wrapped lines by 2 more spaces
+```
+
+### showbreak
+
+```vim
+:set showbreak=↪      " sbr - String shown at start of wrapped lines
+:set showbreak=+++    " More visible indicator
+```
+
+### sidescroll and sidescrolloff
+
+```vim
+:set sidescroll=1     " ss - Minimal number of columns to scroll horizontally
+:set sidescrolloff=5  " siso - Columns to keep visible around cursor
+```
+
+## Scrolling
+
+### scrolloff
+
+```vim
+:set scrolloff=3      " so - Keep 3 lines visible above/below cursor
+:set scrolloff=999    " Keep cursor centered
+```
+
+### scroll
+
+```vim
+:set scroll=10        " scr - Number of lines for CTRL-U/CTRL-D (default: half window)
+```
+
+### scrolljump
+
+```vim
+:set scrolljump=5     " sj - Lines to scroll when cursor moves off screen
+```
+
+## Status Line and Command Line
+
+### laststatus
+
+```vim
+:set laststatus=0     " Never show status line
+:set laststatus=1     " Only with split windows
+:set laststatus=2     " Always show status line
+:set laststatus=3     " Global status line (Vim 9.0+)
+```
+
+### statusline
+
+```vim
+:set statusline=%f\ %m%r%h%w\ %y\ %=%l/%L,%c\ %P
+```
+
+Common format codes:
+- `%f` - File path
+- `%m` - Modified flag `[+]`
+- `%r` - Readonly flag `[RO]`
+- `%y` - File type
+- `%l` - Line number
+- `%L` - Total lines
+- `%c` - Column number
+- `%P` - Percentage through file
+- `%=` - Separation point (left/right)
+
+### ruler
+
+```vim
+:set ruler            " ru - Show cursor position in status line
+:set noruler
+```
+
+### rulerformat
+
+```vim
+:set rulerformat=%l,%c%V%=%P  " Custom ruler format
+```
+
+### showcmd
+
+```vim
+:set showcmd          " sc - Show partial commands in status line
+:set noshowcmd
+```
+
+### showmode
+
+```vim
+:set showmode         " smd - Show current mode (INSERT, VISUAL, etc.)
+:set noshowmode       " Hide mode (useful with custom statusline)
+```
+
+### cmdheight
+
+```vim
+:set cmdheight=2      " ch - Number of lines for command-line
+```
+
+Larger values help avoid "Press ENTER" prompts.
+
+## Window Display
+
+### winheight and winwidth
+
+```vim
+:set winheight=10     " wh - Minimum height of current window
+:set winwidth=20      " wiw - Minimum width of current window
+```
+
+### winminheight and winminwidth
+
+```vim
+:set winminheight=1   " wmh - Minimum height of any window
+:set winminwidth=1    " wmw - Minimum width of any window
+```
+
+### equalalways
+
+```vim
+:set equalalways      " ea - Make windows equal size after split/close
+:set noequalalways
+```
+
+### splitbelow and splitright
+
+```vim
+:set splitbelow       " sb - New horizontal splits below current
+:set splitright       " spr - New vertical splits right of current
+```
+
+## List Mode (Invisible Characters)
+
+### list
+
+```vim
+:set list             " Show invisible characters
+:set nolist           " Hide invisible characters
+```
+
+### listchars
+
+```vim
+:set listchars=tab:→\ ,trail:·,extends:»,precedes:«,nbsp:␣
+:set listchars=eol:¬,space:·
+```
+
+Common characters to display:
+- `tab` - Tab character (use two chars: first for start, second repeated)
+- `trail` - Trailing spaces
+- `extends` - Character when line extends beyond right edge
+- `precedes` - Character when line extends beyond left edge
+- `nbsp` - Non-breaking space
+- `eol` - End of line
+- `space` - Regular spaces
+- `lead` - Leading spaces
+
+```vim
+" Minimal setup
+:set list listchars=tab:▸\ ,trail:·
+
+" Comprehensive setup
+:set list listchars=tab:→\ ,eol:¬,trail:·,extends:»,precedes:«,nbsp:␣
+```
+
+## Colors and Highlighting
+
+### background
+
+```vim
+:set background=dark  " bg - Tell Vim you use dark background
+:set background=light " Tell Vim you use light background
+```
+
+### termguicolors
+
+```vim
+:set termguicolors    " tgc - Use 24-bit RGB colors in terminal
+:set notermguicolors  " Use 256/16 colors
+```
+
+<Note>
+Requires terminal emulator with true color support.
+</Note>
+
+### hlsearch
+
+```vim
+:set hlsearch         " hls - Highlight all search matches
+:nohlsearch           " Clear highlighting (temporary)
+```
+
+### incsearch
+
+```vim
+:set incsearch        " is - Show match while typing search
+```
+
+## Columns and Signs
+
+### signcolumn
+
+```vim
+:set signcolumn=auto  " Show sign column when signs are present
+:set signcolumn=yes   " Always show sign column
+:set signcolumn=no    " Never show sign column
+:set signcolumn=number " Merge signs into number column
+```
+
+### foldcolumn
+
+```vim
+:set foldcolumn=4     " fdc - Width of column for fold indicators
+```
+
+## Conceal
+
+### conceallevel
+
+```vim
+:set conceallevel=0   " cocu - Don't hide anything
+:set conceallevel=1   " Replace with character from 'listchars'
+:set conceallevel=2   " Hide completely unless custom replacement defined
+:set conceallevel=3   " Hide completely
+```
+
+### concealcursor
+
+```vim
+:set concealcursor=nc " ccr - Conceal in normal and command-line mode
+```
+
+Modes: `n` (normal), `v` (visual), `i` (insert), `c` (command)
+
+## Tab Pages and Tab Line
+
+### showtabline
+
+```vim
+:set showtabline=0    " stal - Never show tab line
+:set showtabline=1    " Show only with multiple tabs
+:set showtabline=2    " Always show tab line
+```
+
+### tabline
+
+```vim
+:set tabline=%!MyTabLine()  " tal - Custom tab line format
+```
+
+## Title and Icon
+
+### title
+
+```vim
+:set title            " Set window title to filename
+:set notitle
+```
+
+### titlestring
+
+```vim
+:set titlestring=%f\ -\ Vim  " Custom title format
+```
+
+### icon
+
+```vim
+:set icon             " Set icon text (if supported)
+:set noicon
+```
+
+## Matching
+
+### showmatch
+
+```vim
+:set showmatch        " sm - Briefly jump to matching bracket
+:set noshowmatch
+```
+
+### matchtime
+
+```vim
+:set matchtime=5      " mat - Tenths of second to show match (default: 5)
+```
+
+### matchpairs
+
+```vim
+:set matchpairs=(:),{:},[:]  " mps - Pairs of characters to match
+:set matchpairs+=<:>         " Add angle brackets
+```
+
+## Diff Mode
+
+### diffopt
+
+```vim
+:set diffopt=filler,vertical,context:3
+```
+
+Options:
+- `filler` - Show filler lines
+- `horizontal` - Horizontal split for diff
+- `vertical` - Vertical split for diff
+- `context:n` - Lines of context
+- `iwhite` - Ignore whitespace
+- `iwhiteall` - Ignore all whitespace
+- `iblank` - Ignore blank lines
+
+## Messages and Prompts
+
+### shortmess
+
+```vim
+:set shortmess=filnxtToOF  " shm - Abbreviate messages
+```
+
+Flags to abbreviate or suppress messages:
+- `f` - Use "(3 of 5)" instead of "(file 3 of 5)"
+- `i` - Use "[noeol]" instead of "[Incomplete last line]"
+- `l` - Use "999L, 888B" instead of "999 lines, 888 bytes"
+- `m` - Use "[+]" instead of "[Modified]"
+- `n` - Use "[New]" instead of "[New File]"
+- `r` - Use "[RO]" instead of "[readonly]"
+- `x` - Use "[dos]" instead of "[dos format]"
+- `t` - Truncate file message at start if too long
+- `T` - Truncate other messages in the middle
+- `o` - Overwrite message for writing file
+- `O` - Message for reading file overwrites previous
+- `I` - Don't show intro message when starting Vim
+
+## Quick Reference
+
+### Minimal Visible Setup
+
+```vim
+set number relativenumber
+set cursorline
+set colorcolumn=80
+set list listchars=tab:→\ ,trail:·
+set laststatus=2
+```
+
+### Programming Display
+
+```vim
+set number
+set signcolumn=yes
+set colorcolumn=80,120
+set scrolloff=5
+set laststatus=2
+set showcmd
+```
+
+### Prose Writing
+
+```vim
+set wrap linebreak
+set breakindent
+set showbreak=↪
+set scrolloff=3
+set laststatus=0
+```
+
+## See Also
+
+- [Options Overview](/reference/options-overview) - Understanding the option system
+- [Editing Options](/reference/editing-options) - Editing behavior settings
+- [File Options](/reference/file-options) - File handling options
+- `:help options` - Complete options documentation
+- `:help 'statusline'` - Status line format

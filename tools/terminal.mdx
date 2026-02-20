@@ -1,0 +1,398 @@
+---
+title: Embedded Terminal
+description: Run terminal sessions inside Vim windows with full interactive support
+---
+
+Vim's terminal feature allows you to run terminal emulators directly in Vim windows, providing seamless integration between editing and command-line tools.
+
+<Note>
+  Terminal support requires Vim 8.0+ with the `+terminal` feature compiled in. Check with `:echo has('terminal')`.
+</Note>
+
+## Opening a Terminal
+
+### Basic Terminal
+
+```vim
+:terminal        " Open terminal with default shell
+:term            " Short form
+```
+
+### Run Specific Command
+
+```vim
+:terminal bash   " Start bash shell
+:term make       " Run make and show output
+:term python     " Start Python interpreter
+```
+
+### With Options
+
+```vim
+:terminal ++close bash         " Close when shell exits
+:term ++curwin bash            " Use current window
+:term ++hidden make            " Run in hidden buffer
+:vert term                     " Open in vertical split
+:term ++rows=10 ++cols=80      " Specific size
+```
+
+## Terminal Modes
+
+### Terminal-Job Mode (Default)
+
+In Terminal-Job mode:
+- Job controls the terminal content
+- Keys are sent to the running program
+- The terminal updates as the job runs
+
+### Terminal-Normal Mode
+
+Switch to Terminal-Normal mode to control the terminal with Vim commands:
+
+```vim
+CTRL-W N         " Enter Terminal-Normal mode
+CTRL-\ CTRL-N    " Alternative way
+```
+
+In Terminal-Normal mode:
+- Navigate with Vim motion commands
+- Yank text from terminal output
+- Search through terminal history
+- Press `i`, `a`, or any insert command to return to Terminal-Job mode
+
+## Key Mappings in Terminal
+
+### Default Mappings
+
+```vim
+CTRL-W CTRL-W    " Switch to next window
+CTRL-W :         " Enter Ex command
+CTRL-W .         " Send literal CTRL-W to terminal
+CTRL-W CTRL-\    " Send literal CTRL-\ to terminal
+CTRL-W N         " Enter Terminal-Normal mode
+CTRL-W " {reg}   " Paste register
+```
+
+### Custom Terminal Mappings
+
+Use `:tmap` for terminal mode mappings:
+
+```vim
+" Map F1 to enter Terminal-Normal mode
+tnoremap <F1> <C-W>N
+
+" Map Esc to exit terminal (GUI only recommended)
+tnoremap <Esc> <C-W>N
+
+" Quick exit
+tnoremap <C-Q> <C-W>:quit<CR>
+```
+
+### Example Configuration
+
+```vim
+" Terminal mappings
+tnoremap <Esc> <C-\><C-n>
+tnoremap <C-h> <C-\><C-n><C-w>h
+tnoremap <C-j> <C-\><C-n><C-w>j
+tnoremap <C-k> <C-\><C-n><C-w>k
+tnoremap <C-l> <C-\><C-n><C-w>l
+```
+
+## Terminal Options
+
+### Size Control
+
+```vim
+:set termwinsize=20x80   " Fixed 20 rows, 80 columns
+:set termwinsize=20x0    " Fixed rows, flexible columns
+:set termwinsize=0x0     " Flexible (default)
+```
+
+### Scrollback
+
+```vim
+:set termwinscroll=10000  " Lines to save in scrollback
+```
+
+### Window Type (Windows Only)
+
+```vim
+:set termwintype=conpty   " Use ConPTY (Windows 10+)
+:set termwintype=winpty   " Use WinPTY (older Windows)
+```
+
+## Terminal Functions
+
+### Sending Keys to Terminal
+
+```vim
+call term_sendkeys(buf, "ls\<CR>")  " Send 'ls' command
+call term_sendkeys(buf, "\<C-C>")   " Send Ctrl-C
+```
+
+### Getting Terminal Info
+
+```vim
+" Get terminal buffer list
+let terms = term_list()
+
+" Get terminal size
+let [rows, cols] = term_getsize(buf)
+
+" Get terminal status
+let status = term_getstatus(buf)  " 'running', 'finished', 'normal'
+
+" Get terminal job
+let job = term_getjob(buf)
+
+" Get terminal title
+let title = term_gettitle(buf)
+```
+
+### Terminal Size
+
+```vim
+" Resize terminal
+call term_setsize(buf, rows, cols)
+
+" Get current size
+let [rows, cols] = term_getsize(buf)
+```
+
+## Practical Examples
+
+### Project Build Terminal
+
+```vim
+" Open terminal for building
+nnoremap <F5> :botright term ++rows=10 ++close make<CR>
+
+" Run tests
+nnoremap <F6> :term ++close pytest<CR>
+```
+
+### Interactive REPL
+
+```vim
+" Python REPL
+nnoremap <leader>tp :vert term python<CR>
+
+" Node.js REPL  
+nnoremap <leader>tn :vert term node<CR>
+
+" Ruby IRB
+nnoremap <leader>tr :vert term irb<CR>
+```
+
+### Send Code to REPL
+
+```vim
+" Send current line to terminal buffer 1
+nnoremap <leader>l :call term_sendkeys(1, getline('.') . "\<CR>")<CR>
+
+" Send visual selection
+vnoremap <leader>s y:call term_sendkeys(1, @" . "\<CR>")<CR>
+
+" Send entire file
+nnoremap <leader>f :call term_sendkeys(1, join(getline(1,'$'), "\<CR>") . "\<CR>")<CR>
+```
+
+### Run Current File
+
+```vim
+" Run current file in terminal
+autocmd FileType python nnoremap <buffer> <F5> :term python %<CR>
+autocmd FileType javascript nnoremap <buffer> <F5> :term node %<CR>
+autocmd FileType sh nnoremap <buffer> <F5> :term bash %<CR>
+```
+
+### Git Integration
+
+```vim
+" Git status in terminal
+nnoremap <leader>gs :term ++close git status<CR>
+
+" Git log viewer
+nnoremap <leader>gl :term git log --oneline --graph --decorate<CR>
+
+" Git diff
+nnoremap <leader>gd :term git diff<CR>
+
+" Interactive git add
+nnoremap <leader>ga :term git add -i<CR>
+```
+
+### Database Client
+
+```vim
+" Connect to PostgreSQL
+command! Psql term ++close psql -d mydb
+
+" Connect to MySQL
+command! Mysql term ++close mysql -u root -p
+
+" Redis CLI
+command! Redis term redis-cli
+```
+
+### Development Servers
+
+```vim
+" Start web server
+nnoremap <leader>ws :term ++rows=10 python -m http.server<CR>
+
+" Start Django dev server
+nnoremap <leader>dj :term python manage.py runserver<CR>
+
+" Start Rails server
+nnoremap <leader>rs :term rails server<CR>
+```
+
+## Terminal Window Management
+
+### Layouts
+
+```vim
+" Terminal at bottom
+:botright term ++rows=15
+
+" Terminal at top
+:topleft term ++rows=15
+
+" Vertical terminal on right
+:vertical botright term ++cols=80
+
+" Vertical terminal on left
+:vertical topleft term ++cols=80
+```
+
+### Multiple Terminals
+
+```vim
+" Create terminal workspace
+function! TerminalWorkspace()
+  " Split window: editor | terminal
+  vnew
+  term
+  wincmd h
+endfunction
+
+command! TermWS call TerminalWorkspace()
+```
+
+### Toggle Terminal
+
+```vim
+let g:term_buf = 0
+
+function! TermToggle()
+  if g:term_buf > 0 && bufexists(g:term_buf)
+    let win = bufwinnr(g:term_buf)
+    if win > 0
+      execute win . 'close'
+      return
+    endif
+  endif
+  
+  botright new
+  execute 'term ++curwin ++close'
+  let g:term_buf = bufnr('%')
+endfunction
+
+nnoremap <C-t> :call TermToggle()<CR>
+tnoremap <C-t> <C-\><C-n>:call TermToggle()<CR>
+```
+
+## Terminal API
+
+Terminals can communicate with Vim using JSON escape sequences:
+
+```vim
+" In terminal, send to Vim:
+printf '\033]51;["drop", "file.txt"]\007'
+
+" Define handler in Vim:
+function! Tapi_drop(buf, arglist)
+  if len(a:arglist) > 0
+    execute 'drop ' . a:arglist[0]
+  endif
+endfunction
+```
+
+### Auto-Update Directory
+
+Sync shell directory with Vim:
+
+```vim
+" In .vimrc
+function! Tapi_lcd(buf, path)
+  if isdirectory(a:path)
+    execute 'silent lcd ' . fnameescape(a:path)
+  endif
+endfunction
+```
+
+```bash
+# In .bashrc
+if [[ -n "$VIM_TERMINAL" ]]; then
+    PROMPT_COMMAND='_vim_sync_PWD'
+    function _vim_sync_PWD() {
+        printf '\033]51;["call", "Tapi_lcd", "%q"]\007' "$PWD"
+    }
+fi
+```
+
+## Terminal Colors
+
+Customize terminal colors:
+
+```vim
+" Set terminal ANSI colors
+let g:terminal_ansi_colors = [
+  \ '#282828', '#cc241d', '#98971a', '#d79921',
+  \ '#458588', '#b16286', '#689d6a', '#a89984',
+  \ '#928374', '#fb4934', '#b8bb26', '#fabd2f',
+  \ '#83a598', '#d3869b', '#8ec07c', '#ebdbb2'
+\]
+
+" Or with term_setansicolors()
+call term_setansicolors(buf, colors)
+```
+
+## Debugging with Terminal
+
+Use terminal for interactive debugging:
+
+```vim
+" GDB integration
+:packadd termdebug
+:Termdebug program
+
+" Run debugger in terminal
+:term gdb program
+:term lldb program
+:term pdb script.py
+```
+
+## Tips
+
+<Tip>
+  Use `CTRL-W N` to enter Terminal-Normal mode and navigate/search the terminal output like a regular buffer.
+</Tip>
+
+<Tip>
+  Set `termwinscroll` high (e.g., 10000) to preserve command history in the terminal scrollback.
+</Tip>
+
+<Tip>
+  Use `++close` option for commands that you want to close automatically when done, like build commands.
+</Tip>
+
+<Warning>
+  Trying to close a terminal window with a running job requires `:quit!` to forcefully terminate the job.
+</Warning>
+
+<Warning>
+  On Windows, ConPTY (Windows 10+) is preferred over WinPTY for better performance and compatibility.
+</Warning>

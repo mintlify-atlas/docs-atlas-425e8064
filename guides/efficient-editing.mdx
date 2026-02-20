@@ -1,0 +1,899 @@
+---
+title: 'Efficient Editing Techniques'
+description: 'Master powerful Vim editing patterns to dramatically speed up your workflow'
+---
+
+## The Vim Philosophy
+
+Vim's efficiency comes from composability: combining operators, motions, and text objects to perform complex edits with minimal keystrokes. This guide teaches you to think in Vim's editing language.
+
+<Info>
+**The Pattern:** `operator [count] motion` or `operator text-object`
+
+Once you internalize this pattern, editing becomes second nature.
+</Info>
+
+## Core Operators
+
+### The Building Blocks
+
+<Steps>
+  <Step title="Essential Operators">
+    Every operator works with motions and text objects:
+    
+    | Operator | Action | Example |
+    |----------|--------|----------|
+    | `d` | Delete (cut) | `dw` - delete word |
+    | `c` | Change (delete + insert) | `cw` - change word |
+    | `y` | Yank (copy) | `yy` - yank line |
+    | `p` / `P` | Put (paste) after/before | `p` - paste after cursor |
+    | `>` | Indent right | `>>` - indent line |
+    | `<` | Indent left | `<<` - unindent line |
+    | `=` | Auto-indent | `==` - fix line indentation |
+    | `gU` | Uppercase | `gUw` - uppercase word |
+    | `gu` | Lowercase | `guw` - lowercase word |
+    | `~` | Toggle case | `~` - toggle character |
+    | `g~` | Toggle case (motion) | `g~w` - toggle word case |
+    
+    <Tip>
+    Double an operator to apply it to the whole line: `dd`, `cc`, `yy`, `>>`, `<<`, `==`
+    </Tip>
+  </Step>
+  
+  <Step title="The Change Operator">
+    `c` is your most powerful editing operator:
+    
+    ```vim
+    cw      " Change word (from cursor to end)
+    ciw     " Change inner word (entire word, from anywhere)
+    caw     " Change around word (word + space)
+    ct)     " Change till closing parenthesis
+    c$      " Change to end of line
+    cc      " Change entire line
+    C       " Change to end of line (shortcut for c$)
+    ```
+    
+    **Why change is better than delete + insert:**
+    ```vim
+    " Old way (5 keystrokes + typing)
+    dw i newtext <ESC>
+    
+    " Vim way (3 keystrokes + typing)
+    cw newtext <ESC>
+    ```
+  </Step>
+  
+  <Step title="The Delete Operator">
+    Delete commands automatically yank to registers:
+    
+    ```vim
+    dw      " Delete word
+    diw     " Delete inner word
+    dd      " Delete line
+    D       " Delete to end of line (shortcut for d$)
+    dt)     " Delete till closing parenthesis
+    df,     " Delete up to and including comma
+    d/end   " Delete to 'end' search match
+    ```
+    
+    <Warning>
+    Deleted text goes to the default register and can be pasted with `p`. Use `"_d` to delete without affecting registers.
+    </Warning>
+  </Step>
+  
+  <Step title="The Yank Operator">
+    Copy text without modifying it:
+    
+    ```vim
+    yy      " Yank line
+    yiw     " Yank inner word
+    yaw     " Yank around word
+    y$      " Yank to end of line
+    Y       " Yank entire line (same as yy)
+    yi"     " Yank inside quotes
+    ya}     " Yank around curly braces (including braces)
+    ```
+    
+    **Then paste with:**
+    ```vim
+    p       " Paste after cursor/below line
+    P       " Paste before cursor/above line
+    gp      " Paste and move cursor after
+    ```
+  </Step>
+</Steps>
+
+## The Dot Command: Repeat Power
+
+### Most Important Command in Vim
+
+<Steps>
+  <Step title="Understanding the Dot">
+    `.` repeats your last change:
+    
+    **What counts as a change?**
+    - Any operator command (`d`, `c`, `y` with motion)
+    - Insert mode session (from `i` to `<ESC>`)
+    - Substitution command (`:s///`)
+    
+    **What doesn't repeat?**
+    - Motion-only commands (`w`, `j`, `/search`)
+    - Undo/redo (`u`, `CTRL-R`)
+    - Yank-only commands (no text changed)
+  </Step>
+  
+  <Step title="Practical Examples">
+    **Example 1: Delete multiple words**
+    ```
+    The old redundant legacy obsolete code
+    ```
+    
+    Process:
+    ```vim
+    daw     " Delete 'old' and space
+    .       " Delete 'redundant'
+    .       " Delete 'legacy'
+    .       " Delete 'obsolete'
+    ```
+    
+    **Example 2: Add semicolons**
+    ```python
+    result = calculate()
+    value = process()
+    output = format()
+    ```
+    
+    Process:
+    ```vim
+    A;<ESC> " Append semicolon to first line
+    j.      " Move down, repeat
+    j.      " Move down, repeat
+    ```
+    
+    **Example 3: Change multiple words**
+    ```javascript
+    const foo = bar.foo().foo()
+    ```
+    
+    Process:
+    ```vim
+    ciw baz <ESC>  " Change first 'foo' to 'baz'
+    n              " Find next 'foo'
+    .              " Repeat change
+    n.             " Find next, repeat
+    ```
+  </Step>
+  
+  <Step title="Optimizing for the Dot">
+    <Tip>
+    **Design your edits to be repeatable.** Prefer changes that can be repeated with `.` over multi-step operations.
+    </Tip>
+    
+    ❌ **Not repeatable:**
+    ```vim
+    /word<CR>  " Search
+    cw new<ESC> " Change
+    ```
+    
+    ✅ **Repeatable with `n.`:**
+    ```vim
+    *          " Search word under cursor
+    ciw new<ESC>
+    n          " Next match
+    .          " Repeat change
+    ```
+  </Step>
+</Steps>
+
+## Text Objects: Precision Editing
+
+### Inner vs Around
+
+<Steps>
+  <Step title="Understanding Text Objects">
+    Text objects select logical blocks of text:
+    
+    <Tabs>
+      <Tab title="Inner (i)">
+        Selects **inside** delimiters, excluding them:
+        
+        ```
+        "Hello World"
+         ^^^^^^^^^^^ 
+         iw selects this
+        ```
+        
+        | Command | Selects |
+        |---------|----------|
+        | `iw` | Inner word (no spaces) |
+        | `iW` | Inner WORD |
+        | `is` | Inner sentence |
+        | `ip` | Inner paragraph |
+        | `i"` | Inside double quotes |
+        | `i'` | Inside single quotes |
+        | `i)` | Inside parentheses |
+        | `i]` | Inside brackets |
+        | `i}` | Inside braces |
+        | `i>` | Inside angle brackets |
+        | `it` | Inside HTML/XML tag |
+      </Tab>
+      
+      <Tab title="Around (a)">
+        Selects **including** delimiters and trailing space:
+        
+        ```
+        "Hello World" next
+        ^^^^^^^^^^^^^^
+        aw selects this including space
+        ```
+        
+        | Command | Selects |
+        |---------|----------|
+        | `aw` | Around word (with space) |
+        | `aW` | Around WORD |
+        | `as` | Around sentence |
+        | `ap` | Around paragraph |
+        | `a"` | Around double quotes |
+        | `a'` | Around single quotes |
+        | `a)` | Around parentheses |
+        | `a]` | Around brackets |
+        | `a}` | Around braces |
+        | `a>` | Around angle brackets |
+        | `at` | Around HTML/XML tag |
+      </Tab>
+    </Tabs>
+  </Step>
+  
+  <Step title="Text Object Operations">
+    Combine operators with text objects:
+    
+    **On this line:**
+    ```python
+    result = calculate(x, y, "hello world", z)
+    ```
+    
+    | Command | Effect | Cursor Position |
+    |---------|--------|------------------|
+    | `di(` | Delete function arguments | On `(` or inside |
+    | `ci(` | Change function arguments | On `(` or inside |
+    | `yi(` | Yank function arguments | On `(` or inside |
+    | `da(` | Delete including parentheses | On `(` or inside |
+    | `di"` | Delete string contents | On `"` or inside |
+    | `ciw` | Change word | Anywhere on word |
+    | `daw` | Delete word with space | Anywhere on word |
+    
+    <Tip>
+    Text objects work from **anywhere** within the object. No need to position cursor precisely!
+    </Tip>
+  </Step>
+  
+  <Step title="Real-World Examples">
+    **Example 1: Change function arguments**
+    ```javascript
+    function process(oldParam1, oldParam2, oldParam3) {
+    ```
+    
+    Cursor anywhere inside parentheses:
+    ```vim
+    ci(newParam<ESC>  " Result: function process(newParam) {
+    ```
+    
+    **Example 2: Fix quoted string**
+    ```python
+    message = "This is the old message"
+    ```
+    
+    Cursor anywhere in string:
+    ```vim
+    ci"New message<ESC>  " Result: message = "New message"
+    ```
+    
+    **Example 3: Delete HTML tag contents**
+    ```html
+    <div class="container">Old content here</div>
+    ```
+    
+    Cursor anywhere in tag:
+    ```vim
+    dit  " Deletes 'Old content here'
+    cit  " Change tag contents
+    dat  " Delete entire tag including <div> tags
+    ```
+    
+    **Example 4: Work with nested structures**
+    ```javascript
+    const config = { user: { name: "Alice", role: "admin" } };
+    ```
+    
+    Cursor on inner `{`:
+    ```vim
+    di{  " Deletes: name: "Alice", role: "admin"
+    ```
+    
+    Cursor on outer `{`:
+    ```vim
+    di{  " Deletes: user: { name: "Alice", role: "admin" }
+    ```
+  </Step>
+  
+  <Step title="Paragraph Text Objects">
+    Work with blocks of text:
+    
+    ```vim
+    dip     " Delete inner paragraph
+    dap     " Delete paragraph including blank lines
+    vip     " Visually select paragraph
+    gqip    " Format paragraph
+    >ip     " Indent paragraph
+    ```
+    
+    **What's a paragraph?**
+    - Text separated by blank lines
+    - Useful for code blocks, comments, prose
+  </Step>
+</Steps>
+
+## Register System: Advanced Copy/Paste
+
+### Working with Multiple Clipboards
+
+<Steps>
+  <Step title="Named Registers">
+    Vim has 26 named registers (a-z):
+    
+    ```vim
+    "ayiw    " Yank word into register a
+    "bdd     " Delete line into register b
+    "ap      " Paste from register a
+    "bp      " Paste from register b
+    ```
+    
+    **View all registers:**
+    ```vim
+    :reg       " Show all registers
+    :reg abc   " Show registers a, b, c
+    ```
+    
+    <Tip>
+    Use mnemonic names: `"c` for "config", `"t` for "test", `"d` for "debug", etc.
+    </Tip>
+  </Step>
+  
+  <Step title="Special Registers">
+    Vim maintains several automatic registers:
+    
+    | Register | Contents | Usage |
+    |----------|----------|-------|
+    | `""` | Unnamed (last yank/delete) | Default for `p` |
+    | `"0` | Last yank only | `"0p` pastes last yank |
+    | `"1-"9` | Last 9 deletes | `"1p`, `"2p`, etc. |
+    | `"-` | Small delete (less than line) | Auto-populated |
+    | `"_` | Black hole (discard) | `"_dd` delete without saving |
+    | `"+` | System clipboard | `"+y`, `"+p` |
+    | `"*` | Primary selection (X11) | Mouse selection |
+    | `".` | Last inserted text | `".p` pastes last insert |
+    | `":` | Last command | `@:` repeats command |
+    | `"/` | Last search | `"/p` pastes search term |
+    | `"%` | Current filename | `"%p` pastes filename |
+    
+    **Practical uses:**
+    ```vim
+    "0p      " Paste last yank (not affected by deletes)
+    "+yy     " Copy line to system clipboard
+    "+p      " Paste from system clipboard
+    "_dd     " Delete without affecting any register
+    ".p      " Paste what you just typed
+    ```
+  </Step>
+  
+  <Step title="Register Workflow">
+    **Scenario: Swap two function arguments**
+    
+    ```python
+    process(first, second)
+    ```
+    
+    Method:
+    ```vim
+    "adiw    " Delete 'first' into register a
+    w       " Move to 'second'
+    "bdiw    " Delete 'second' into register b
+    "bp      " Paste 'second'
+    F,      " Move back to comma
+    w       " Move forward
+    "ap      " Paste 'first'
+    ```
+    
+    Result:
+    ```python
+    process(second, first)
+    ```
+  </Step>
+  
+  <Step title="Expression Register">
+    Calculate and insert values:
+    
+    In Insert mode:
+    ```vim
+    <CTRL-R>=60*60*24<CR>  " Inserts 86400
+    <CTRL-R>=system('date')<CR>  " Inserts current date
+    <CTRL-R>=@a<CR>  " Inserts contents of register a
+    ```
+    
+    In Command mode:
+    ```vim
+    :put =range(1,10)  " Inserts numbers 1-10 on separate lines
+    :put =system('ls -1')  " Inserts directory listing
+    ```
+  </Step>
+</Steps>
+
+## Insert Mode Efficiency
+
+### Beyond Just Typing
+
+<Steps>
+  <Step title="Insert Mode Commands">
+    Useful commands without leaving Insert mode:
+    
+    | Command | Action |
+    |---------|--------|
+    | `CTRL-W` | Delete word before cursor |
+    | `CTRL-U` | Delete to start of line |
+    | `CTRL-H` | Delete character (backspace) |
+    | `CTRL-T` | Indent current line |
+    | `CTRL-D` | Unindent current line |
+    | `CTRL-O` | Execute one Normal command |
+    | `CTRL-R {reg}` | Insert from register |
+    | `CTRL-R =` | Insert expression result |
+    | `CTRL-A` | Insert last inserted text |
+    | `CTRL-N` | Keyword completion (next) |
+    | `CTRL-P` | Keyword completion (previous) |
+    | `CTRL-X CTRL-L` | Line completion |
+    | `CTRL-X CTRL-F` | Filename completion |
+    
+    **Example workflow:**
+    ```vim
+    i                  " Enter Insert mode
+    Start typing...
+    <CTRL-W>           " Delete last word
+    <CTRL-O>A          " Execute A command (append at line end)
+    more text
+    <CTRL-R>a          " Insert from register a
+    <ESC>              " Back to Normal mode
+    ```
+  </Step>
+  
+  <Step title="CTRL-O: One-Command Escape">
+    Execute one Normal command without leaving Insert mode:
+    
+    ```vim
+    "Typing some text..."
+    <CTRL-O>A          " Jump to end of line
+    "...continue typing"
+    <CTRL-O>o          " Open new line
+    <CTRL-O>100G       " Jump to line 100
+    ```
+    
+    <Tip>
+    `CTRL-O` keeps you in Insert mode, making it perfect for quick navigation while typing.
+    </Tip>
+  </Step>
+  
+  <Step title="Completion">
+    Auto-complete without plugins:
+    
+    ```vim
+    "Type 'func' then:"
+    <CTRL-N>           " Complete with words from current file
+    <CTRL-P>           " Complete backward
+    <CTRL-X CTRL-N>    " Complete from multiple sources
+    <CTRL-X CTRL-F>    " Complete filename
+    <CTRL-X CTRL-L>    " Complete entire line
+    <CTRL-X CTRL-K>    " Dictionary completion
+    <CTRL-X CTRL-O>    " Omni completion (language-aware)
+    ```
+    
+    Navigate completion menu:
+    ```vim
+    <CTRL-N>           " Next item
+    <CTRL-P>           " Previous item
+    <CTRL-Y>           " Accept selection
+    <CTRL-E>           " Cancel and return to original
+    ```
+  </Step>
+</Steps>
+
+## Visual Mode: Select and Operate
+
+### Three Visual Modes
+
+<Steps>
+  <Step title="Visual Mode Types">
+    <Tabs>
+      <Tab title="Character-wise (v)">
+        Select characters:
+        
+        ```vim
+        v       " Start visual mode
+        "...move cursor..."
+        d       " Delete selection
+        ```
+        
+        **Common operations:**
+        ```vim
+        v3w     " Select 3 words
+        viw     " Select inner word
+        vi"     " Select inside quotes
+        ```
+      </Tab>
+      
+      <Tab title="Line-wise (V)">
+        Select entire lines:
+        
+        ```vim
+        V       " Start line visual mode
+        jjj     " Select 3 lines down
+        >       " Indent selection
+        ```
+        
+        **Common operations:**
+        ```vim
+        Vjd     " Select 2 lines, delete
+        Vip     " Select paragraph
+        V/end<CR>  " Select to search match
+        ```
+      </Tab>
+      
+      <Tab title="Block-wise (CTRL-V)">
+        Select rectangular blocks:
+        
+        ```vim
+        CTRL-V  " Start block visual mode
+        jjj     " Select down
+        lll     " Select right
+        I       " Insert at block start
+        ```
+        
+        **Use cases:**
+        - Add comment markers to multiple lines
+        - Edit column data
+        - Create ASCII tables
+        - Align code
+      </Tab>
+    </Tabs>
+  </Step>
+  
+  <Step title="Visual Mode Operations">
+    Once text is selected:
+    
+    | Command | Action |
+    |---------|--------|
+    | `d` | Delete |
+    | `c` | Change |
+    | `y` | Yank |
+    | `>` | Indent |
+    | `<` | Unindent |
+    | `=` | Auto-indent |
+    | `gU` | Uppercase |
+    | `gu` | Lowercase |
+    | `~` | Toggle case |
+    | `:` | Command on selection |
+    | `o` | Move to other end of selection |
+    | `O` | Move to other corner (block mode) |
+  </Step>
+  
+  <Step title="Visual Block Examples">
+    **Example 1: Add comments to multiple lines**
+    
+    Before:
+    ```python
+    print("line 1")
+    print("line 2")
+    print("line 3")
+    ```
+    
+    Process:
+    ```vim
+    CTRL-V      " Start block mode
+    jj          " Select 3 lines
+    I# <ESC>    " Insert '# ' at start of each line
+    ```
+    
+    After:
+    ```python
+    # print("line 1")
+    # print("line 2")
+    # print("line 3")
+    ```
+    
+    **Example 2: Create numbered list**
+    
+    Before:
+    ```
+    Item
+    Item
+    Item
+    ```
+    
+    Process:
+    ```vim
+    CTRL-V      " Start block mode
+    jj          " Select 3 lines
+    I           " Insert mode
+    1. <ESC>    " Type '1. '
+    gv          " Reselect
+    g CTRL-A    " Increment sequentially
+    ```
+    
+    After:
+    ```
+    1. Item
+    2. Item
+    3. Item
+    ```
+  </Step>
+  
+  <Step title="Reselecting">
+    Reselect last visual selection:
+    
+    ```vim
+    gv      " Reselect last visual selection
+    ```
+    
+    **Workflow:**
+    ```vim
+    vip     " Select paragraph
+    :sort   " Sort lines
+    gv      " Reselect same paragraph
+    >       " Indent it
+    ```
+  </Step>
+</Steps>
+
+## Advanced Editing Patterns
+
+### Combining Techniques
+
+<Steps>
+  <Step title="Pattern 1: Operator Pending Mode">
+    After typing an operator, Vim waits for a motion.
+    
+    During this time you can:
+    ```vim
+    d       " Start delete
+    /end    " Search for 'end'
+    <CR>    " Delete up to 'end'
+    ```
+    
+    **More examples:**
+    ```vim
+    c/function<CR>  " Change to 'function'
+    y/}<CR>         " Yank to closing brace
+    gU'a            " Uppercase to mark a
+    ```
+  </Step>
+  
+  <Step title="Pattern 2: Count + Operator + Motion">
+    Triple the power:
+    
+    ```vim
+    3d2w    " Delete 2 words, 3 times (6 words total)
+    2c3e    " Change to end of 3rd word, twice
+    4>j     " Indent 4 times, current + next line
+    ```
+    
+    <Warning>
+    Count can apply to operator OR motion, not both typically. `3d2w` = `d6w` in practice.
+    </Warning>
+  </Step>
+  
+  <Step title="Pattern 3: Macro + Dot Command">
+    Combine recording with repetition:
+    
+    ```vim
+    qa      " Start recording macro 'a'
+    ^       " Go to line start
+    i- <ESC>" Insert '- '
+    j       " Move down
+    q       " Stop recording
+    
+    @a      " Execute macro once
+    @@      " Repeat last macro
+    10@a    " Execute macro 10 times
+    ```
+    
+    See [Macros guide](/advanced/macros) for more details.
+  </Step>
+  
+  <Step title="Pattern 4: Global Command">
+    Execute commands on matching lines:
+    
+    ```vim
+    :g/pattern/d              " Delete lines matching pattern
+    :g/TODO/yank A            " Yank all TODO lines to register a
+    :g/function/normal >>     " Indent all lines with 'function'
+    :g!/pattern/d             " Delete lines NOT matching
+    :v/pattern/d              " Same as above (:v = inverted :g)
+    ```
+    
+    **Real-world examples:**
+    ```vim
+    :g/^$/d                   " Delete blank lines
+    :g/debug/normal gcc       " Comment debug lines (with commentary plugin)
+    :g/import/m 0             " Move all imports to top
+    ```
+  </Step>
+</Steps>
+
+## Undo and Redo
+
+### Time Travel Editing
+
+<Steps>
+  <Step title="Basic Undo/Redo">
+    ```vim
+    u         " Undo last change
+    CTRL-R    " Redo (undo the undo)
+    U         " Undo all changes on current line
+    ```
+    
+    **Multiple undos:**
+    ```vim
+    5u        " Undo 5 times
+    3 CTRL-R  " Redo 3 times
+    ```
+  </Step>
+  
+  <Step title="Undo Branches">
+    Vim maintains a tree of changes, not linear history:
+    
+    ```vim
+    :undolist       " View undo history
+    :earlier 2      " Go back 2 changes
+    :earlier 10s    " Go back 10 seconds
+    :earlier 5m     " Go back 5 minutes
+    :earlier 1h     " Go back 1 hour
+    :later 2        " Go forward 2 changes
+    :later 30s      " Go forward 30 seconds
+    ```
+    
+    **Undo to saved state:**
+    ```vim
+    :earlier 1f     " Go back to last file write
+    ```
+  </Step>
+  
+  <Step title="Persistent Undo">
+    Enable undo across sessions:
+    
+    In your vimrc:
+    ```vim
+    set undofile
+    set undodir=~/.vim/undo
+    ```
+    
+    Now undo history survives closing Vim!
+  </Step>
+</Steps>
+
+## Practice Exercises
+
+<Steps>
+  <Step title="Exercise 1: Text Object Mastery">
+    Practice on this code:
+    ```javascript
+    function calculate(x, y, options = {debug: true, mode: "strict"}) {
+      const result = process(x, y);
+      return format(result);
+    }
+    ```
+    
+    Tasks:
+    1. Change function name from anywhere on it
+    2. Delete all parameters from inside parentheses
+    3. Change the options object default value
+    4. Delete entire function body (keep braces)
+    5. Yank entire function including declaration
+  </Step>
+  
+  <Step title="Exercise 2: Register Workflow">
+    Given:
+    ```
+    First line
+    Second line
+    Third line
+    ```
+    
+    Tasks:
+    1. Yank "First" into register `a`
+    2. Yank "Second" into register `b`
+    3. Delete "Third"
+    4. Paste register `b` at end of file
+    5. Paste register `a` at beginning
+    6. View all registers
+  </Step>
+  
+  <Step title="Exercise 3: Visual Block Magic">
+    Create this transformation:
+    
+    Before:
+    ```
+    apple
+    banana  
+    cherry
+    ```
+    
+    After:
+    ```
+    - [ ] apple
+    - [ ] banana
+    - [ ] cherry
+    ```
+    
+    Use visual block mode to insert `- [ ] ` at the start of each line in one operation.
+  </Step>
+</Steps>
+
+## Quick Reference
+
+### Essential Editing Commands
+
+<AccordionGroup>
+  <Accordion title="Operators">
+    ```vim
+    d c y p > < = gU gu g~
+    Double for line: dd cc yy >> << ==
+    ```
+  </Accordion>
+  
+  <Accordion title="Text Objects">
+    ```vim
+    iw aw iW aW is as ip ap
+    i" a" i' a' i) a) i] a] i} a} i> a>
+    it at ib ab iB aB
+    ```
+  </Accordion>
+  
+  <Accordion title="Registers">
+    ```vim
+    "ayy  "ap  "_dd  "+y  "0p
+    :reg  <CTRL-R>a  <CTRL-R>=
+    ```
+  </Accordion>
+  
+  <Accordion title="Insert Mode">
+    ```vim
+    <CTRL-W> <CTRL-U> <CTRL-T> <CTRL-D>
+    <CTRL-O> <CTRL-R> <CTRL-N> <CTRL-P>
+    ```
+  </Accordion>
+  
+  <Accordion title="Visual Mode">
+    ```vim
+    v V CTRL-V
+    o O gv
+    Operations: d c y > < = gU gu
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Text Manipulation" href="/guides/text-manipulation" icon="wand-magic-sparkles">
+    Advanced text transformation techniques
+  </Card>
+  
+  <Card title="Macros" href="/advanced/macros" icon="repeat">
+    Automate repetitive editing tasks
+  </Card>
+  
+  <Card title="Registers Deep Dive" href="/concepts/registers" icon="database">
+    Master Vim's register system
+  </Card>
+  
+  <Card title="Visual Mode" href="/commands/visual-mode" icon="highlighter">
+    Complete visual mode reference
+  </Card>
+</CardGroup>

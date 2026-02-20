@@ -1,0 +1,411 @@
+---
+title: Migrating from Vi
+description: A comprehensive guide to transitioning from Vi to Vim
+---
+
+## Overview
+
+Vim is an enhanced version of Vi that maintains nearly complete compatibility while adding powerful features. This guide helps Vi users understand the differences and take advantage of Vim's capabilities.
+
+## Compatibility Mode
+
+Vim can run in Vi-compatible mode or enhanced mode:
+
+```vim
+" Start in enhanced mode
+:set nocompatible
+
+" Or start Vim with the -N flag
+vim -N filename
+```
+
+<Note>
+Vim automatically sets `nocompatible` when it finds a `.vimrc` file, enabling enhanced features.
+</Note>
+
+## Key Differences
+
+### Command Behavior
+
+| Feature | Vi | Vim |
+|---------|----|----- |
+| **Undo Levels** | Single level | Multiple levels (default 1000) |
+| **Command-line** | Esc executes command | Esc cancels command |
+| **Insert Mode** | Limited editing | Full cursor movement |
+| **Marks** | Lowercase only | Uppercase and lowercase |
+| **File Recovery** | Mail-based | `.swp` file-based |
+
+### Editing Enhancements
+
+#### Multi-Level Undo
+
+Vim provides persistent, multi-level undo with undo branches:
+
+```vim
+" Configure undo settings
+:set undolevels=1000
+:set undofile              " Persistent undo across sessions
+:set undodir=~/.vim/undo   " Directory for undo files
+
+" Navigate undo tree
+u                           " Undo
+CTRL-R                     " Redo
+:earlier 10m               " Go back 10 minutes
+:later 5m                  " Go forward 5 minutes
+:undolist                  " Show undo tree
+```
+
+#### Visual Mode
+
+Vim introduces Visual mode for selecting text before operating on it:
+
+```vim
+v          " Character-wise visual mode
+V          " Line-wise visual mode
+CTRL-V     " Block-wise visual mode
+
+" Visual mode operations
+d          " Delete selection
+y          " Yank selection
+c          " Change selection
+>          " Indent
+<          " Unindent
+~          " Toggle case
+U          " Uppercase
+u          " Lowercase
+```
+
+<Note>
+Vi uses "visual" to refer to Normal mode. Vim's Visual mode is a completely new feature.
+</Note>
+
+### Extended Commands
+
+#### New Ex Commands
+
+```vim
+" Window management
+:split [file]              " Horizontal split
+:vsplit [file]             " Vertical split
+:tabnew [file]             " New tab
+
+" Advanced editing
+:retab                     " Convert tabs to spaces
+:sort                      " Sort lines
+:global/pattern/command    " Execute on matching lines
+:vimgrep pattern files     " Search in multiple files
+
+" Session management
+:mksession session.vim     " Save session
+:source session.vim        " Restore session
+```
+
+#### Enhanced Substitute
+
+Vim extends `:substitute` with new flags:
+
+```vim
+" Vi-compatible
+:s/old/new/g              " Replace all in line
+
+" Vim enhancements
+:s/old/new/gc             " Confirm each replacement
+:s/old/new/gi             " Case insensitive
+:s/old/new/gI             " Case sensitive (force)
+:%s/old/new/gn            " Count matches without replacing
+```
+
+## Resource Limits
+
+### Vi Limitations
+
+Vi has several constraints that Vim removes:
+
+- Cannot handle `<Nul>` characters or bytes above 128
+- Limited line length (often 512-1024 characters)
+- Restricted file size
+- Single-level undo
+
+### Vim Improvements
+
+| Resource | Limit |
+|----------|-------|
+| **Line Length** | 2,147,483,647 characters |
+| **File Lines** | 2,147,483,647 lines |
+| **File Size** | 2 GB (32-bit) or much larger (64-bit) |
+| **Undo Levels** | Configurable (default 1000) |
+| **Registers** | Named, numbered, and special registers |
+| **Mapping Length** | 50 characters (LHS) |
+
+## Missing Vi Options
+
+These Vi options are accepted but ignored in Vim:
+
+```vim
+autoprint (ap)    " Always enabled in Vim
+beautify (bf)     " Not needed
+flash (fl)        " Use 'visualbell' instead
+hardtabs (ht)     " Use 'tabstop' instead
+mesg              " Not relevant
+open              " Open mode not implemented
+optimize (op)     " Not needed with modern terminals
+slowopen (slow)   " Not needed
+```
+
+## File Handling
+
+### Swap Files
+
+Vim uses swap files for crash recovery:
+
+```vim
+" Configure swap files
+:set swapfile              " Enable swap files (default)
+:set directory=~/.vim/swap " Swap file location
+:set updatecount=100       " Write to swap after 100 characters
+:set updatetime=4000       " Write to swap after 4 seconds idle
+
+" Disable swap files
+:set noswapfile
+" Or start with: vim -n file
+```
+
+### Backup Files
+
+```vim
+" Enable backup files
+:set backup
+:set backupdir=~/.vim/backup
+:set backupext=.bak
+
+" Write backup only during save, then delete
+:set writebackup nobackup
+```
+
+## Insert Mode Enhancements
+
+### Cursor Movement
+
+Vim allows cursor movement in Insert mode:
+
+```vim
+" Arrow keys work in Insert mode
+<Up>          " Move up
+<Down>        " Move down
+<Left>        " Move left
+<Right>       " Move right
+
+" Home/End keys
+<Home>        " Start of line
+<End>         " End of line
+
+" Execute single Normal mode command
+CTRL-O        " Execute one Normal mode command, then return to Insert
+```
+
+### Advanced Completion
+
+Vim provides extensive insert-mode completion:
+
+```vim
+CTRL-N        " Next completion match
+CTRL-P        " Previous completion match
+CTRL-X CTRL-F " File name completion
+CTRL-X CTRL-L " Whole line completion
+CTRL-X CTRL-K " Dictionary completion
+CTRL-X CTRL-T " Thesaurus completion
+CTRL-X CTRL-O " Omni completion (language-aware)
+CTRL-X CTRL-]  " Tag completion
+```
+
+### Smart Editing
+
+```vim
+CTRL-R {reg}  " Insert contents of register
+CTRL-Y        " Copy character from line above
+CTRL-E        " Copy character from line below
+CTRL-A        " Insert previously inserted text
+CTRL-@        " Insert previously inserted text and exit Insert mode
+```
+
+## Search Enhancements
+
+### Extended Patterns
+
+Vim supports advanced regular expressions:
+
+```vim
+" Character classes
+\d            " Digit [0-9]
+\D            " Non-digit
+\s            " Whitespace
+\S            " Non-whitespace
+\w            " Word character [a-zA-Z0-9_]
+\W            " Non-word character
+
+" Quantifiers
+x\{2,4}       " Match x 2 to 4 times
+x\+           " Match x one or more times
+x\=           " Match x zero or one time
+
+" Special
+\n            " Match newline in pattern
+\zs           " Start of match
+\ze           " End of match
+```
+
+### Search Options
+
+```vim
+:set incsearch           " Incremental search
+:set hlsearch            " Highlight search matches
+:nohlsearch              " Temporarily disable highlight
+
+" Search with offset
+/pattern/+2              " Cursor 2 lines below match
+/pattern/e               " Cursor at end of match
+/pattern/s+2             " Cursor 2 chars after match start
+```
+
+## Command-Line Features
+
+### History and Completion
+
+```vim
+" Navigate command history
+<Up>/<Down>              " Previous/next command
+CTRL-P/CTRL-N            " Previous/next command
+
+" Search history
+:<Up>                    " Commands starting with current input
+q:                       " Open command history window
+
+" Completion
+<Tab>                    " Complete command, file, option
+CTRL-D                   " List all completions
+CTRL-A                   " Insert all completions
+CTRL-L                   " Insert longest common string
+```
+
+### Command Editing
+
+Vim allows full editing of command-line:
+
+```vim
+CTRL-B        " Beginning of line
+CTRL-E        " End of line
+CTRL-W        " Delete word
+CTRL-U        " Delete to beginning
+<Left>/<Right> " Move cursor
+<Home>/<End>  " Move to start/end
+```
+
+## Migration Tips
+
+### Gradual Transition
+
+1. **Start with compatibility mode** - Keep Vi habits while learning
+2. **Enable one feature at a time** - Add features gradually to your `.vimrc`
+3. **Use Vi commands** - All Vi commands still work in Vim
+4. **Learn new features** - Explore Vim enhancements when comfortable
+
+### Essential Configuration
+
+Create a basic `.vimrc` to enable key features:
+
+```vim
+" ~/.vimrc - Basic Vim configuration for Vi users
+
+" Enable Vim features
+set nocompatible
+
+" Sensible defaults
+set backspace=indent,eol,start  " Better backspace behavior
+set history=1000                " More command history
+set undolevels=1000             " More undo levels
+
+" Search improvements
+set incsearch                   " Incremental search
+set hlsearch                    " Highlight matches
+set ignorecase                  " Case-insensitive search
+set smartcase                   " Case-sensitive if uppercase present
+
+" Display enhancements
+set number                      " Show line numbers
+set ruler                       " Show cursor position
+set showcmd                     " Show partial commands
+set showmode                    " Show current mode
+
+" Editing improvements
+set autoindent                  " Copy indent from current line
+set smartindent                 " Smart autoindenting
+set tabstop=4                   " Tab width
+set shiftwidth=4                " Indent width
+set expandtab                   " Use spaces instead of tabs
+
+" File handling
+set backup                      " Keep backup file
+set backupdir=~/.vim/backup     " Backup directory
+set directory=~/.vim/swap       " Swap file directory
+set undofile                    " Persistent undo
+set undodir=~/.vim/undo         " Undo directory
+
+" Syntax and filetype
+syntax on                       " Enable syntax highlighting
+filetype plugin indent on       " Enable filetype detection
+```
+
+### Create Required Directories
+
+```bash
+mkdir -p ~/.vim/backup ~/.vim/swap ~/.vim/undo
+```
+
+## Common Pitfalls
+
+<Warning>
+**Esc Key Behavior**: In Vi, pressing Esc in command-line mode executes the command. In Vim, it cancels the command. To restore Vi behavior:
+
+```vim
+:cmap <Esc> <CR>
+```
+</Warning>
+
+### Other Differences to Note
+
+- **cw command**: In Vi, `cw` changes only one space when on whitespace. Vim changes all whitespace, which is more intuitive.
+- **Search wrapping**: Vi uses `wrapscan` when searching for tags differently than Vim.
+- **Replace mode**: Vi's replace mode doesn't show changes until you press Esc. Vim shows them immediately.
+- **Auto-indent**: Vi and Vim handle indent slightly differently after deleting it.
+
+## Advanced Features
+
+Once comfortable with basic Vim, explore these features:
+
+- **Multiple windows**: `:split`, `:vsplit` for side-by-side editing
+- **Tabs**: `:tabnew`, `:tabnext` for multiple file groups
+- **Folding**: Collapse sections of code or text
+- **Macros**: Record and replay command sequences with `q{register}`
+- **Plugins**: Extend Vim with additional functionality
+- **GUI**: Try `gvim` for a graphical interface
+
+## Getting Help
+
+```vim
+:help vi_diff.txt        " Complete Vi differences documentation
+:help compatible         " Compatibility mode
+:help cpoptions          " Vi compatibility options
+:help vimrc              " Configuration file help
+:help quickref           " Quick reference guide
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="From Other Editors" href="/guides/from-other-editors" icon="right-left">
+    Compare Vim with Emacs, nano, and other editors
+  </Card>
+  <Card title="Vim9 Script Migration" href="/guides/vim9-migration" icon="code">
+    Upgrade to modern Vim9 script syntax
+  </Card>
+</CardGroup>

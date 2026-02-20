@@ -1,0 +1,477 @@
+---
+title: macOS
+description: Installing and using Vim on macOS systems
+---
+
+## Overview
+
+Vim runs natively on macOS with full Unix compatibility. This guide covers installation methods, building from source, and macOS-specific considerations.
+
+<Note>
+  macOS Classic is no longer supported. Use Vim 6.4 or earlier for Classic macOS. Modern versions require macOS X or later.
+</Note>
+
+## Installation Methods
+
+### Pre-installed Vim
+
+macOS comes with Vim pre-installed, but it may be an older version:
+
+```bash Terminal
+# Check installed version
+vim --version
+
+# Typical location
+/usr/bin/vim
+```
+
+### Homebrew (Recommended)
+
+The easiest way to get the latest Vim:
+
+<Steps>
+  <Step title="Install Homebrew">
+    If not already installed:
+    
+    ```bash
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    ```
+  </Step>
+  
+  <Step title="Install Vim">
+    ```bash
+    brew install vim
+    ```
+  </Step>
+  
+  <Step title="Verify Installation">
+    ```bash
+    # Homebrew installs to /usr/local/bin or /opt/homebrew/bin
+    which vim
+    vim --version
+    ```
+  </Step>
+</Steps>
+
+### MacVim
+
+For a native macOS GUI application:
+
+```bash
+brew install --cask macvim
+```
+
+MacVim provides:
+- Native macOS interface
+- Better integration with macOS features
+- Support for macOS keyboard shortcuts
+- Retina display support
+
+## Building from Source
+
+### Prerequisites
+
+Ensure you have Xcode and Command Line Tools installed:
+
+<Steps>
+  <Step title="Install Xcode">
+    Download from the Mac App Store (free).
+  </Step>
+  
+  <Step title="Install Command Line Tools">
+    ```bash
+    # Check if installed
+    make --version
+    
+    # If not installed, this will prompt installation
+    xcode-select --install
+    ```
+  </Step>
+  
+  <Step title="Install libtool">
+    If you get "glibtool: command not found":
+    
+    ```bash
+    # Via Homebrew
+    brew install libtool
+    
+    # Or build from source
+    curl -O https://ftp.gnu.org/gnu/libtool/libtool-2.4.7.tar.gz
+    tar xzf libtool-2.4.7.tar.gz
+    cd libtool-2.4.7
+    ./configure --program-prefix=g
+    make
+    sudo make install
+    ```
+  </Step>
+</Steps>
+
+### Terminal Version
+
+Build the standard terminal Vim:
+
+```bash Terminal
+# Clone the repository
+git clone https://github.com/vim/vim.git
+cd vim/src
+
+# Configure and build
+make
+make test
+sudo make install
+```
+
+### GUI Version with X11
+
+<Warning>
+  X11 GUI support may no longer work properly since Athena support has been removed. Consider using MacVim instead.
+</Warning>
+
+If you still want to try:
+
+<Steps>
+  <Step title="Install XQuartz">
+    Download from [xquartz.org](https://www.xquartz.org).
+  </Step>
+  
+  <Step title="Configure Build">
+    Edit `Makefile` and uncomment:
+    
+    ```makefile
+    CONF_OPT_GUI = --enable-gui=gtk3
+    CONF_OPT_DARWIN = --disable-darwin
+    ```
+  </Step>
+  
+  <Step title="Build">
+    ```bash
+    make distclean
+    make
+    sudo make install
+    ```
+  </Step>
+</Steps>
+
+## Configuration
+
+### Configuration Files
+
+macOS follows Unix conventions:
+
+```
+~/.vimrc              # Your configuration file
+~/.vim/               # Your runtime directory
+├── autoload/         # Autoloaded scripts
+├── colors/           # Color schemes
+├── ftplugin/         # Filetype plugins
+├── plugin/           # Plugins
+└── syntax/           # Syntax files
+```
+
+### System Vim Location
+
+Depending on installation method:
+
+<CodeGroup>
+
+```bash System Vim
+/usr/bin/vim
+/usr/share/vim/
+```
+
+```bash Homebrew (Intel)
+/usr/local/bin/vim
+/usr/local/share/vim/
+```
+
+```bash Homebrew (Apple Silicon)
+/opt/homebrew/bin/vim
+/opt/homebrew/share/vim/
+```
+
+</CodeGroup>
+
+## macOS-Specific Features
+
+### Architecture Options
+
+Build for specific architectures:
+
+<CodeGroup>
+
+```bash Apple Silicon (M1/M2)
+./configure --with-mac-arch=arm64
+make
+```
+
+```bash Intel
+./configure --with-mac-arch=x86_64
+make
+```
+
+```bash Universal Binary
+./configure --with-mac-arch=arm64,x86_64
+make
+```
+
+</CodeGroup>
+
+### Darwin-Specific Options
+
+Configure options explained:
+
+<ParamField path="--disable-darwin" type="flag">
+  Disable macOS-specific features. Use when building X11 GUI version.
+</ParamField>
+
+<ParamField path="--with-mac-arch" type="string">
+  Specify target architecture: `arm64`, `x86_64`, or both for universal binary.
+</ParamField>
+
+### Clipboard Integration
+
+macOS Vim integrates with the system clipboard:
+
+```vim
+" Copy to system clipboard
+"+y
+
+" Paste from system clipboard
+"+p
+
+" Use system clipboard by default
+set clipboard=unnamed
+```
+
+<Note>
+  The `+` register maps to the macOS system clipboard (Cmd+C/Cmd+V).
+</Note>
+
+## Terminal Configuration
+
+### Terminal.app
+
+Configure macOS Terminal for better Vim experience:
+
+1. Open Terminal Preferences
+2. Select Profile tab
+3. Configure:
+   - **Font**: Menlo, Monaco, or SF Mono
+   - **Colors**: Import or create color scheme
+   - **Keyboard**: Option as Meta key
+
+### iTerm2 (Recommended)
+
+iTerm2 provides better Vim integration:
+
+```bash
+brew install --cask iterm2
+```
+
+Benefits:
+- Better true color support
+- More customization options
+- Better performance
+- Tmux integration
+
+### True Color Support
+
+Enable 24-bit color in your `~/.vimrc`:
+
+```vim
+if has('termguicolors')
+  set termguicolors
+endif
+
+" For Terminal.app
+if $TERM_PROGRAM ==# 'Apple_Terminal'
+  set notermguicolors
+endif
+```
+
+## Shell Integration
+
+### Zsh (Default Shell)
+
+macOS uses Zsh by default. Add to `~/.zshrc`:
+
+```bash
+# Use Vim as default editor
+export EDITOR=vim
+export VISUAL=vim
+
+# Vim mode in Zsh
+bindkey -v
+
+# Aliases
+alias vi=vim
+alias view='vim -R'
+```
+
+### Bash
+
+If using Bash, add to `~/.bash_profile`:
+
+```bash
+# Use Vim as default editor
+export EDITOR=vim
+export VISUAL=vim
+
+# Vim mode in Bash
+set -o vi
+```
+
+## Common Issues
+
+### Python Support
+
+Building with Python on macOS:
+
+<AccordionGroup>
+  <Accordion title="System Python">
+    macOS includes Python, but it may be outdated:
+    
+    ```bash
+    ./configure --enable-python3interp=yes \
+      --with-python3-command=python3
+    ```
+  </Accordion>
+  
+  <Accordion title="Homebrew Python">
+    Use Homebrew Python for latest version:
+    
+    ```bash
+    brew install python3
+    
+    ./configure --enable-python3interp=yes \
+      --with-python3-command=/opt/homebrew/bin/python3
+    ```
+  </Accordion>
+  
+  <Accordion title="Multiple Python Versions">
+    Use pyenv for managing versions:
+    
+    ```bash
+    brew install pyenv
+    pyenv install 3.11.0
+    pyenv global 3.11.0
+    
+    ./configure --enable-python3interp=yes
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### Clipboard Access
+
+If clipboard doesn't work:
+
+```vim
+" Check clipboard support
+:echo has('clipboard')
+
+" If 0, rebuild Vim with clipboard support
+" or use MacVim which includes it by default
+```
+
+Rebuilding with clipboard:
+
+```bash
+./configure --with-features=huge
+make
+```
+
+### Permission Issues
+
+If you get permission errors:
+
+```bash
+# Don't use sudo for Homebrew
+brew install vim
+
+# Only use sudo for system install
+cd vim/src
+make
+sudo make install
+```
+
+## Performance Tips
+
+### Disable Metal Rendering Issues
+
+If experiencing rendering issues in Terminal.app:
+
+```vim
+" In ~/.vimrc
+set ttyfast
+set lazyredraw
+```
+
+### Large Files
+
+Optimize for large files:
+
+```vim
+" Disable features for large files
+autocmd BufReadPre * if getfsize(expand("%")) > 10000000 | \
+  syntax off | \
+  set noswapfile | \
+  set noundofile | \
+endif
+```
+
+## Integration with macOS Tools
+
+### Spotlight
+
+Add Vim files to Spotlight:
+
+```bash
+# Make Vim files searchable
+mdfind -name .vimrc
+```
+
+### Quick Look
+
+Use Quick Look for Vim syntax files:
+
+```bash
+# Install Quick Look plugin for code
+brew install --cask qlcolorcode
+```
+
+### Diff and Merge
+
+Use vimdiff with macOS tools:
+
+```bash
+# Set as git difftool
+git config --global diff.tool vimdiff
+git config --global difftool.prompt false
+
+# Set as git mergetool
+git config --global merge.tool vimdiff
+```
+
+## Resources
+
+<CardGroup cols={2}>
+  <Card title="Homebrew Vim" icon="beer-mug" href="https://formulae.brew.sh/formula/vim">
+    Homebrew formula details
+  </Card>
+  <Card title="MacVim" icon="apple" href="https://macvim.org">
+    Native macOS Vim GUI
+  </Card>
+  <Card title="Building Vim" icon="hammer" href="/getting-started/building">
+    Detailed build instructions
+  </Card>
+  <Card title="Configuration" icon="gear" href="/configuration/vimrc">
+    Configure your vimrc
+  </Card>
+</CardGroup>
+
+## See Also
+
+- `:help mac` - macOS-specific help
+- `:help darwin` - Darwin system information
+- `:help osx` - OS X features
+- `:help clipboard` - Clipboard integration

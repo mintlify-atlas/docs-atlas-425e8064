@@ -1,0 +1,437 @@
+---
+title: Basic Editing Commands
+description: Insert, delete, change, copy, and paste text in Vim
+---
+
+## Overview
+
+Vim's editing commands combine operators with motions to modify text efficiently. This page covers the essential editing operations.
+
+## Insert Mode
+
+### Entering Insert Mode
+
+| Command | Description |
+|---------|-------------|
+| `i` | Insert before cursor |
+| `I` | Insert at start of line |
+| `a` | Append after cursor |
+| `A` | Append at end of line |
+| `o` | Open new line below |
+| `O` | Open new line above |
+| `gi` | Insert at last insert position |
+| `gI` | Insert at column 1 |
+
+### Exiting Insert Mode
+
+| Command | Description |
+|---------|-------------|
+| `<Esc>` | Return to Normal mode |
+| `CTRL-C` | Return to Normal mode (no abbreviation) |
+| `CTRL-[` | Return to Normal mode (alternative) |
+
+## Delete Commands
+
+### Basic Deletion
+
+| Command | Description |
+|---------|-------------|
+| `x` | Delete character under cursor |
+| `X` | Delete character before cursor |
+| `d{motion}` | Delete text moved over by {motion} |
+| `dd` | Delete current line |
+| `D` | Delete to end of line (same as `d$`) |
+
+### Delete Examples
+
+```vim
+" Delete a word
+dw
+
+" Delete inside parentheses
+di(
+
+" Delete 3 lines
+3dd
+
+" Delete to end of line
+D
+" or
+d$
+
+" Delete until next occurrence of 'x'
+dfx
+```
+
+## Change Commands
+
+### Basic Change
+
+| Command | Description |
+|---------|-------------|
+| `c{motion}` | Change (delete and enter insert mode) |
+| `cc` | Change entire line |
+| `C` | Change to end of line (same as `c$`) |
+| `s` | Substitute character (delete char and insert) |
+| `S` | Substitute line (same as `cc`) |
+
+### Special Change Behavior
+
+<Info>
+`cw` and `cW` are special cases - they change from the cursor to the end of the word, not including trailing whitespace.
+</Info>
+
+### Change Examples
+
+```vim
+" Change a word
+cw
+
+" Change inside quotes
+ci"
+
+" Change 2 words
+c2w
+
+" Change to end of line
+C
+```
+
+## Replace Commands
+
+### Character Replace
+
+| Command | Description |
+|---------|-------------|
+| `r{char}` | Replace single character with {char} |
+| `R` | Enter Replace mode |
+| `gr{char}` | Virtual replace (replaces screen space) |
+| `gR` | Enter Virtual Replace mode |
+
+### Replace Examples
+
+```vim
+" Replace character under cursor with 'x'
+rx
+
+" Replace 5 characters with 'a'
+5ra
+
+" Enter Replace mode to overwrite text
+R
+```
+
+## Copy (Yank) Commands
+
+### Basic Yank
+
+| Command | Description |
+|---------|-------------|
+| `y{motion}` | Yank (copy) text moved over by {motion} |
+| `yy` | Yank current line |
+| `Y` | Yank line (same as `yy`) |
+
+### Yank Examples
+
+```vim
+" Yank a word
+yw
+
+" Yank inside brackets
+yi[
+
+" Yank 3 lines
+3yy
+
+" Yank to end of line
+y$
+
+" Yank entire file
+:%y
+```
+
+## Paste Commands
+
+### Basic Paste
+
+| Command | Description |
+|---------|-------------|
+| `p` | Paste after cursor/below line |
+| `P` | Paste before cursor/above line |
+| `gp` | Paste and move cursor after pasted text |
+| `gP` | Paste before and move cursor after text |
+| `]p` | Paste and adjust indent |
+| `[p` | Paste before and adjust indent |
+
+### Paste Examples
+
+```vim
+" Copy line and paste below
+yyp
+
+" Copy word and paste after cursor
+ywep
+
+" Swap two characters
+xp
+
+" Duplicate a paragraph
+yap}p
+```
+
+## Undo and Redo
+
+### Undo/Redo Commands
+
+| Command | Description |
+|---------|-------------|
+| `u` | Undo last change |
+| `U` | Undo all changes on current line |
+| `CTRL-R` | Redo (undo the undo) |
+| `g-` | Go to older text state |
+| `g+` | Go to newer text state |
+
+### Undo Examples
+
+```vim
+" Undo last 3 changes
+3u
+
+" Redo last 2 undos
+2CTRL-R
+
+" Navigate undo tree
+g-  " older
+g+  " newer
+```
+
+## Repeat Commands
+
+### The Dot Command
+
+| Command | Description |
+|---------|-------------|
+| `.` | Repeat last change |
+| `@:` | Repeat last command-line command |
+| `@@` | Repeat last macro |
+
+### Repeat Examples
+
+```vim
+" Delete a word, then repeat on next words
+dw
+n.  " find next and repeat delete
+
+" Change word 'foo' to 'bar' multiple times
+cwbar<Esc>
+n.  " find next 'foo' and repeat change
+```
+
+## Join Lines
+
+### Join Commands
+
+| Command | Description |
+|---------|-------------|
+| `J` | Join current line with next (insert space) |
+| `gJ` | Join without inserting space |
+| `3J` | Join next 3 lines |
+
+### Join Examples
+
+```vim
+" Join two lines with space
+J
+
+" Join without space
+gJ
+
+" Join 4 lines
+4J
+```
+
+## Shift (Indent) Commands
+
+### Indentation
+
+| Command | Description |
+|---------|-------------|
+| `>>` | Shift line right |
+| `<<` | Shift line left |
+| `>{motion}` | Shift lines right |
+| `<{motion}` | Shift lines left |
+| `==` | Auto-indent current line |
+| `={motion}` | Auto-indent lines |
+
+### Indent Examples
+
+```vim
+" Indent current line
+>>
+
+" Indent 3 lines
+3>>
+
+" Indent paragraph
+>ap
+
+" Indent inside braces
+>i{
+
+" Auto-indent entire file
+gg=G
+```
+
+## Case Change
+
+### Case Commands
+
+| Command | Description |
+|---------|-------------|
+| `~` | Toggle case of character |
+| `g~{motion}` | Toggle case of {motion} |
+| `gu{motion}` | Make lowercase |
+| `gU{motion}` | Make uppercase |
+| `g~~` | Toggle case of line |
+| `guu` | Make line lowercase |
+| `gUU` | Make line uppercase |
+
+### Case Examples
+
+```vim
+" Toggle case of word
+g~w
+
+" Uppercase word
+gUw
+
+" Lowercase line
+guu
+
+" Uppercase inside quotes
+gUi"
+```
+
+## Increment/Decrement Numbers
+
+### Number Commands
+
+| Command | Description |
+|---------|-------------|
+| `CTRL-A` | Increment number under/after cursor |
+| `CTRL-X` | Decrement number under/after cursor |
+| `{count}CTRL-A` | Add {count} to number |
+| `{count}CTRL-X` | Subtract {count} from number |
+
+### Number Examples
+
+```vim
+" Increment number
+CTRL-A
+
+" Decrement by 5
+5CTRL-X
+
+" Create sequence (in visual block mode)
+g CTRL-A
+```
+
+## Using Registers
+
+### Register Syntax
+
+| Command | Description |
+|---------|-------------|
+| `"{register}` | Use {register} for next delete/yank/put |
+| `:reg` | Show all registers |
+| `:reg abc` | Show registers a, b, and c |
+
+### Common Registers
+
+| Register | Description |
+|----------|-------------|
+| `""` | Unnamed (default) register |
+| `"0` | Last yank |
+| `"1`-`"9` | Last 9 deletes |
+| `"a`-`"z` | Named registers |
+| `"+` | System clipboard |
+| `"*` | Selection clipboard (X11) |
+| `".` | Last inserted text |
+| `"%` | Current file name |
+| `":` | Last command |
+
+### Register Examples
+
+```vim
+" Yank to register 'a'
+"ayy
+
+" Paste from register 'a'
+"ap
+
+" Copy to system clipboard
+"+y
+
+" Paste from system clipboard
+"+p
+```
+
+## Practical Workflows
+
+### Editing Pattern
+
+```vim
+" 1. Find text
+/pattern
+
+" 2. Change it
+cw
+
+" 3. Repeat on next occurrences
+n.
+n.
+```
+
+### Copying Multiple Sections
+
+```vim
+" Yank to named registers
+"ayy    " copy line to register a
+"byy    " copy line to register b
+
+" Paste from named registers
+"ap     " paste from register a
+"bp     " paste from register b
+```
+
+### Bulk Operations
+
+```vim
+" Delete all lines containing 'DEBUG'
+:g/DEBUG/d
+
+" Indent all lines in file
+gg=G
+
+" Change all 'foo' to 'bar' in file
+:%s/foo/bar/g
+```
+
+## Related Commands
+
+- [Movement Commands](/commands/motion) - Navigate efficiently
+- [Visual Mode](/commands/visual-mode) - Select text before editing
+- [Search and Replace](/commands/search-replace) - Find and change text
+
+## Tips
+
+<Tip>
+Master the combination of operators and motions:
+- Operators: `d` (delete), `c` (change), `y` (yank)
+- Motions: `w` (word), `$` (end of line), `}` (paragraph)
+- Examples: `dw`, `c$`, `y}`
+</Tip>
+
+<Warning>
+Be careful with `dd` and `D` - deleted text goes into registers and can be recovered with `p`, but the numbered registers rotate with each deletion.
+</Warning>

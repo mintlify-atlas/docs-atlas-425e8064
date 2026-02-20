@@ -1,0 +1,424 @@
+---
+title: Running External Commands
+description: Execute shell commands and integrate external tools within Vim
+---
+
+Vim provides powerful integration with external programs, allowing you to run shell commands, filter text through programs, and automate workflows.
+
+## Basic Command Execution
+
+### Run a Shell Command
+
+```vim
+:!{command}      " Execute shell command
+:!!              " Repeat last command
+```
+
+### Examples
+
+```vim
+:!ls             " List files in current directory
+:!make           " Build project
+:!git status     " Check git status
+:!python %       " Run current file with Python
+```
+
+### Special Characters
+
+- `%` - Current file name
+- `#` - Alternate file name
+- `#n` - File name of buffer n
+
+```vim
+:!gcc % -o %<           " Compile C file (%< = filename without extension)
+:!python %              " Run current Python file
+:!diff % #              " Compare current and alternate files
+```
+
+### Escaping Special Characters
+
+Use `\` to include literal special characters:
+
+```vim
+:!ls \%*         " List files starting with '%'
+```
+
+## Interactive Shells
+
+### Open a Shell
+
+```vim
+:shell           " Start interactive shell
+:sh              " Short form
+```
+
+Type `exit` to return to Vim.
+
+### Shell Configuration
+
+The shell is specified by the `shell` option:
+
+```vim
+:set shell?             " Show current shell
+:set shell=/bin/bash    " Use bash
+:set shell=/bin/zsh     " Use zsh
+```
+
+For interactive shell features (aliases, etc.):
+
+```vim
+set shellcmdflag=-ic    " Unix: interactive, read config
+```
+
+## Filtering Text Through Commands
+
+### Filter Current Line
+
+```vim
+!!{command}      " Filter current line through command
+```
+
+### Examples
+
+```vim
+!!sort           " Sort current line
+!!tr a-z A-Z     " Convert line to uppercase
+!!date           " Replace line with current date
+```
+
+### Filter Range
+
+```vim
+:{range}!{command}       " Filter range through command
+```
+
+### Examples
+
+```vim
+:5,10!sort              " Sort lines 5-10
+:%!sort                 " Sort entire file
+:.,$!nl                 " Number lines from cursor to end
+:'<,'>!column -t        " Align selected columns
+```
+
+### Visual Mode Filtering
+
+```vim
+" Select text in visual mode, then:
+:!sort                  " Sort selected lines
+:!python                " Run selection as Python
+:!sh                    " Execute selection as shell script
+```
+
+## Capturing Command Output
+
+### Read Command Output
+
+```vim
+:r !{command}           " Insert command output below cursor
+:0r !{command}          " Insert at beginning of file
+```
+
+### Examples
+
+```vim
+:r !date                " Insert current date
+:r !ls                  " Insert directory listing
+:r !git log --oneline -10  " Insert recent git commits
+:0r !figlet "Title"    " Insert ASCII art title at top
+```
+
+## Silent Execution
+
+Run commands without displaying output:
+
+```vim
+:silent !{command}      " No output, no screen redraw
+:silent! !{command}     " Also suppress errors
+```
+
+### Examples
+
+```vim
+:silent !make           " Build without showing output
+:silent !git add %      " Stage file silently
+```
+
+After silent execution, use `:redraw!` if the screen needs updating.
+
+## Command Output in Buffers
+
+### Using :read
+
+```vim
+:read !command          " Insert output into buffer
+```
+
+### Using system()
+
+Capture output in a variable:
+
+```vim
+:let result = system('ls -la')
+:let commit = system('git rev-parse HEAD')
+:echo system('date +%Y-%m-%d')
+```
+
+### Process Output
+
+```vim
+" Get list of files as List
+let files = systemlist('ls')
+
+" Check exit status
+let output = system('make')
+if v:shell_error
+  echo "Build failed!"
+endif
+```
+
+## Practical Examples
+
+### Build and Run
+
+```vim
+" C program
+:!gcc % -o %< && ./%<
+
+" Python script
+:!python %
+
+" Go program
+:!go run %
+```
+
+### Format Code
+
+```vim
+" Format Python with black
+:%!black -q -
+
+" Format JSON
+:%!python -m json.tool
+
+" Format XML
+:%!xmllint --format -
+```
+
+### Text Processing
+
+```vim
+" Sort and remove duplicates
+:%!sort -u
+
+" Number lines
+:%!nl
+
+" Wrap text to 80 columns
+:%!fold -w 80
+
+" Remove trailing whitespace
+:%!sed 's/[[:space:]]*$//'
+```
+
+### Git Integration
+
+```vim
+" Show git diff
+:!git diff %
+
+" Git blame current file
+:!git blame %
+
+" Stage current file
+:silent !git add %
+
+" Commit with message
+:!git commit -m "message"
+```
+
+### Search in Multiple Files
+
+```vim
+" Search with grep
+:!grep -n "pattern" *.c
+
+" Search with ripgrep
+:!rg "pattern" .
+
+" Find files
+:!find . -name "*.py"
+```
+
+## Command Line Editing
+
+Edit command history:
+
+```vim
+q:               " Open command history window
+```
+
+In the command line:
+
+- `CTRL-P` - Previous command
+- `CTRL-N` - Next command
+- `CTRL-R CTRL-W` - Insert word under cursor
+
+## Customizing Shell Behavior
+
+### Shell Options
+
+```vim
+set shell=/bin/bash              " Shell to use
+set shellcmdflag=-c              " Shell command flag
+set shellquote=                  " Shell quoting
+set shellxquote=                 " Extra quoting
+set shellpipe=2>&1\|\ tee       " How to pipe output
+set shellredir=>%s\ 2>&1         " How to redirect output
+```
+
+### Windows-Specific
+
+```vim
+if has('win32')
+  set shell=powershell
+  set shellcmdflag=-Command
+  set shellquote=
+  set shellxquote=
+endif
+```
+
+## Async Execution (Vim 8+)
+
+Run commands asynchronously:
+
+```vim
+" Start async job
+let job = job_start('make', {'exit_cb': 'JobDone'})
+
+function! JobDone(job, exit_status)
+  if a:exit_status == 0
+    echo "Build succeeded!"
+  else
+    echo "Build failed!"
+  endif
+endfunction
+```
+
+### Terminal Window
+
+Run command in terminal window:
+
+```vim
+:terminal {command}     " Open terminal and run command
+:term make              " Build in terminal window
+:vert term python %     " Run Python in vertical split
+```
+
+## Integration with Tools
+
+### Compiler Integration
+
+```vim
+:compiler gcc           " Set compiler to gcc
+:make                   " Run make, populate quickfix
+:copen                  " Open quickfix window
+```
+
+### Linters and Formatters
+
+```vim
+" Run ESLint
+:!eslint %
+
+" Format with Prettier
+:%!prettier --stdin-filepath %
+
+" Check Python with flake8
+:!flake8 %
+```
+
+### Using K for Documentation
+
+The `K` command runs a program to look up the word under cursor:
+
+```vim
+K                " Run keywordprg on word under cursor
+2K               " Include count (e.g., man page section)
+```
+
+Configure with `keywordprg`:
+
+```vim
+set keywordprg=man           " Default: man pages
+set keywordprg=:help         " Use Vim help
+set keywordprg=pydoc         " Python documentation
+```
+
+### Custom Lookup Function
+
+```vim
+set keywordprg=:call\ MyLookup()
+
+function! MyLookup()
+  let word = expand('<cword>')
+  execute '!myprogram ' . shellescape(word)
+endfunction
+```
+
+## Command Mappings
+
+Create mappings for common commands:
+
+```vim
+" Build project
+nnoremap <F5> :!make<CR>
+
+" Run current file
+autocmd FileType python nnoremap <F5> :!python %<CR>
+autocmd FileType javascript nnoremap <F5> :!node %<CR>
+
+" Git shortcuts
+nnoremap <leader>gs :!git status<CR>
+nnoremap <leader>gd :!git diff %<CR>
+nnoremap <leader>gc :!git commit -v<CR>
+
+" Format code
+autocmd FileType json nnoremap <buffer> <leader>f :%!python -m json.tool<CR>
+autocmd FileType xml nnoremap <buffer> <leader>f :%!xmllint --format -<CR>
+```
+
+## Error Handling
+
+```vim
+" Check shell error status
+let output = system('command')
+if v:shell_error != 0
+  echoerr "Command failed: " . output
+endif
+
+" Conditional execution
+if system('which python3') != ""
+  !python3 %
+else
+  echoerr "Python3 not found"
+endif
+```
+
+## Tips
+
+<Tip>
+  Use `:read !command` to insert command output without leaving Vim.
+</Tip>
+
+<Tip>
+  Combine `:silent !command` with `:redraw!` to run commands that modify files without screen flicker.
+</Tip>
+
+<Tip>
+  Use `%:p` for full path, `%:h` for directory, and `%:t` for filename in commands.
+</Tip>
+
+<Warning>
+  Be careful with destructive commands like `:!rm`. They execute immediately without confirmation.
+</Warning>

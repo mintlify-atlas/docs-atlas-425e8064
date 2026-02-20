@@ -1,0 +1,388 @@
+---
+title: Indentation
+description: Configure automatic indentation for different programming languages
+---
+
+Vim provides multiple indentation modes, from simple automatic indentation to sophisticated language-aware systems.
+
+## Quick start
+
+```vim
+" Enable filetype-based indentation
+filetype indent on
+
+" Use spaces instead of tabs
+set expandtab
+set shiftwidth=4
+set tabstop=4
+```
+
+## Indentation modes
+
+Vim has several indentation systems that work together:
+
+| Mode | Description | Use case |
+|------|-------------|----------|
+| `autoindent` | Copy indent from previous line | Basic, works everywhere |
+| `smartindent` | Syntax-aware for C-like | Simple C-style code |
+| `cindent` | Powerful C/C++ indentation | C, C++, Java |
+| `indentexpr` | Custom language rules | Any language with indent file |
+
+### autoindent
+
+Simplest mode - copies indentation from the previous line:
+
+```vim
+set autoindent
+```
+
+<Note>
+`autoindent` is always safe to enable and works with all file types.
+</Note>
+
+### smartindent
+
+Adds basic syntax awareness for C-like languages:
+
+```vim
+set smartindent
+```
+
+Features:
+- Indent after `{`
+- Unindent for `}`
+- Indent `#` to column 0
+- Indent after keywords like `if`, `while`
+
+<Warning>
+`smartindent` is deprecated for most languages. Use `cindent` or `indentexpr` instead.
+</Warning>
+
+### cindent
+
+Advanced indentation for C-family languages:
+
+```vim
+set cindent
+```
+
+Features:
+- Multi-line statements
+- Nested blocks
+- Switch/case statements
+- Function declarations
+- Customizable rules
+
+Configure with `cinoptions`:
+
+```vim
+" Customize C indentation
+set cinoptions=>4,n-2,{2,^-2,:2,=2,g0,h2,p5,t0,+2,(0,u0,w1,m1
+```
+
+### indentexpr
+
+Language-specific indentation via Vim scripts:
+
+```vim
+" Automatically set via filetype
+filetype indent on
+
+" Or manually
+set indentexpr=GetPythonIndent(v:lnum)
+```
+
+## Tab vs spaces
+
+### Use spaces
+
+```vim
+" Use spaces for indentation
+set expandtab        " Convert tabs to spaces
+set shiftwidth=4     " Indent by 4 spaces
+set tabstop=4        " Tab key = 4 spaces
+set softtabstop=4    " Backspace deletes 4 spaces
+```
+
+### Use tabs
+
+```vim
+" Use actual tab characters
+set noexpandtab      " Keep tab characters
+set shiftwidth=8     " Indent by 8 columns
+set tabstop=8        " Tab displays as 8 columns
+```
+
+### Mixed (not recommended)
+
+```vim
+" Use tabs for indentation, spaces for alignment
+set noexpandtab
+set shiftwidth=8
+set tabstop=8
+set softtabstop=0
+```
+
+## Language-specific settings
+
+Set indent preferences per filetype in ftplugin files:
+
+### Python
+
+```vim
+" ~/.vim/ftplugin/python.vim
+setlocal expandtab
+setlocal shiftwidth=4
+setlocal tabstop=4
+setlocal softtabstop=4
+```
+
+### JavaScript
+
+```vim
+" ~/.vim/ftplugin/javascript.vim
+setlocal expandtab
+setlocal shiftwidth=2
+setlocal tabstop=2
+```
+
+### Go
+
+```vim
+" ~/.vim/ftplugin/go.vim
+setlocal noexpandtab
+setlocal shiftwidth=8
+setlocal tabstop=8
+```
+
+### Makefile
+
+```vim
+" ~/.vim/ftplugin/make.vim
+setlocal noexpandtab
+setlocal shiftwidth=8
+setlocal tabstop=8
+```
+
+## Indentation commands
+
+### Manual indentation
+
+| Command | Description |
+|---------|-------------|
+| `>>` | Indent line right |
+| `<<` | Indent line left |
+| `==` | Auto-indent line |
+| `>` | Indent selection (visual mode) |
+| `<` | Unindent selection (visual mode) |
+| `=` | Auto-indent selection (visual mode) |
+
+### Specific amounts
+
+```vim
+" Indent 3 lines by 2 levels
+3>>
+
+" Indent paragraph
+>ap
+
+" Auto-indent entire file
+gg=G
+```
+
+### Insert mode
+
+| Command | Description |
+|---------|-------------|
+| `CTRL-T` | Indent line |
+| `CTRL-D` | Unindent line |
+| `0 CTRL-D` | Remove all indent |
+| `^ CTRL-D` | Restore auto-indent |
+
+## Configuration
+
+### Display tabs
+
+```vim
+" Show tabs and spaces
+set list
+set listchars=tab:▸\ ,trail:·,extends:>,precedes:<
+```
+
+### Automatic indentation
+
+```vim
+" Copy indent from previous line
+set autoindent
+
+" Enable smart indenting
+set smartindent
+
+" Preserve indentation with text
+set preserveindent
+set copyindent
+```
+
+### Indent on paste
+
+```vim
+" Paste mode (disable auto-indent temporarily)
+set pastetoggle=<F2>
+```
+
+Use `<F2>` before pasting to prevent cascading indents.
+
+## Language-specific indent files
+
+Vim includes indent scripts for many languages. View available:
+
+```vim
+:echo globpath(&runtimepath, 'indent/*.vim')
+```
+
+Common indent files:
+- `python.vim` - PEP 8 compliant
+- `javascript.vim` - Handles JSX, async
+- `html.vim` - Nested tags
+- `css.vim` - Nested rules
+- `ruby.vim` - Ruby blocks
+- `rust.vim` - Rust syntax
+- `go.vim` - Go style
+
+## Custom indent expressions
+
+Create a custom indent file:
+
+```vim
+" ~/.vim/indent/myformat.vim
+if exists("b:did_indent")
+  finish
+endif
+let b:did_indent = 1
+
+setlocal indentexpr=GetMyFormatIndent()
+setlocal indentkeys=o,O,*<Return>,<>>,{,}
+
+function! GetMyFormatIndent()
+  let line = getline(v:lnum)
+  let prev = getline(v:lnum - 1)
+  
+  " Indent after opening brace
+  if prev =~ '{\s*$'
+    return indent(v:lnum - 1) + shiftwidth()
+  endif
+  
+  " Unindent closing brace
+  if line =~ '^\s*}'
+    return indent(v:lnum - 1) - shiftwidth()
+  endif
+  
+  " Default: same as previous
+  return indent(v:lnum - 1)
+endfunction
+```
+
+## Fix existing indentation
+
+### Reindent file
+
+```vim
+" Reindent entire file
+gg=G
+
+" Reindent selection
+V}=
+```
+
+### Convert tabs to spaces
+
+```vim
+" Replace all tabs with spaces
+:set expandtab
+:retab
+```
+
+### Convert spaces to tabs
+
+```vim
+" Replace spaces with tabs
+:set noexpandtab
+:retab!
+```
+
+## EditorConfig support
+
+Use [EditorConfig](https://editorconfig.org) plugin for cross-editor consistency:
+
+```ini
+# .editorconfig
+root = true
+
+[*]
+indent_style = space
+indent_size = 4
+
+[*.py]
+indent_size = 4
+
+[*.{js,ts,json}]
+indent_size = 2
+
+[Makefile]
+indent_style = tab
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Wrong indent amount">
+    Check your settings:
+    ```vim
+    :verbose set shiftwidth? tabstop? expandtab?
+    ```
+    
+    May be overridden by ftplugin or editorconfig.
+  </Accordion>
+
+  <Accordion title="Inconsistent indentation">
+    View invisible characters:
+    ```vim
+    :set list
+    ```
+    
+    Fix with:
+    ```vim
+    :retab
+    ```
+  </Accordion>
+
+  <Accordion title="Auto-indent not working">
+    Ensure indentation is enabled:
+    ```vim
+    :set autoindent? cindent? indentexpr?
+    :filetype indent on
+    ```
+  </Accordion>
+
+  <Accordion title="Paste messes up indentation">
+    Use paste mode:
+    ```vim
+    :set paste
+    " paste text
+    :set nopaste
+    ```
+    
+    Or use bracketed paste (automatic in modern terminals).
+  </Accordion>
+</AccordionGroup>
+
+## See also
+
+<CardGroup cols={2}>
+  <Card title="Filetype plugins" href="/language/filetype-plugins" icon="plug">
+    Language-specific settings
+  </Card>
+  <Card title="Options" href="/reference/editing-options" icon="sliders">
+    Editor configuration
+  </Card>
+</CardGroup>

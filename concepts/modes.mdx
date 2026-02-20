@@ -1,0 +1,267 @@
+---
+title: 'Vim Modes'
+description: 'Understanding Normal, Insert, Visual, and Command-line modes in Vim'
+keywords: ['vim modes', 'normal mode', 'insert mode', 'visual mode', 'command-line mode', 'mode switching']
+---
+
+# Vim Modes
+
+Vim has seven basic modes that fundamentally change how the editor responds to your keystrokes. Understanding these modes is essential to working effectively with Vim.
+
+## The Seven Basic Modes
+
+### Normal Mode
+
+Normal mode (also called command mode) is the default mode when you start Vim. In this mode, you can:
+
+- Navigate through your text
+- Execute commands to manipulate text
+- Enter other modes
+- Use operators with motions
+
+<Tip>
+You can always return to Normal mode by pressing `<Esc>` twice.
+</Tip>
+
+When you start Vim, you're in Normal mode unless you've set the `insertmode` option. This mode is optimized for editing rather than writing, which is why all the powerful text manipulation commands are available here.
+
+### Insert Mode
+
+Insert mode is where you actually type text into your buffer. To enter Insert mode from Normal mode, use:
+
+<CodeGroup>
+
+```vim Commands to enter Insert mode
+i    " Insert before cursor
+I    " Insert at beginning of line
+a    " Append after cursor
+A    " Append at end of line
+o    " Open new line below
+O    " Open new line above
+```
+
+</CodeGroup>
+
+When in Insert mode:
+- The text you type is inserted into the buffer
+- If `showmode` is on, "-- INSERT --" appears at the bottom
+- Press `<Esc>` to return to Normal mode
+
+<Info>
+Insert mode has special key combinations like `CTRL-N` for completion and `CTRL-O` to execute a single Normal mode command.
+</Info>
+
+### Visual Mode
+
+Visual mode allows you to select text before applying an operation. There are three variants:
+
+<Tabs>
+  <Tab title="Character-wise">
+    **Start with:** `v`
+    
+    Select text character by character. Movement commands extend the selection. When `showmode` is on, "-- VISUAL --" appears at the bottom.
+    
+    ```vim
+    v      " Start character-wise visual mode
+    w      " Extend selection to next word
+    d      " Delete selected text
+    ```
+  </Tab>
+  
+  <Tab title="Line-wise">
+    **Start with:** `V`
+    
+    Select entire lines. When `showmode` is on, "-- VISUAL LINE --" appears at the bottom.
+    
+    ```vim
+    V      " Start line-wise visual mode
+    3j     " Select 3 lines down
+    >      " Indent selected lines
+    ```
+  </Tab>
+  
+  <Tab title="Block-wise">
+    **Start with:** `CTRL-V`
+    
+    Select a rectangular block of text. When `showmode` is on, "-- VISUAL BLOCK --" appears at the bottom.
+    
+    ```vim
+    CTRL-V    " Start block-wise visual mode
+    3j        " Move 3 lines down
+    3l        " Move 3 characters right
+    I         " Insert at start of each line
+    ```
+  </Tab>
+</Tabs>
+
+<Warning>
+On Windows, `CTRL-V` might be mapped to paste. See the documentation for `CTRL-V-alternative` if this is an issue.
+</Warning>
+
+### Command-line Mode
+
+Command-line mode (also called Cmdline mode) allows you to enter Ex commands, search patterns, and filter commands. You enter this mode by typing:
+
+- `:` for Ex commands (e.g., `:w`, `:q`)
+- `/` for forward search
+- `?` for backward search
+- `!` for filter commands
+
+```vim
+:set number          " Ex command to show line numbers
+/pattern             " Search forward for 'pattern'
+?pattern             " Search backward for 'pattern'
+:.!sort              " Filter current line through 'sort'
+```
+
+You exit Command-line mode by:
+- Pressing `<CR>` or `<NL>` to execute the command
+- Pressing `CTRL-C` or `<Esc>` to cancel
+- Deleting the entire line with `CTRL-U` and pressing `<BS>`
+
+### Replace Mode
+
+Replace mode is a special case of Insert mode where each character you type replaces an existing character. Start it with `R`.
+
+```vim
+R    " Enter Replace mode
+```
+
+When `showmode` is on, "-- REPLACE --" appears at the bottom. The backspace key restores the original text.
+
+<Note>
+There's also Virtual Replace mode (`gR`) which replaces screen space rather than actual characters, useful when dealing with tabs.
+</Note>
+
+### Ex Mode
+
+Ex mode is entered with `Q` and allows you to enter multiple Ex commands without the `:` prefix. Use `:visual` or `:vi` to exit Ex mode.
+
+```vim
+Q          " Enter Ex mode
+substitute/old/new/g
+write
+visual     " Return to Normal mode
+```
+
+<Warning>
+Ex mode is rarely used in modern Vim workflows. The `Q` key is often remapped to format text with `gq`.
+</Warning>
+
+### Terminal-Job Mode
+
+When interacting with a job in a terminal window, typed keys go to the job and job output is displayed in the terminal window. See `:help terminal` for details on switching to other modes.
+
+## Mode Switching
+
+Here's a reference table showing how to switch between modes:
+
+| From Mode | To Mode | Key(s) |
+|-----------|---------|--------|
+| Normal | Insert | `i`, `I`, `a`, `A`, `o`, `O`, `c`, `C`, `s`, `S` |
+| Normal | Visual | `v`, `V`, `CTRL-V` |
+| Normal | Command-line | `:`, `/`, `?`, `!` |
+| Normal | Replace | `R`, `gR` |
+| Normal | Ex | `Q` |
+| Insert | Normal | `<Esc>` |
+| Visual | Normal | `<Esc>`, `v`, `V`, `CTRL-V` (toggle) |
+| Visual | Command-line | `:` |
+| Command-line | Normal | `<CR>`, `<Esc>`, `CTRL-C` |
+| Replace | Normal | `<Esc>` |
+| Replace | Insert | `<Insert>` |
+| Ex | Normal | `:visual` |
+
+## Additional Modes
+
+Vim has seven additional modes that are variants of the basic modes:
+
+<AccordionGroup>
+  <Accordion title="Operator-pending Mode">
+    After typing an operator like `d` or `c`, Vim waits for a motion. This is operator-pending mode.
+    
+    ```vim
+    d    " Operator-pending mode begins
+    w    " Motion completes the operation (delete word)
+    ```
+  </Accordion>
+  
+  <Accordion title="Insert Normal Mode">
+    Entered with `CTRL-O` in Insert mode. Execute one Normal mode command, then return to Insert mode.
+    
+    ```vim
+    " In Insert mode:
+    CTRL-O    " Enter Insert Normal mode
+    w         " Move to next word
+    " Automatically returns to Insert mode
+    ```
+  </Accordion>
+  
+  <Accordion title="Visual Replace Mode">
+    Similar to Replace mode but works with virtual screen space.
+  </Accordion>
+  
+  <Accordion title="Terminal-Normal Mode">
+    Using Normal mode in a terminal window. Changes are impossible. Use an insert command like `a` or `i` to return to Terminal-Job mode.
+  </Accordion>
+</AccordionGroup>
+
+## Universal Mode Escape
+
+<Tip>
+You can use `CTRL-\ CTRL-N` from any mode to return to Normal mode without causing a beep like `<Esc>` would. This doesn't work in Ex mode.
+</Tip>
+
+```vim
+CTRL-\ CTRL-N    " Return to Normal mode from any mode
+```
+
+This is particularly useful in mappings and scripts where you need to ensure you're in Normal mode.
+
+## Checking Current Mode
+
+If you're unsure which mode you're in:
+
+1. Look at the bottom of the screen (if `showmode` is on)
+2. Press `<Esc>` twice to return to Normal mode
+3. You'll see a screen flash or hear a bell when you reach Normal mode
+
+<Info>
+The `mode()` function in Vimscript returns the current mode as a string, useful for conditional logic in scripts.
+</Info>
+
+## Mode-Specific Mappings
+
+You can create mappings that only work in specific modes:
+
+```vim
+:nmap     " Normal mode mapping
+:imap     " Insert mode mapping
+:vmap     " Visual and Select mode mapping
+:xmap     " Visual mode only mapping
+:smap     " Select mode only mapping
+:cmap     " Command-line mode mapping
+:omap     " Operator-pending mode mapping
+```
+
+## Best Practices
+
+<Steps>
+  <Step title="Stay in Normal mode">
+    Spend most of your time in Normal mode. Only enter Insert mode when you need to type text.
+  </Step>
+  
+  <Step title="Learn the mode indicators">
+    Enable `showmode` to always see which mode you're in:
+    ```vim
+    :set showmode
+    ```
+  </Step>
+  
+  <Step title="Master mode switching">
+    Make returning to Normal mode muscle memory. `<Esc>` should become your most-used key.
+  </Step>
+  
+  <Step title="Use operator-pending mode">
+    Combine operators with motions (like `dw`, `ci"`, `y$`) instead of using Visual mode for simple operations.
+  </Step>
+</Steps>

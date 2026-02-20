@@ -1,80 +1,331 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quickstart
+description: Get started with Vim in under 5 minutes. Learn how to open files, make basic edits, and save your work.
 ---
 
-## Get started in three steps
+# Quickstart
 
-Get your documentation site running locally and make your first customization.
+This guide will get you editing files in Vim in under 5 minutes. If you're brand new to Vim, this is the place to start.
 
-### Step 1: Set up your local environment
+<Tip>
+  The best way to learn Vim is by doing. Follow along with these examples by actually typing the commands in Vim.
+</Tip>
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
+## Before you start
+
+Make sure Vim is installed. Run this in your terminal:
+
+```bash
+vim --version
+```
+
+If you see version information, you're ready to go. If not, see the [Installation](/installation) guide.
+
+## Starting Vim
+
+Open your terminal and start Vim:
+
+```bash
+vim
+```
+
+You'll see the Vim welcome screen. Don't panic - Vim is waiting for your commands.
+
+<Note>
+  To exit Vim at any time, press `Esc` to ensure you're in normal mode, then type `:q!` and press `Enter`. The `!` forces quit without saving.
+</Note>
+
+## Understanding modes
+
+Vim operates in different modes. The two most important are:
+
+<CardGroup cols={2}>
+  <Card title="Normal mode" icon="keyboard">
+    For navigating and manipulating text. This is Vim's default mode. Press `Esc` to return here from any other mode.
+  </Card>
+  
+  <Card title="Insert mode" icon="pen">
+    For typing text like a regular editor. Press `i` to enter insert mode from normal mode.
+  </Card>
+</CardGroup>
+
+When you start Vim, you're in **normal mode**. To type text, press `i` to enter **insert mode**. You'll see `-- INSERT --` at the bottom of the screen.
+
+## Your first edit
+
+Let's create and edit a file:
+
+<Steps>
+  <Step title="Open a new file">
+    ```bash
+    vim hello.txt
+    ```
     
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
+    This opens `hello.txt` in Vim. If the file doesn't exist, Vim will create it when you save.
+  </Step>
+  
+  <Step title="Enter insert mode">
+    Press `i` to start inserting text. You should see `-- INSERT --` at the bottom.
+  </Step>
+  
+  <Step title="Type some text">
+    Type:
+    ```
+    Hello, Vim!
+    This is my first file.
+    ```
     
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
+    Type naturally - all the normal keys work in insert mode.
+  </Step>
+  
+  <Step title="Return to normal mode">
+    Press `Esc` to exit insert mode. The `-- INSERT --` indicator disappears.
+  </Step>
+  
+  <Step title="Save the file">
+    Type `:w` and press `Enter`. The `:w` command writes (saves) the file.
     
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+    ```vim
+    :w
+    ```
+    
+    You'll see a message like: `"hello.txt" 2L, 37C written`
+  </Step>
+  
+  <Step title="Exit Vim">
+    Type `:q` and press `Enter` to quit.
+    
+    ```vim
+    :q
+    ```
+    
+    Or use `:wq` to write and quit in one command.
+  </Step>
+</Steps>
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+<Tip>
+  You can combine write and quit: `:wq` saves and exits in one command. Even shorter: `:x` or `ZZ` (in normal mode).
+</Tip>
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+## Essential commands
 
-### Step 3: Go live
+Here are the commands you'll use constantly:
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+### Opening and saving files
+
+<CodeGroup>
+```vim Opening files
+:e filename      " Edit a file
+:e!              " Reload current file (discard changes)
+vim file1 file2  " Open multiple files (from terminal)
+```
+
+```vim Saving files
+:w               " Write (save) current file
+:w filename      " Save as filename
+:w!              " Force write (if file is read-only)
+:wa              " Write all open files
+```
+
+```vim Quitting
+:q               " Quit (fails if unsaved changes)
+:q!              " Quit without saving
+:wq              " Write and quit
+:x               " Write if changed, then quit
+ZZ               " Save and quit (normal mode)
+ZQ               " Quit without saving (normal mode)
+```
+</CodeGroup>
+
+### Basic navigation
+
+In **normal mode**, use these keys to move around:
+
+<CardGroup cols={2}>
+  <Card title="Basic movement">
+    - `h` - left
+    - `j` - down  
+    - `k` - up
+    - `l` - right
+    
+    You can also use arrow keys, but `hjkl` is faster once you learn them.
+  </Card>
+  
+  <Card title="Faster movement">
+    - `w` - jump forward to start of next word
+    - `b` - jump backward to start of word
+    - `e` - jump to end of word
+    - `0` - jump to start of line
+    - `$` - jump to end of line
+  </Card>
+  
+  <Card title="Jumping around">
+    - `gg` - go to first line
+    - `G` - go to last line
+    - `5G` - go to line 5
+    - `{` - jump to previous paragraph
+    - `}` - jump to next paragraph
+  </Card>
+  
+  <Card title="Screen movement">
+    - `Ctrl-f` - page down
+    - `Ctrl-b` - page up
+    - `Ctrl-d` - half page down
+    - `Ctrl-u` - half page up
+  </Card>
+</CardGroup>
+
+### Entering insert mode
+
+There are several ways to enter insert mode:
+
+```vim
+i    " Insert before cursor
+a    " Append after cursor
+I    " Insert at beginning of line
+A    " Append at end of line
+o    " Open new line below and insert
+O    " Open new line above and insert
+```
+
+## Practical example
+
+Let's edit a real file with a complete workflow:
+
+<Steps>
+  <Step title="Create a shopping list">
+    ```bash
+    vim shopping.txt
+    ```
+  </Step>
+  
+  <Step title="Add items">
+    1. Press `i` to enter insert mode
+    2. Type:
+    ```
+    Shopping List
+    - Milk
+    - Bread
+    - Eggs
+    ```
+    3. Press `Esc` to return to normal mode
+  </Step>
+  
+  <Step title="Navigate and add more items">
+    1. Press `G` to jump to the last line
+    2. Press `o` to open a new line below and enter insert mode
+    3. Type: `- Cheese`
+    4. Press `Esc`
+  </Step>
+  
+  <Step title="Make a correction">
+    1. Press `gg` to go to the first line
+    2. Press `j` to move down one line (to "Milk")
+    3. Press `A` to append at end of line
+    4. Type: ` (2 cartons)`
+    5. Press `Esc`
+  </Step>
+  
+  <Step title="Save and exit">
+    Type `:wq` and press `Enter`
+  </Step>
+</Steps>
+
+## Getting help
+
+Vim has extensive built-in documentation. Access it with the `:help` command:
+
+```vim
+:help               " Open help
+:help i             " Help for 'i' command
+:help :w            " Help for ':w' command
+:help modes         " Help about modes
+:help user-manual   " Open user manual
+```
+
+<Tip>
+  Inside help, press `Ctrl-]` on a highlighted word to jump to that topic, and `Ctrl-o` to jump back.
+</Tip>
+
+## Running the Vim tutor
+
+Vim includes an interactive tutorial that teaches you the basics through hands-on practice:
+
+```bash
+vimtutor
+```
+
+Or from within Vim:
+
+```vim
+:help tutor
+```
+
+The tutor takes about 30 minutes and is the best way to learn Vim's core commands.
+
+## Common pitfalls
+
+<Warning>
+  **You're stuck in insert mode**: Press `Esc` to return to normal mode. If nothing else works, press `Esc` a few times.
+</Warning>
+
+<Warning>
+  **Commands aren't working**: Make sure you're in normal mode (press `Esc`). Commands only work in normal mode.
+</Warning>
+
+<Warning>
+  **Can't exit Vim**: From normal mode (press `Esc`), type `:q!` to quit without saving, or `:wq` to save and quit.
+</Warning>
+
+<Warning>
+  **Accidentally recording**: If you see "recording @q" at the bottom, you pressed `q` in normal mode. Press `q` again to stop recording.
+</Warning>
+
+## Quick reference card
+
+Print this and keep it handy:
+
+| Command | Description |
+|---------|-------------|
+| `i` | Enter insert mode before cursor |
+| `a` | Enter insert mode after cursor |
+| `Esc` | Return to normal mode |
+| `:w` | Save file |
+| `:q` | Quit |
+| `:wq` | Save and quit |
+| `:q!` | Quit without saving |
+| `h j k l` | Move left, down, up, right |
+| `w` | Move forward one word |
+| `b` | Move backward one word |
+| `0` | Move to start of line |
+| `$` | Move to end of line |
+| `gg` | Go to first line |
+| `G` | Go to last line |
+| `u` | Undo |
+| `Ctrl-r` | Redo |
 
 ## Next steps
 
-Now that you have your docs running, explore these key features:
+You now know enough to use Vim for basic editing. To become proficient:
 
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="First steps" icon="map" href="/first-steps">
+    Learn more essential commands for editing, deleting, and visual mode
+  </Card>
+  
+  <Card title="Vim tutor" icon="graduation-cap" href="/introduction#vim-tutor">
+    Complete the interactive 30-minute tutorial
+  </Card>
+  
+  <Card title="User manual" icon="book">
+    Read the comprehensive guide inside Vim: `:help user-manual`
+  </Card>
+  
+  <Card title="Practice daily" icon="dumbbell">
+    Use Vim for all your text editing to build muscle memory
+  </Card>
 </CardGroup>
 
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>
+<Tip>
+  Don't try to learn everything at once. Master the basics in this guide first, then gradually add more commands to your repertoire.
+</Tip>

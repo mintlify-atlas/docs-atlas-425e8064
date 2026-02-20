@@ -1,0 +1,275 @@
+---
+title: Unix/Linux
+description: Installing and using Vim on Unix and Linux systems
+---
+
+## Overview
+
+Vim runs natively on Unix and Linux systems with full feature support. This guide covers installation methods, building from source, and platform-specific considerations.
+
+## Installation Methods
+
+### Using Package Managers
+
+Most Linux distributions include Vim in their package repositories:
+
+<CodeGroup>
+
+```bash Debian/Ubuntu
+sudo apt update
+sudo apt install vim
+```
+
+```bash Fedora/RHEL
+sudo dnf install vim
+```
+
+```bash Arch Linux
+sudo pacman -S vim
+```
+
+```bash openSUSE
+sudo zypper install vim
+```
+
+</CodeGroup>
+
+### Building from Source
+
+For the latest features or custom configurations, you can build Vim from source:
+
+```bash Terminal
+# Clone the repository
+git clone https://github.com/vim/vim.git
+cd vim/src
+
+# Build and install
+make
+make test
+sudo make install
+```
+
+See the `INSTALL` file in the `src` directory for detailed build instructions and configuration options.
+
+## Configuration
+
+### Runtime Files
+
+Vim looks for runtime files in standard Unix locations:
+
+- System-wide configuration: `/usr/share/vim/`
+- User configuration: `~/.vimrc`
+- User runtime files: `~/.vim/`
+
+Example directory structure:
+
+```
+~/.vim/
+├── autoload/      # Autoloaded scripts
+├── colors/        # Color schemes
+├── ftplugin/      # Filetype plugins
+├── plugin/        # Plugins
+└── syntax/        # Syntax files
+```
+
+### Environment Variables
+
+<ParamField path="$VIM" type="string">
+  Location of Vim system files. Typically `/usr/share/vim`.
+</ParamField>
+
+<ParamField path="$VIMRUNTIME" type="string">
+  Location of runtime files. Usually `$VIM/vim92` for version 9.2.
+</ParamField>
+
+## Platform-Specific Features
+
+### Terminal Support
+
+Vim on Unix/Linux has excellent terminal support:
+
+- Full 256-color and true color support
+- Mouse support in xterm-compatible terminals
+- Integration with terminal clipboard via `+clipboard` feature
+
+### X11 Integration
+
+When compiled with X11 support:
+
+- Access to X11 clipboard (`+` and `*` registers)
+- X11 window title updates
+- Mouse support in terminal
+
+### Build Options
+
+Common configure options for Unix builds:
+
+<CodeGroup>
+
+```bash Minimal Build
+./configure --with-features=small
+make
+```
+
+```bash Huge Build
+./configure --with-features=huge \
+  --enable-multibyte \
+  --enable-python3interp \
+  --enable-rubyinterp \
+  --enable-perlinterp
+make
+```
+
+```bash GUI Build
+./configure --with-features=huge \
+  --enable-gui=gtk3 \
+  --enable-gnome-check
+make
+```
+
+</CodeGroup>
+
+## File System Considerations
+
+### Path Separators
+
+Unix/Linux uses forward slashes (`/`) for path separators:
+
+```vim
+:edit /home/user/file.txt
+:set runtimepath+=~/.vim/custom
+```
+
+### Permissions
+
+Vim respects Unix file permissions:
+
+- Files are created with default umask
+- Backup files preserve original permissions
+- Can use `:write !sudo tee %` for privileged saves
+
+### Symbolic Links
+
+Vim follows symbolic links when editing files. Use `:set nofsync` if working with links on NFS.
+
+## Common Issues
+
+### Missing Features
+
+Check which features are compiled in:
+
+```vim
+:version
+```
+
+Look for `+feature` (enabled) or `-feature` (disabled). Common features:
+
+- `+clipboard` - System clipboard access
+- `+python3` - Python 3 support
+- `+X11` - X11 integration
+
+### Terminal Colors
+
+If colors don't display correctly:
+
+```vim
+" Force 256 colors
+set t_Co=256
+
+" Enable true color (24-bit)
+if has('termguicolors')
+  set termguicolors
+endif
+```
+
+### Locale Issues
+
+Ensure your locale supports UTF-8:
+
+```bash
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+```
+
+## Performance Tips
+
+### Large Files
+
+For better performance with large files:
+
+```vim
+" Disable syntax highlighting for large files
+autocmd BufReadPre * if getfsize(expand("%")) > 10000000 | syntax off | endif
+
+" Increase memory limits
+set maxmempattern=2000000
+```
+
+### Network File Systems
+
+When editing files on NFS or similar:
+
+```vim
+set nofsync          " Don't force sync to disk
+set nobackup         " Don't create backup files
+set nowritebackup    " Don't create backup before overwriting
+```
+
+## Integration
+
+### Shell Integration
+
+Vim integrates seamlessly with Unix shells:
+
+```vim
+" Run shell command and insert output
+:read !ls -la
+
+" Filter lines through shell command
+:1,5!sort
+
+" Set shell explicitly
+set shell=/bin/bash
+```
+
+### Man Page Viewer
+
+Use Vim as a man page viewer:
+
+```bash
+export MANPAGER="vim -M +MANPAGER -"
+```
+
+### Diff Tool
+
+Use vimdiff for comparing files:
+
+```bash
+vimdiff file1.txt file2.txt
+# or
+vim -d file1.txt file2.txt
+```
+
+## Resources
+
+<CardGroup cols={2}>
+  <Card title="Building Vim" icon="hammer" href="/getting-started/building">
+    Detailed build instructions
+  </Card>
+  <Card title="Configuration" icon="gear" href="/configuration/vimrc">
+    Configure your vimrc
+  </Card>
+  <Card title="Terminal Setup" icon="terminal" href="/guides/terminal">
+    Terminal configuration
+  </Card>
+  <Card title="Help System" icon="circle-question" href="/reference/help-system">
+    Using :help dos
+  </Card>
+</CardGroup>
+
+## See Also
+
+- `:help unix` - Unix-specific help
+- `:help linux` - Linux-specific information
+- `:help $VIM` - Environment variables
+- `:help feature-list` - Complete feature list

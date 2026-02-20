@@ -1,0 +1,867 @@
+---
+title: Migrating to Vim9 Script
+description: Guide to upgrading from legacy Vimscript to modern Vim9 syntax
+---
+
+## Overview
+
+Vim9 script is a new syntax introduced in Vim 9.0 that makes Vimscript faster and more modern. It provides significant performance improvements and brings Vimscript closer to contemporary programming languages.
+
+<Note>
+Vim9 script is not a breaking change. Legacy Vimscript continues to work and will be supported indefinitely. You can adopt Vim9 gradually.
+</Note>
+
+## Why Vim9 Script?
+
+### Performance Improvements
+
+Vim9 script is dramatically faster than legacy Vimscript through compilation:
+
+| Operation | Legacy Vimscript | Vim9 Script | Python | Lua |
+|-----------|-----------------|-------------|--------|-----|
+| **Loop (3M iterations)** | 5.02s | 0.07s | 0.37s | 0.08s |
+| **Text manipulation (100K lines)** | 0.58s | 0.08s | 0.15s | 0.16s |
+
+**Why so fast?**
+
+- **Compiled to bytecode**: Functions are compiled to intermediate instructions
+- **Type information**: Optional types enable optimizations
+- **Stack-based execution**: Local variables stored on stack, not in dictionaries
+- **Reduced overhead**: Faster function calls and variable access
+
+### Modern Language Features
+
+```vim
+" Legacy Vimscript
+function! OldWay(arg)
+  let l:result = a:arg * 2
+  return l:result
+endfunction
+
+" Vim9 script
+def NewWay(arg: number): number
+  var result = arg * 2
+  return result
+enddef
+```
+
+**Key improvements:**
+
+- No more `a:`, `l:`, `s:` prefixes
+- Type annotations
+- Better syntax consistency
+- Cleaner, more readable code
+
+## Enabling Vim9 Script
+
+### In Script Files
+
+Add `vim9script` at the top of your `.vim` files:
+
+```vim
+vim9script
+
+" All code below uses Vim9 syntax
+var counter = 0
+
+def Increment()
+  counter += 1
+enddef
+```
+
+<Warning>
+The `vim9script` declaration must be the first line (or after the modeline). Comments and blank lines before it are not allowed.
+</Warning>
+
+### In Functions
+
+Use `def` instead of `function` to create Vim9-compiled functions:
+
+```vim
+" This function uses Vim9 syntax internally
+def FastFunction(n: number): number
+  var result = 0
+  for i in range(n)
+    result += i
+  endfor
+  return result
+enddef
+
+" Can be called from legacy Vimscript
+echo FastFunction(1000)
+```
+
+### Compatibility
+
+Vim9 and legacy scripts can coexist:
+
+```vim
+" legacy_script.vim (no vim9script declaration)
+function! LegacyFunction(arg)
+  return a:arg * 2
+endfunction
+
+" vim9_script.vim
+vim9script
+
+" Import and use legacy function
+legacy call LegacyFunction(5)
+
+" Define Vim9 function
+def Vim9Function(arg: number): number
+  return arg * 2
+enddef
+```
+
+## Key Syntax Changes
+
+### Variable Declarations
+
+#### Legacy Vimscript
+
+```vim
+" Variables require prefixes
+let l:local_var = 10          " local variable
+let s:script_var = 20         " script-local variable
+let g:global_var = 30         " global variable
+
+" Function arguments use a: prefix
+function! Func(arg1, arg2)
+  echo a:arg1
+  echo a:arg2
+endfunction
+```
+
+#### Vim9 Script
+
+```vim
+vim9script
+
+" No prefixes needed
+var localVar = 10             " local (default)
+var scriptVar = 20            " script-local (at script level)
+g:globalVar = 30              " explicit global
+
+" Use const for constants
+const MAX_SIZE = 100
+
+" Function arguments don't need prefix
+def Func(arg1: number, arg2: string)
+  echo arg1
+  echo arg2
+enddef
+```
+
+### Comparison Table
+
+| Feature | Legacy | Vim9 |
+|---------|--------|------|
+| **Local variable** | `let l:var = 1` | `var myVar = 1` |
+| **Script variable** | `let s:var = 1` | `var myVar = 1` (at script level) |
+| **Global variable** | `let g:var = 1` | `g:var = 1` |
+| **Constant** | `let s:CONST = 1` (convention) | `const CONST = 1` |
+| **Function argument** | `a:arg` | `arg` |
+| **Assignment** | `let var = 1` | `var = 1` (after declaration) |
+
+### Type Annotations
+
+Vim9 supports optional type annotations:
+
+```vim
+vim9script
+
+" Basic types
+var myNumber: number = 42
+var myString: string = "hello"
+var myBool: bool = true
+var myFloat: float = 3.14
+var myBlob: blob = 0z1234
+
+" Collections
+var myList: list<number> = [1, 2, 3]
+var myDict: dict<string> = {name: 'vim', type: 'editor'}
+
+" Function types
+var myFunc: func(number): string
+
+" Any type (no type checking)
+var anything: any = 42
+anything = "now a string"  # Allowed with 'any'
+
+" Optional type (can be null)
+var nullable: number = null  # Error!
+var optional: ?number = null  # OK
+```
+
+### Function Definitions
+
+#### Legacy Vimscript
+
+```vim
+" Function with explicit scope
+function! s:MyFunction(arg1, arg2) abort
+  let l:result = a:arg1 + a:arg2
+  return l:result
+endfunction
+
+" Variable arguments
+function! VarArgs(...)
+  echo a:0           " number of args
+  echo a:1           " first arg
+  echo a:000         " list of all args
+endfunction
+```
+
+#### Vim9 Script
+
+```vim
+vim9script
+
+" Typed function (recommended)
+def MyFunction(arg1: number, arg2: number): number
+  var result = arg1 + arg2
+  return result
+enddef
+
+" Shorter syntax
+def MyFunction(arg1: number, arg2: number): number
+  return arg1 + arg2
+enddef
+
+" Variable arguments
+def VarArgs(...args: list<any>)
+  echo len(args)     # number of args
+  echo args[0]       # first arg
+  echo args          # list of all args
+enddef
+
+" Default arguments
+def WithDefaults(name: string, count = 10)
+  echo $"Hello {name}, count is {count}"
+enddef
+
+WithDefaults("Vim")           # count defaults to 10
+WithDefaults("Vim", 5)        # count is 5
+```
+
+### String Interpolation
+
+```vim
+" Legacy: concatenation
+let name = "Vim"
+let version = 9
+echo "Welcome to " . name . " " . version
+
+" Vim9: interpolation
+var name = "Vim"
+var version = 9
+echo $"Welcome to {name} {version}"
+echo $"Expression: {2 + 2}"  # "Expression: 4"
+```
+
+### Control Flow
+
+#### If Statements
+
+```vim
+" Legacy
+if condition
+  let x = 1
+elseif other_condition
+  let x = 2
+else
+  let x = 3
+endif
+
+" Vim9: mostly the same, but cleaner
+if condition
+  var x = 1
+elseif otherCondition
+  var x = 2
+else
+  var x = 3
+endif
+
+" Ternary operator
+var result = condition ? trueValue : falseValue
+```
+
+#### Loops
+
+```vim
+vim9script
+
+" For loop
+for item in [1, 2, 3, 4, 5]
+  echo item
+endfor
+
+" For loop with range
+for i in range(10)
+  echo i
+endfor
+
+" While loop
+var count = 0
+while count < 10
+  echo count
+  count += 1
+endwhile
+
+" Break and continue work the same
+for i in range(100)
+  if i == 50
+    break
+  endif
+  if i % 2 == 0
+    continue
+  endif
+  echo i
+endfor
+```
+
+### Exception Handling
+
+```vim
+vim9script
+
+try
+  # Code that might fail
+  var result = DangerousFunction()
+catch /E\d\+/
+  # Catch Vim errors
+  echo "Error occurred"
+catch /^MyError:/
+  # Catch custom errors
+  echo "Custom error"
+finally
+  # Always executed
+  echo "Cleanup"
+endtry
+
+" Throw exceptions
+if invalid
+  throw "MyError: Invalid input"
+endif
+```
+
+### Comments
+
+```vim
+" Legacy: only double-quote comments
+" This is a comment
+let x = 1  " inline comment
+
+# Vim9: hash comments (recommended)
+# This is a comment
+var x = 1  # inline comment
+
+" Double-quote still works but deprecated in Vim9
+" Old style comment
+```
+
+## Import and Export
+
+### Creating a Module
+
+```vim
+" ~/.vim/mymodule.vim
+vim9script
+
+" Private (not exported)
+var privateVar = "hidden"
+
+def PrivateFunction()
+  echo "This is private"
+enddef
+
+" Public (exported)
+export var publicVar = "visible"
+
+export def PublicFunction(name: string)
+  echo $"Hello, {name}!"
+enddef
+
+export const MAX_COUNT = 100
+
+" Export multiple items
+export var foo = 1
+export var bar = 2
+```
+
+### Importing a Module
+
+```vim
+vim9script
+
+" Import specific items
+import PublicFunction from '~/.vim/mymodule.vim'
+import {publicVar, MAX_COUNT} from '~/.vim/mymodule.vim'
+
+" Import everything with namespace
+import * as MyModule from '~/.vim/mymodule.vim'
+
+" Use imported items
+PublicFunction("Vim")
+echo publicVar
+echo MyModule.publicVar
+MyModule.PublicFunction("World")
+```
+
+### Import Paths
+
+```vim
+" Absolute path
+import Func from '/path/to/script.vim'
+
+" Relative to current script
+import Func from './relative/script.vim'
+
+" From runtime path
+import Func from 'autoload/myplugin.vim'
+
+" Home directory
+import Func from '~/vimfiles/myscript.vim'
+```
+
+## Migration Strategy
+
+### Gradual Approach
+
+1. **Start with new code**: Write new functions with `def` and Vim9 syntax
+2. **Convert performance-critical code**: Migrate hot paths and loops first
+3. **Refactor incrementally**: Convert files one at a time
+4. **Keep legacy code working**: No need to convert everything
+
+### Conversion Example
+
+#### Before (Legacy)
+
+```vim
+" plugin/counter.vim
+let s:count = 0
+
+function! s:increment() abort
+  let s:count += 1
+  return s:count
+endfunction
+
+function! counter#get() abort
+  return s:count
+endfunction
+
+function! counter#reset() abort
+  let s:count = 0
+endfunction
+
+function! counter#add(n) abort
+  let s:count += a:n
+  return s:count
+endfunction
+```
+
+#### After (Vim9)
+
+```vim
+vim9script
+
+" plugin/counter.vim
+var count = 0
+
+def Increment(): number
+  count += 1
+  return count
+enddef
+
+export def Get(): number
+  return count
+enddef
+
+export def Reset()
+  count = 0
+enddef
+
+export def Add(n: number): number
+  count += n
+  return count
+enddef
+```
+
+### Automated Tools
+
+While no official converter exists, you can use patterns:
+
+```bash
+# Replace let with var (manual review needed!)
+sed -i 's/let l:\([a-zA-Z_][a-zA-Z0-9_]*\)/var \1/g' script.vim
+
+# Replace function with def (requires manual type annotations)
+sed -i 's/function!/def/g' script.vim
+sed -i 's/endfunction/enddef/g' script.vim
+```
+
+<Warning>
+Automated replacement is error-prone. Always review changes carefully and test thoroughly.
+</Warning>
+
+## Common Pitfalls
+
+### Scoping Differences
+
+```vim
+vim9script
+
+" At script level, variables are script-local by default
+var scriptLocal = 1  # Not accessible from other scripts
+
+" Explicitly global if needed
+g:globalVar = 1  # Accessible everywhere
+
+" In legacy, unqualified variables in functions were global!
+" In Vim9, they are local by default
+def MyFunc()
+  var local = 1  # Local to function
+  unlet local    # Error in Vim9! Cannot unlet
+enddef
+```
+
+### String Concatenation
+
+```vim
+vim9script
+
+" Legacy: dot operator
+var old = "Hello" . " " . "World"
+
+" Vim9: dot still works, but .. is preferred
+var new = "Hello" .. " " .. "World"
+
+" String interpolation (best)
+var best = $"Hello {name}"
+```
+
+### List and Dictionary Access
+
+```vim
+vim9script
+
+" Whitespace matters!
+var list = [1, 2, 3]
+var value = list[0]      # Correct
+# var value = list [0]  # Error! Space not allowed
+
+var dict = {key: 'value'}
+var v = dict['key']      # Correct
+# var v = dict ['key']  # Error! Space not allowed
+```
+
+### Line Continuation
+
+```vim
+" Legacy: backslash at start of continued line
+let result = some_function(
+      \ arg1,
+      \ arg2,
+      \ arg3)
+
+" Vim9: backslash at end of line (like most languages)
+var result = SomeFunction(
+  arg1,
+  arg2,
+  arg3)
+```
+
+### Ex Commands
+
+```vim
+vim9script
+
+" Most Ex commands work the same
+echo "Hello"
+set number
+normal! ggdd
+
+" Legacy commands need :legacy prefix if they conflict
+legacy let l:var = 1  # Use legacy 'let' explicitly
+```
+
+## Type System
+
+### Basic Types
+
+```vim
+vim9script
+
+var n: number = 42
+var s: string = "text"
+var b: bool = true
+var f: float = 3.14
+var blob: blob = 0z1234
+```
+
+### Collection Types
+
+```vim
+vim9script
+
+" Homogeneous lists
+var numbers: list<number> = [1, 2, 3]
+var strings: list<string> = ['a', 'b', 'c']
+
+" Nested lists
+var matrix: list<list<number>> = [[1, 2], [3, 4]]
+
+" Dictionaries
+var settings: dict<string> = {name: 'vim', version: '9.0'}
+var counts: dict<number> = {lines: 100, chars: 500}
+
+" Mixed types (use any)
+var mixed: list<any> = [1, 'two', 3.0]
+```
+
+### Function Types
+
+```vim
+vim9script
+
+" Function type annotations
+var callback: func(number): string
+
+def ProcessNumber(n: number): string
+  return $"Number: {n}"
+enddef
+
+callback = ProcessNumber
+echo callback(42)  # "Number: 42"
+
+" Function as argument
+def ApplyFunc(f: func(number): number, x: number): number
+  return f(x)
+enddef
+
+echo ApplyFunc((n) => n * 2, 5)  # 10
+```
+
+### Lambda Functions
+
+```vim
+vim9script
+
+" Short lambda syntax
+var double = (n) => n * 2
+echo double(5)  # 10
+
+" Multi-line lambda
+var process = (x, y) => {
+  var result = x + y
+  return result * 2
+}
+
+" Use with map/filter
+var numbers = [1, 2, 3, 4, 5]
+var doubled = numbers->map((_, n) => n * 2)
+var evens = numbers->filter((_, n) => n % 2 == 0)
+```
+
+## Method Chaining
+
+```vim
+vim9script
+
+" Legacy: nested function calls
+let result = join(sort(filter(split(text, '\n'), 'v:val !~ "^#"')), '\n')
+
+" Vim9: method chaining with ->
+var result = text
+  ->split('\n')
+  ->filter((_, line) => line !~ '^#')
+  ->sort()
+  ->join('\n')
+
+" Equivalent to:
+" var result = join(sort(filter(split(text, '\n'), ...)), '\n')
+```
+
+## Performance Tips
+
+### Use Type Annotations
+
+```vim
+vim9script
+
+" Without types (slower)
+def SlowSum(list: list<any>): any
+  var total = 0
+  for item in list
+    total += item  # Type check at runtime
+  endfor
+  return total
+enddef
+
+" With types (faster)
+def FastSum(list: list<number>): number
+  var total = 0
+  for item in list
+    total += item  # Type known at compile time
+  endfor
+  return total
+enddef
+```
+
+### Compile-time Evaluation
+
+```vim
+vim9script
+
+" Constants evaluated at compile time
+const SIZE = 100
+const DOUBLE = SIZE * 2  # Computed once
+
+" Use const for performance
+def ProcessItems()
+  for i in range(DOUBLE)  # DOUBLE is a constant
+    # ...
+  endfor
+enddef
+```
+
+### Avoid Global Variables
+
+```vim
+vim9script
+
+" Slow: global access
+g:counter = 0
+def IncrementGlobal()
+  g:counter += 1  # Global lookup every time
+enddef
+
+" Fast: script-local
+var counter = 0
+def IncrementLocal()
+  counter += 1  # Direct stack access
+enddef
+```
+
+## Testing Vim9 Scripts
+
+```vim
+vim9script
+
+" test/test_mymodule.vim
+import * as MyModule from '../mymodule.vim'
+
+def Test_BasicFunction()
+  var result = MyModule.Add(2, 3)
+  assert_equal(5, result, "Addition failed")
+enddef
+
+def Test_EdgeCase()
+  var result = MyModule.Add(0, 0)
+  assert_equal(0, result)
+enddef
+
+" Run with: vim -Nu NONE -S test/test_mymodule.vim
+```
+
+## Best Practices
+
+### Naming Conventions
+
+```vim
+vim9script
+
+" Use camelCase for variables and functions
+var myVariable = 1
+def MyFunction()
+  # ...
+enddef
+
+" Use UPPER_CASE for constants
+const MAX_SIZE = 100
+const DEFAULT_NAME = "vim"
+
+" Private functions with leading underscore (convention)
+def _PrivateHelper()
+  # ...
+enddef
+```
+
+### Error Handling
+
+```vim
+vim9script
+
+def SafeDivide(a: number, b: number): number
+  if b == 0
+    throw "Division by zero"
+  endif
+  return a / b
+enddef
+
+try
+  var result = SafeDivide(10, 0)
+catch /Division by zero/
+  echo "Cannot divide by zero!"
+endtry
+```
+
+### Documentation
+
+```vim
+vim9script
+
+# Process a list of items and return the result.
+#
+# @param items The list of items to process
+# @param threshold Minimum value to include
+# @return Filtered and processed list
+export def ProcessItems(items: list<number>, threshold: number): list<number>
+  return items
+    ->filter((_, n) => n >= threshold)
+    ->map((_, n) => n * 2)
+enddef
+```
+
+## Debugging
+
+```vim
+vim9script
+
+" Add debug prints
+def DebugFunction(x: number): number
+  echo $"Input: {x}"
+  var result = x * 2
+  echo $"Result: {result}"
+  return result
+enddef
+
+" Use breakpoints
+breakpoint  # Debugger will stop here when :debug is used
+
+" Check compiled instructions
+:disassemble DebugFunction
+```
+
+## Resources
+
+```vim
+:help vim9               " Vim9 script introduction
+:help vim9-differences   " All differences from legacy
+:help vim9-migration     " Migration guide
+:help :def               " Vim9 function definition
+:help :var               " Variable declaration
+:help :const             " Constants
+:help import             " Import/export system
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="From Vi" href="/guides/from-vi" icon="terminal">
+    Learn Vim enhancements over Vi
+  </Card>
+  <Card title="From Other Editors" href="/guides/from-other-editors" icon="right-left">
+    Transition from Emacs, VS Code, and others
+  </Card>
+</CardGroup>

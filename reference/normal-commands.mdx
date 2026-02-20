@@ -1,0 +1,371 @@
+---
+title: Normal Mode Command Reference
+description: Comprehensive reference for Vim Normal mode commands
+---
+
+Normal mode is Vim's default mode for navigation and text manipulation. Most commands can be preceded by a count to repeat them.
+
+## Command Notation
+
+- `{motion}` - A cursor movement command
+- `{count}` - A number entered before the command
+- `[register]` - Optional register specification (e.g., `"a`)
+- `{char}` - A single character
+- `1` = cursor movement command
+- `2` = can be undone/redone
+
+## Motion Commands
+
+### Character Motion
+
+| Command | Description |
+|---------|-------------|
+| `h` | Cursor left |
+| `l` | Cursor right |
+| `0` | Cursor to first character of line |
+| `^` | Cursor to first non-blank character of line |
+| `$` | Cursor to end of line |
+| `g_` | Cursor to last non-blank character of line |
+| `\|` | Cursor to column N |
+| `f{char}` | Cursor to Nth occurrence of {char} to the right |
+| `F{char}` | Cursor to Nth occurrence of {char} to the left |
+| `t{char}` | Cursor till before Nth occurrence of {char} to the right |
+| `T{char}` | Cursor till after Nth occurrence of {char} to the left |
+| `;` | Repeat latest f, t, F or T |
+| `,` | Repeat latest f, t, F or T in opposite direction |
+
+### Line Motion
+
+| Command | Description |
+|---------|-------------|
+| `j` | Cursor down |
+| `k` | Cursor up |
+| `gj` | Cursor down (screen line, when 'wrap' is on) |
+| `gk` | Cursor up (screen line, when 'wrap' is on) |
+| `+` or `<CR>` | Cursor to first non-blank N lines lower |
+| `-` | Cursor to first non-blank N lines higher |
+| `_` | Cursor to first non-blank N-1 lines lower |
+| `G` | Go to line N (default: last line) |
+| `gg` | Go to line N (default: first line) |
+| `{count}%` | Go to N percentage in the file |
+| `{count}\|` | Go to column N |
+
+### Word Motion
+
+| Command | Description |
+|---------|-------------|
+| `w` | Cursor N words forward |
+| `W` | Cursor N WORDS forward |
+| `e` | Cursor forward to end of word N |
+| `E` | Cursor forward to end of WORD N |
+| `b` | Cursor N words backward |
+| `B` | Cursor N WORDS backward |
+| `ge` | Cursor backward to end of previous word |
+| `gE` | Cursor backward to end of previous WORD |
+
+### Sentence and Paragraph Motion
+
+| Command | Description |
+|---------|-------------|
+| `(` | Cursor N sentences backward |
+| `)` | Cursor N sentences forward |
+| `{` | Cursor N paragraphs backward |
+| `}` | Cursor N paragraphs forward |
+
+### Screen Motion
+
+| Command | Description |
+|---------|-------------|
+| `H` | Cursor to line N from top of screen |
+| `M` | Cursor to middle line of screen |
+| `L` | Cursor to line N from bottom of screen |
+| `CTRL-F` | Scroll N screens forward |
+| `CTRL-B` | Scroll N screens backward |
+| `CTRL-D` | Scroll down N lines (default: half screen) |
+| `CTRL-U` | Scroll up N lines (default: half screen) |
+| `CTRL-E` | Scroll N lines upwards |
+| `CTRL-Y` | Scroll N lines downwards |
+| `zt` | Redraw, cursor line at top of window |
+| `zz` | Redraw, cursor line at center of window |
+| `zb` | Redraw, cursor line at bottom of window |
+
+### Marks and Jumps
+
+| Command | Description |
+|---------|-------------|
+| `m{a-zA-Z}` | Set mark {a-zA-Z} at cursor position |
+| `'{a-z}` | Jump to mark {a-z} (first non-blank in line) |
+| `` `{a-z}`` | Jump to mark {a-z} (exact position) |
+| `''` | Jump to position before latest jump |
+| ``` `` ``` | Jump to position before latest jump (exact) |
+| `CTRL-O` | Go to N older entry in jump list |
+| `CTRL-I` or `<Tab>` | Go to N newer entry in jump list |
+| `g;` | Go to N older position in change list |
+| `g,` | Go to N newer position in change list |
+
+## Insert Commands
+
+| Command | Description |
+|---------|-------------|
+| `i` | Insert text before the cursor N times |
+| `I` | Insert text before first non-blank on line N times |
+| `gI` | Insert text in column 1 N times |
+| `a` | Append text after cursor N times |
+| `A` | Append text at end of line N times |
+| `o` | Open line below cursor and insert text N times |
+| `O` | Open line above cursor and insert text N times |
+| `gi` | Insert at last insert position |
+
+## Delete Commands
+
+| Command | Description |
+|---------|-------------|
+| `x` | Delete N characters under and after cursor |
+| `X` | Delete N characters before cursor |
+| `d{motion}` | Delete text moved over by {motion} |
+| `dd` | Delete N lines |
+| `D` | Delete to end of line (and N-1 more lines) |
+| `J` | Join N lines (default: 2) |
+| `gJ` | Join N lines without inserting space |
+
+## Change Commands
+
+| Command | Description |
+|---------|-------------|
+| `r{char}` | Replace N characters with {char} |
+| `R` | Enter Replace mode |
+| `c{motion}` | Change text moved over by {motion} |
+| `cc` or `S` | Change N lines |
+| `C` | Change to end of line (and N-1 more lines) |
+| `s` | Substitute N characters |
+| `~` | Switch case of N characters (when 'tildeop' off) |
+| `~{motion}` | Switch case of text moved over (when 'tildeop' on) |
+| `gu{motion}` | Make text lowercase |
+| `gU{motion}` | Make text uppercase |
+| `g~{motion}` | Toggle case of text |
+
+## Copy Commands (Yank)
+
+| Command | Description |
+|---------|-------------|
+| `y{motion}` | Yank text moved over by {motion} |
+| `yy` or `Y` | Yank N lines |
+
+## Put Commands
+
+| Command | Description |
+|---------|-------------|
+| `p` | Put text after cursor N times |
+| `P` | Put text before cursor N times |
+| `gp` | Like `p`, but leave cursor after text |
+| `gP` | Like `P`, but leave cursor after text |
+
+## Undo and Redo
+
+| Command | Description |
+|---------|-------------|
+| `u` | Undo changes |
+| `U` | Undo all changes on line |
+| `CTRL-R` | Redo changes which were undone |
+| `.` | Repeat last change |
+| `g+` | Go to newer text state |
+| `g-` | Go to older text state |
+
+## Search Commands
+
+| Command | Description |
+|---------|-------------|
+| `/{pattern}` | Search forward for {pattern} |
+| `?{pattern}` | Search backward for {pattern} |
+| `n` | Repeat latest search |
+| `N` | Repeat latest search in opposite direction |
+| `*` | Search forward for word under cursor |
+| `#` | Search backward for word under cursor |
+| `g*` | Like `*` but also find partial matches |
+| `g#` | Like `#` but also find partial matches |
+| `gd` | Go to definition of word under cursor (local) |
+| `gD` | Go to definition of word under cursor (global) |
+
+## Visual Mode
+
+| Command | Description |
+|---------|-------------|
+| `v` | Start characterwise Visual mode |
+| `V` | Start linewise Visual mode |
+| `CTRL-V` | Start blockwise Visual mode |
+| `gv` | Reselect previous Visual area |
+| `o` | Move to other end of Visual area |
+| `O` | Move to other corner of block |
+
+## Text Objects
+
+Use after an operator or in Visual mode:
+
+| Command | Description |
+|---------|-------------|
+| `aw` | A word (with whitespace) |
+| `iw` | Inner word |
+| `aW` | A WORD (with whitespace) |
+| `iW` | Inner WORD |
+| `as` | A sentence (with whitespace) |
+| `is` | Inner sentence |
+| `ap` | A paragraph (with whitespace) |
+| `ip` | Inner paragraph |
+| `a"` | A double-quoted string |
+| `i"` | Inner double-quoted string |
+| `a'` | A single-quoted string |
+| `i'` | Inner single-quoted string |
+| `` a` `` | A backtick-quoted string |
+| `` i` `` | Inner backtick-quoted string |
+| `a(` or `ab` | A block from [( to ]) |
+| `i(` or `ib` | Inner block from [( to ]) |
+| `a{` or `aB` | A block from `{` to `}` |
+| `i{` or `iB` | Inner block from `{` to `}` |
+| `a[` | A block from [[ to ]] |
+| `i[` | Inner block from [[ to ]] |
+| `a<` | A block from [< to ]> |
+| `i<` | Inner block from [< to ]> |
+| `at` | A tag block |
+| `it` | Inner tag block |
+
+## Operators
+
+Operators work on {motion} or text objects:
+
+| Command | Description |
+|---------|-------------|
+| `c` | Change |
+| `d` | Delete |
+| `y` | Yank |
+| `~` | Toggle case (when 'tildeop' is set) |
+| `gu` | Make lowercase |
+| `gU` | Make uppercase |
+| `!` | Filter through external program |
+| `=` | Filter through 'equalprg' or indent |
+| `gq` | Format lines |
+| `g~` | Toggle case |
+| `>` | Shift right |
+| `<` | Shift left |
+
+## Marks
+
+| Command | Description |
+|---------|-------------|
+| `m{a-zA-Z}` | Set mark at cursor position |
+| `'{mark}` | Jump to mark (first non-blank in line) |
+| `` `{mark}`` | Jump to mark (exact position) |
+| `'[` | Jump to start of last change |
+| `']` | Jump to end of last change |
+| `'<` | Jump to start of last Visual selection |
+| `'>` | Jump to end of last Visual selection |
+
+## Registers
+
+| Command | Description |
+|---------|-------------|
+| `"{a-zA-Z0-9}` | Use register {a-zA-Z0-9} for next delete, yank or put |
+| `:reg` | Show contents of all registers |
+
+**Special registers:**
+- `""` - Unnamed register (last delete or yank)
+- `"0` - Last yank
+- `"1`-`"9` - Delete history
+- `"-` - Small delete register
+- `"*` - System clipboard (X11 primary)
+- `"+` - System clipboard
+- `"%` - Current file name
+- `"#` - Alternate file name
+- `"/` - Last search pattern
+- `":` - Last Ex command
+- `".` - Last inserted text
+
+## Macros
+
+| Command | Description |
+|---------|-------------|
+| `q{a-z}` | Record typed characters into register {a-z} |
+| `q{A-Z}` | Record typed characters, append to register {a-z} |
+| `q` | Stop recording |
+| `@{a-z}` | Execute contents of register {a-z} |
+| `@@` | Repeat last @{a-z} |
+| `@:` | Repeat last Ex command |
+
+## Window Commands (CTRL-W)
+
+| Command | Description |
+|---------|-------------|
+| `CTRL-W s` | Split window horizontally |
+| `CTRL-W v` | Split window vertically |
+| `CTRL-W n` | Open new window |
+| `CTRL-W c` | Close current window |
+| `CTRL-W o` | Close all windows except current |
+| `CTRL-W w` | Go to next window |
+| `CTRL-W p` | Go to previous window |
+| `CTRL-W h/j/k/l` | Go to left/down/up/right window |
+| `CTRL-W H/J/K/L` | Move window to far left/bottom/top/right |
+| `CTRL-W =` | Make all windows equal size |
+| `CTRL-W +` | Increase window height |
+| `CTRL-W -` | Decrease window height |
+| `CTRL-W <` | Decrease window width |
+| `CTRL-W >` | Increase window width |
+| `CTRL-W \|` | Set window width to N columns |
+| `CTRL-W _` | Set window height to N lines |
+
+## Folding Commands (z)
+
+| Command | Description |
+|---------|-------------|
+| `zo` | Open fold |
+| `zc` | Close fold |
+| `za` | Toggle fold |
+| `zR` | Open all folds |
+| `zM` | Close all folds |
+| `zj` | Move to next fold |
+| `zk` | Move to previous fold |
+| `zf{motion}` | Create fold |
+| `zd` | Delete fold |
+| `zE` | Eliminate all folds |
+
+## Square Bracket Commands
+
+| Command | Description |
+|---------|-------------|
+| `[(` | Go to N previous unmatched `(` |
+| `])` | Go to N next unmatched `)` |
+| `[{` | Go to N previous unmatched `{` |
+| `]}` | Go to N next unmatched `}` |
+| `[m` | Go to start of method (Java) |
+| `]m` | Go to end of method (Java) |
+| `[#` | Go to N previous unmatched #if or #else |
+| `]#` | Go to N next unmatched #endif or #else |
+| `[*` | Go to N previous start of C comment |
+| `]*` | Go to N next end of C comment |
+| `[s` | Move to previous misspelled word |
+| `]s` | Move to next misspelled word |
+
+## Miscellaneous Commands
+
+| Command | Description |
+|---------|-------------|
+| `CTRL-G` | Show file information and cursor position |
+| `g CTRL-G` | Show detailed cursor position info |
+| `CTRL-L` | Redraw screen |
+| `CTRL-A` | Add N to number at/after cursor |
+| `CTRL-X` | Subtract N from number at/after cursor |
+| `K` | Lookup keyword under cursor |
+| `ZZ` | Write if changed and quit |
+| `ZQ` | Quit without writing |
+| `ga` | Show ASCII value of character under cursor |
+| `g8` | Show UTF-8 encoding of character under cursor |
+| `gf` | Edit file whose name is under cursor |
+| `gF` | Edit file and jump to line number |
+| `%` | Find matching bracket |
+| `&` | Repeat last `:substitute` |
+
+## See Also
+
+- [Insert Mode Commands](/reference/insert-commands)
+- [Ex Commands](/reference/ex-commands)
+- [Command-Line Editing](/reference/cmdline-editing)
+- [Text Objects](/user-guide/text-objects)
+- [Motions](/user-guide/motions)

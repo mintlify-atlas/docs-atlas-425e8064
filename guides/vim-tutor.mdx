@@ -1,0 +1,529 @@
+---
+title: 'Complete Guide to Vimtutor'
+description: 'Learn Vim interactively with the built-in vimtutor program'
+---
+
+## What is Vimtutor?
+
+Vimtutor is Vim's interactive, hands-on tutorial that teaches you the fundamentals of Vim editing. It takes approximately 30 minutes to complete and provides a practical way to learn by doing, not just reading.
+
+<Note>
+Vimtutor creates a temporary copy of the tutorial file, so you can safely experiment without worrying about breaking anything.
+</Note>
+
+## Starting Vimtutor
+
+Launch vimtutor from your terminal:
+
+<CodeGroup>
+```bash Unix/Linux/macOS
+vimtutor
+```
+
+```bash Windows
+vim tutor1
+```
+</CodeGroup>
+
+For Chapter 2 (advanced topics):
+
+```bash
+vim tutor2
+```
+
+## Chapter 1: Core Fundamentals
+
+### Lesson 1.1: Basic Navigation and Editing
+
+<Steps>
+  <Step title="Moving the Cursor">
+    Use `h`, `j`, `k`, `l` keys for navigation:
+    
+    ```
+         k (up)
+    h (left)  l (right)
+        j (down)
+    ```
+    
+    <Tip>
+    The `h` key is at the left and moves left. The `l` key is at the right and moves right. The `j` key looks like a down arrow.
+    </Tip>
+    
+    **Practice Exercise:**
+    - Move the cursor around until comfortable
+    - Hold `j` to move down repeatedly
+    - Try arrow keys, but hjkl is faster once learned
+  </Step>
+  
+  <Step title="Exiting Vim">
+    Two ways to exit:
+    
+    - `:q!` - Quit without saving (discard changes)
+    - `:wq` - Write and quit (save changes)
+    
+    <Warning>
+    Always press `<ESC>` first to ensure you're in Normal mode before typing commands.
+    </Warning>
+  </Step>
+  
+  <Step title="Deleting Characters">
+    Press `x` to delete the character under the cursor.
+    
+    **Practice:**
+    ```
+    The ccow jumpedd ovverr thhe mooon.
+    ```
+    Fix this sentence by positioning the cursor on extra characters and pressing `x`.
+  </Step>
+  
+  <Step title="Inserting Text">
+    - `i` - Insert before the cursor
+    - `a` - Append after the cursor
+    - `A` - Append at the end of the line
+    
+    After typing, press `<ESC>` to return to Normal mode.
+    
+    **Practice:**
+    ```
+    There is text misng this .
+    ```
+    Use `i` to insert "some" and "from" to complete the sentence.
+  </Step>
+</Steps>
+
+### Lesson 1.2: Deletion Commands
+
+<Steps>
+  <Step title="Delete Word">
+    Type `dw` to delete from cursor to start of next word.
+    
+    **Practice:**
+    ```
+    There are a some words fun that don't belong paper in this sentence.
+    ```
+    Remove the extra words using `dw`.
+  </Step>
+  
+  <Step title="Delete to End of Line">
+    Type `d$` to delete from cursor to end of line.
+    
+    **Example:**
+    ```
+    Somebody typed the end of this line twice. end of this line twice.
+    ```
+    Position cursor after the first period and type `d$`.
+  </Step>
+  
+  <Step title="Understanding Operators and Motions">
+    Vim commands follow the pattern: `operator [number] motion`
+    
+    - **Operator**: What to do (`d` for delete)
+    - **Number**: How many times (optional)
+    - **Motion**: Where to operate
+    
+    Common motions:
+    - `w` - Until start of next word
+    - `e` - To end of current word
+    - `$` - To end of line
+    - `0` - To start of line
+    
+    **Examples:**
+    - `2w` - Move forward 2 words
+    - `3e` - Move to end of 3rd word ahead
+    - `d2w` - Delete 2 words
+  </Step>
+  
+  <Step title="Delete Whole Line">
+    Type `dd` to delete entire line.
+    
+    **With count:**
+    - `2dd` - Delete 2 lines
+    - `3dd` - Delete 3 lines
+  </Step>
+  
+  <Step title="Undo Commands">
+    - `u` - Undo last change
+    - `U` - Undo all changes on current line
+    - `CTRL-R` - Redo (undo the undos)
+    
+    **Practice:**
+    ```
+    Fiix the errors oon thhis line and reeplace them witth undo.
+    ```
+    Fix with `x`, then experiment with `u` and `CTRL-R`.
+  </Step>
+</Steps>
+
+### Lesson 1.3: Put, Replace, and Change
+
+<Steps>
+  <Step title="Put Command">
+    Type `p` to paste previously deleted text after the cursor.
+    
+    **Practice - Reorder these lines:**
+    ```
+    d) Can you learn too?
+    b) Violets are blue,
+    c) Intelligence is learned,
+    a) Roses are red,
+    ```
+    
+    Use `dd` to delete line, move cursor, then `p` to paste.
+  </Step>
+  
+  <Step title="Replace Character">
+    Type `r` followed by the replacement character.
+    
+    **Practice:**
+    ```
+    Whan this lime was tuoed in, someone presswd some wrojg keys!
+    ```
+    Fix: position cursor on wrong character, type `r` then correct character.
+  </Step>
+  
+  <Step title="Change Operator">
+    The change operator deletes and enters Insert mode:
+    
+    - `ce` - Change to end of word
+    - `c$` - Change to end of line
+    - `cc` - Change entire line
+    - `cw` - Change word
+    
+    Format: `c [number] motion`
+    
+    **Practice:**
+    ```
+    This lubw has a few wptfd that mrrf changing usf the change operator.
+    ```
+    Position on "lubw", type `ce`, then type "line" and press `<ESC>`.
+  </Step>
+</Steps>
+
+### Lesson 1.4: Location, Search, and Substitute
+
+<Steps>
+  <Step title="Cursor Location">
+    - `CTRL-G` - Show file status and location
+    - `G` - Jump to end of file
+    - `gg` - Jump to start of file
+    - `[number]G` - Jump to line number
+    
+    **Example:** Type `50G` to jump to line 50.
+  </Step>
+  
+  <Step title="Search">
+    - `/pattern` - Search forward
+    - `?pattern` - Search backward
+    - `n` - Next match (same direction)
+    - `N` - Next match (opposite direction)
+    - `CTRL-O` - Go back to previous position
+    - `CTRL-I` - Go forward to newer position
+    
+    **Practice:**
+    ```
+    /errroor
+    ```
+    Then press `n` to find next occurrence.
+  </Step>
+  
+  <Step title="Matching Parentheses">
+    Type `%` when cursor is on `(`, `)`, `[`, `]`, `{`, or `}` to jump to its match.
+    
+    **Practice:**
+    ```
+    This ( is a test line with ('s, ['s ] and {'s } in it. ))
+    ```
+    
+    Very useful for debugging unmatched parentheses!
+  </Step>
+  
+  <Step title="Substitute Command">
+    Syntax: `:s/old/new/flags`
+    
+    - `:s/thee/the` - Replace first occurrence in line
+    - `:s/thee/the/g` - Replace all in line (global)
+    - `:#,#s/old/new/g` - Replace in range of lines
+    - `:%s/old/new/g` - Replace in entire file
+    - `:%s/old/new/gc` - Replace with confirmation
+    
+    **Practice:**
+    ```
+    thee best time to see thee flowers is in thee spring.
+    ```
+  </Step>
+</Steps>
+
+### Lesson 1.5: External Commands and Files
+
+<Steps>
+  <Step title="Execute External Commands">
+    Type `:!` followed by any shell command.
+    
+    **Examples:**
+    ```vim
+    :!ls
+    :!dir
+    :!date
+    :!pwd
+    ```
+  </Step>
+  
+  <Step title="Save to Different File">
+    `:w FILENAME` - Save current file with new name
+    
+    **Example:**
+    ```vim
+    :w backup.txt
+    ```
+  </Step>
+  
+  <Step title="Visual Selection and Save">
+    1. Press `v` to start Visual mode
+    2. Move cursor to select text
+    3. Type `:w FILENAME`
+    4. Selected text is saved to file
+    
+    <Note>
+    When you type `:`, you'll see `:'<,'>` appear - this means the command applies to the selection.
+    </Note>
+  </Step>
+  
+  <Step title="Read File Contents">
+    `:r FILENAME` - Insert file contents below cursor
+    
+    **Read command output:**
+    ```vim
+    :r !ls
+    :r !date
+    ```
+  </Step>
+</Steps>
+
+### Lesson 1.6: Advanced Editing
+
+<Steps>
+  <Step title="Open New Line">
+    - `o` - Open line below cursor (Insert mode)
+    - `O` - Open line above cursor (Insert mode)
+  </Step>
+  
+  <Step title="Append Modes">
+    - `a` - Append after cursor
+    - `A` - Append at end of line
+    - `i` - Insert before cursor
+    - `I` - Insert at start of line
+    
+    All enter Insert mode at different positions.
+  </Step>
+  
+  <Step title="Replace Mode">
+    Type `R` to enter Replace mode - each typed character replaces existing character.
+    
+    **Practice:**
+    ```
+    Adding 123 to xxx gives you xxx.
+    ```
+    Position on first "xxx", type `R456<ESC>` to get "456".
+  </Step>
+  
+  <Step title="Copy and Paste">
+    - `y` - Yank (copy) operator
+    - `yy` - Yank entire line
+    - `yw` - Yank word
+    - `p` - Put (paste) after cursor
+    - `P` - Put before cursor
+    
+    **With Visual mode:**
+    1. Press `v` and select text
+    2. Type `y` to copy
+    3. Move to destination
+    4. Type `p` to paste
+  </Step>
+  
+  <Step title="Set Options">
+    `:set option` - Enable option
+    `:set nooption` - Disable option
+    
+    **Useful options:**
+    - `ic` / `ignorecase` - Ignore case in searches
+    - `is` / `incsearch` - Show partial matches
+    - `hls` / `hlsearch` - Highlight all matches
+    
+    **Examples:**
+    ```vim
+    :set ic
+    :set hls is
+    :set noic
+    :nohlsearch  " Clear highlighting
+    ```
+  </Step>
+</Steps>
+
+### Lesson 1.7: Getting Help
+
+<Steps>
+  <Step title="Access Help System">
+    Three ways to open help:
+    - Press `<HELP>` key (if available)
+    - Press `<F1>` key
+    - Type `:help`
+    
+    **Navigate help:**
+    - `CTRL-W CTRL-W` - Jump between windows
+    - `:q` - Close help window
+  </Step>
+  
+  <Step title="Topic-Specific Help">
+    `:help topic` - Get help on specific topic
+    
+    **Examples:**
+    ```vim
+    :help w
+    :help c_CTRL-D
+    :help insert-index
+    :help user-manual
+    :help vimrc-intro
+    ```
+  </Step>
+  
+  <Step title="Command Completion">
+    Use `CTRL-D` and `<TAB>` for completion:
+    
+    1. Type `:e` then press `CTRL-D` - shows all commands starting with "e"
+    2. Type `:ed` then `<TAB>` - completes to ":edit"
+    3. Type filename start, press `<TAB>` - completes filename
+  </Step>
+  
+  <Step title="Create Startup Script">
+    Create a vimrc file for persistent settings:
+    
+    **Unix/Linux/macOS:**
+    ```vim
+    :e ~/.vimrc
+    ```
+    
+    **Windows:**
+    ```vim
+    :e ~/_vimrc
+    ```
+    
+    Read example vimrc:
+    ```vim
+    :r $VIMRUNTIME/vimrc_example.vim
+    :w
+    ```
+  </Step>
+</Steps>
+
+## Chapter 2: Advanced Topics
+
+Chapter 2 covers advanced features for power users. Access with `vim tutor2`.
+
+### Key Topics Covered
+
+<CardGroup cols={2}>
+  <Card title="Text Objects" icon="cube">
+    Master precision editing with `iw`, `aw`, `i"`, `it`, `ip` and more
+  </Card>
+  
+  <Card title="Registers" icon="database">
+    Use 26 named registers (a-z) for storing and retrieving text
+  </Card>
+  
+  <Card title="Expression Register" icon="calculator">
+    Perform calculations and system commands with `CTRL-R =`
+  </Card>
+  
+  <Card title="Marks" icon="bookmark">
+    Set and navigate to marked positions with `ma` and `'a`
+  </Card>
+</CardGroup>
+
+## Quick Reference
+
+### Essential Commands Summary
+
+<AccordionGroup>
+  <Accordion title="Movement">
+    - `h j k l` - Left, down, up, right
+    - `w` / `b` - Word forward/backward
+    - `0` / `$` - Start/end of line
+    - `gg` / `G` - Start/end of file
+    - `%` - Matching bracket
+  </Accordion>
+  
+  <Accordion title="Editing">
+    - `i` / `a` - Insert/append
+    - `o` / `O` - Open line below/above
+    - `x` - Delete character
+    - `dd` - Delete line
+    - `dw` - Delete word
+    - `d$` - Delete to end of line
+    - `u` / `CTRL-R` - Undo/redo
+  </Accordion>
+  
+  <Accordion title="Copy & Paste">
+    - `yy` - Yank (copy) line
+    - `yw` - Yank word
+    - `p` / `P` - Paste after/before
+    - `v` then `y` - Visual select and yank
+  </Accordion>
+  
+  <Accordion title="Search & Replace">
+    - `/pattern` - Search forward
+    - `n` / `N` - Next/previous match
+    - `:s/old/new/g` - Replace in line
+    - `:%s/old/new/g` - Replace in file
+  </Accordion>
+  
+  <Accordion title="Files & Exit">
+    - `:w` - Save
+    - `:q` - Quit
+    - `:wq` - Save and quit
+    - `:q!` - Quit without saving
+    - `:e file` - Edit file
+  </Accordion>
+</AccordionGroup>
+
+## Tips for Success
+
+<Warning>
+**Most Important:** Learn by doing, not by memorizing. The tutor is designed for hands-on practice.
+</Warning>
+
+<Tip>
+If you get stuck or type something wrong, press `<ESC>` to return to Normal mode and start over.
+</Tip>
+
+<Note>
+Complete the tutor multiple times over several days. Muscle memory is key to Vim mastery.
+</Note>
+
+## Next Steps
+
+After completing vimtutor:
+
+<CardGroup cols={2}>
+  <Card title="Mastering Movement" href="/guides/mastering-movement" icon="person-running">
+    Advanced navigation techniques
+  </Card>
+  
+  <Card title="Efficient Editing" href="/guides/efficient-editing" icon="bolt">
+    Speed up your editing workflow
+  </Card>
+  
+  <Card title="Text Objects" href="/concepts/text-objects" icon="cube">
+    Precision editing with text objects
+  </Card>
+  
+  <Card title="Vim Modes" href="/concepts/modes" icon="layer-group">
+    Understanding Vim's modal system
+  </Card>
+</CardGroup>
+
+## Additional Resources
+
+- **User Manual**: `:help user-manual`
+- **Vi Improved** by Steve Oualline (book recommendation from tutor)
+- **Learning the Vi Editor** by Linda Lamb (classic book)
+- Practice regularly - consistency beats intensity

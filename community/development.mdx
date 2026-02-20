@@ -1,0 +1,333 @@
+---
+title: Development Setup
+description: Set up your development environment and learn Vim's design goals and coding standards
+---
+
+This guide covers the essential information for developers who want to contribute to Vim's source code.
+
+## Design Goals
+
+Vim's development is guided by several core principles. Understanding these helps make better contribution decisions.
+
+### Vi Compatible
+
+First of all, it should be possible to use Vim as a drop-in replacement for Vi. When the user wants to, Vim can be used in compatible mode and hardly any differences with the original Vi will be noticed.
+
+<Note>
+Vim does not reproduce obvious Vi bugs. The reference version is Vi Version 3.7 (6/7/85).
+</Note>
+
+### Improved
+
+The IMproved bits of Vim should make it a better Vi, without becoming a completely different editor:
+
+- **Keyboard-centric**: Use the keyboard as much as feasible. The mouse requires a third hand.
+- **Consistent**: Add commands and options in a consistent way.
+- **Discoverable**: Features people don't know about are useless features.
+- **Accessible**: Easy for first-time and inexperienced users to start.
+- **Unlimited features**: Based on user requests, implementation effort, and someone actually implementing it.
+
+### Multi-Platform
+
+Vim tries to help as many users on as many platforms as possible:
+
+- Support many kinds of terminals
+- Support many platforms (with someone willing to maintain them)
+- Support many compilers and libraries
+- Features should be present in all versions when possible
+
+### Well Documented
+
+<Warning>
+A feature that isn't documented is a useless feature. A patch for a new feature must include the documentation.
+</Warning>
+
+- Documentation should be comprehensive and understandable
+- Use examples where helpful
+- Keep text concise to make items easier to find
+
+### High Speed and Small Size
+
+Using Vim must not be a big attack on system resources:
+
+- Vim can grow, but no faster than computers are growing
+- Keep Vim usable on older systems
+- Startup time must be short
+- Commands must work efficiently
+- Items that add considerably to the size and aren't widely used should be optional features
+
+## Development Environment
+
+### Prerequisites
+
+Vim's build system follows POSIX.1-2001 standards for maximum portability.
+
+#### C Compiler Requirements
+
+Vim follows the **C95** (ISO/IEC 9899:1990/AMD1:1995) standard, plus these C99 features:
+
+- `//` comments (required by coding style)
+- Mixed declarations and statements in a block
+- Variadic macros `(..., __VA_ARGS__)`
+- Trailing comma in `enum` lists
+- `_Bool` type (for `bool`, `true` and `false`)
+- `__func__` predefined identifier
+- `inline` functions (use `static inline` for portability)
+- Compound literals `(type){ initializer-list }`
+- Logical source lines up to 4095 characters
+
+#### Makefile Compatibility
+
+Vim's main Makefiles target maximum portability, relying solely on features defined in POSIX.1-2001 `make`. Avoid:
+
+- % pattern rules
+- Modern assignment (`:=`, `::=`) outside POSIX.1-2001
+- Special targets (`.ONESHELL`, `.NOTPARALLEL`, `.SILENT`, ...)
+- Order-only prerequisites (`|`) or automatic directory creation
+- GNU/BSD conditionals (`ifdef`, `ifndef`, `.for`/`.endfor`, ...)
+
+### Building Vim
+
+```bash
+# Clone the repository
+git clone https://github.com/vim/vim.git
+cd vim
+
+# Configure (see src/INSTALL for options)
+cd src
+make
+
+# Run tests
+make test
+```
+
+See `src/README.md` for an overview of the source code structure.
+
+## Coding Style
+
+These are the rules to use when making changes to the Vim source code. Please stick to these rules to keep the sources readable and maintainable.
+
+<Tip>
+The code repository contains an `.editorconfig` file that can be used with the distributed editorconfig plugin to ensure the recommended style is followed.
+</Tip>
+
+### Comments
+
+Try to avoid putting multiline comments inside a function body: if the function is so complex that you need to separately comment parts of it, you should probably rethink the structure.
+
+For file headers and function descriptions:
+```c
+/*
+ * Description
+ */
+```
+
+For everything else:
+```c
+// comment
+```
+
+### Indentation
+
+We use **4 spaces** to indent the code. For the source files `sign.c` and `sound.c` and any new file use only spaces, no tabs. In addition, any new file must include a modeline with `set et` to pass the indentation test.
+
+### Declarations
+
+Declare `for` loop variables in the guard when possible:
+
+```c
+// OK
+for (int i = 0; i < len; ++i)
+
+// Wrong
+int i;
+for (i = 0; i < len; ++i)
+```
+
+Always declare a variable with a default value:
+
+```c
+// OK
+int n = 0;
+int *ptr = NULL;
+
+// Wrong
+int n;
+int *ptr;
+```
+
+### Braces
+
+All curly braces must be returned onto a new line:
+
+```c
+// OK
+if (cond)
+{
+    cmd;
+    cmd;
+}
+else
+{
+    cmd;
+    cmd;
+}
+
+// Wrong
+if (cond) {
+    cmd;
+    cmd;
+} else {
+    cmd;
+    cmd;
+}
+```
+
+### Types
+
+Use descriptive types defined in `src/vim.h`, `src/structs.h`, etc. All custom types are postfixed with `_T`:
+
+```c
+linenr_T
+buf_T
+pos_T
+```
+
+### Spaces and Punctuation
+
+**No space** between a function name and the bracket:
+```c
+func(arg);      // OK
+func (arg);     // Wrong
+```
+
+**Do use a space** after `if`, `while`, `switch`, etc:
+```c
+if (arg)        // OK
+if(arg)         // Wrong
+```
+
+**Use a space** after comma or semicolon:
+```c
+func(arg1, arg2);           // OK
+for (i = 0; i < 2; ++i)     // OK
+```
+
+**Use a space** before and after operators:
+```c
+var = a * 5;    // OK
+var=a*5;        // Wrong
+```
+
+### Functions
+
+Use function declarations with the return type on a separate indented line:
+
+```c
+// OK
+    int
+function_name(int arg1, int arg2)
+{
+}
+
+// Wrong
+int function_name(int arg1, int arg2)
+{
+}
+```
+
+Give meaningful names to function parameters.
+
+### Common Functions
+
+Some functions have special Vim versions. Always consider using the Vim version:
+
+| Normal Name | Vim Name | Difference |
+|-------------|----------|------------|
+| `free()` | `vim_free()` | Checks for freeing NULL |
+| `malloc()` | `alloc()` | Checks for out of memory |
+| `malloc()` | `lalloc()` | Like alloc(), but has long argument |
+| `strcpy()` | `STRCPY()` | Includes cast to (char *) |
+| `strchr()` | `vim_strchr()` | Accepts special characters |
+| `strrchr()` | `vim_strrchr()` | Accepts special characters |
+| `isspace()` | `vim_isspace()` | Can handle characters > 128 |
+| `iswhite()` | `vim_iswhite()` | Only TRUE for tab and space |
+| `memcpy()` | `mch_memmove()` | Handles overlapped copies |
+| `memset()` | `vim_memset()` | Uniform for all systems |
+
+### Naming Conventions
+
+- Function names cannot be more than 31 characters (VMS limitation)
+- Don't use `delete` or `this` as variable names (C++ compatibility)
+- Avoid system-defined names (see `develop.txt` for complete list)
+- Define'd names should be uppercase: `#define SOME_THING`
+- Features always start with `FEAT_`: `#define FEAT_FOO`
+
+### Code Style Example
+
+One statement per line:
+
+```c
+// Wrong
+if (cond) a = 1;
+
+// OK
+if (cond)
+    a = 1;
+```
+
+## Function Prototypes
+
+Vim does not use conventional header files (`.h`) for most internal function prototypes. Instead, it uses individual `.pro` files in the `src/proto/` directory, with one `.pro` file per `.c` file.
+
+<Note>
+Unlike traditional header files, these `.pro` files contain only function prototypes, not API documentation, struct/enum definitions, or other declarations.
+</Note>
+
+The `make proto` target in `src/Makefile` automates updating most `.pro` files using `proto/gen_prototypes.py`, which relies on the `python3-clang` module.
+
+## Code Formatting
+
+`sound.c` and `sign.c` can be automatically formatted using `clang-format` according to the distributed `.clang-format` file. Other source files do not yet correspond to the `.clang-format` file but may be reformatted in the future.
+
+## Design Philosophy
+
+### What Vim Is NOT
+
+<Warning>
+Vim is not a shell or an Operating System. It provides a terminal window to run shells/debuggers, but if you don't need a text editor with that, it's out of scope.
+</Warning>
+
+> "Unlike Emacs, Vim does not attempt to include everything but the kitchen sink, but some people say that you can clean one with it. ;-)"
+
+Vim is also not a fancy GUI editor that tries to look nice at the cost of being less consistent across platforms. Functional GUI features are welcomed, though.
+
+## Development Policy
+
+The time between either a new minor (e.g., 9.2.0) or major (e.g., 10.0) version is called a development cycle:
+
+- Each change to the C core receives a new patch number
+- A typical cycle lasts several years and accumulates 1500-2500 patches
+- Before release, a stability period is announced
+- During stability: only bug fixes, security fixes, docs, translations, and runtime file updates
+
+### Feature Development
+
+- New features accepted only within a development cycle, not during stability period
+- Features may be developed and changed during the cycle
+- Features must be settled before the cycle closes
+- Once released, features must not receive backwards-incompatible changes
+- Runtime files handled more flexibly
+
+### Deprecation
+
+Within a development cycle, features may be marked as deprecated:
+
+- Deprecated features can be disabled at compile time
+- After a new release, deprecated features may be removed in a following cycle
+
+## Related Resources
+
+- [Contributing Guide](/community/contributing)
+- [Testing Guidelines](/community/testing)
+- [Documentation Style](/community/documentation)

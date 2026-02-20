@@ -1,0 +1,549 @@
+---
+title: Color Schemes and Syntax Highlighting
+description: Learn how to customize Vim's appearance with color schemes and syntax highlighting.
+---
+
+Vim's color schemes and syntax highlighting make code easier to read and understand. This guide covers how to enable, customize, and create your own color schemes.
+
+## Enabling Syntax Highlighting
+
+### Quick Start
+
+Enable syntax highlighting with a single command:
+
+```vim
+:syntax enable
+```
+
+This command sources `$VIMRUNTIME/syntax/syntax.vim` and enables syntax highlighting while preserving your custom color settings.
+
+### Syntax On vs Syntax Enable
+
+```vim
+" Keep your custom highlighting
+:syntax enable
+
+" Override with default highlighting
+:syntax on
+```
+
+Use `:syntax enable` to preserve colors you've already defined with `:highlight` commands. Use `:syntax on` to reset everything to defaults.
+
+### Toggle Syntax Highlighting
+
+```vim
+" Toggle syntax on/off
+:if exists("g:syntax_on") | syntax off | else | syntax enable | endif
+
+" Create a mapping for toggling
+nnoremap <F7> :if exists("g:syntax_on") <Bar>
+  \ syntax off <Bar>
+  \ else <Bar>
+  \ syntax enable <Bar>
+  \ endif<CR>
+```
+
+## Choosing Color Schemes
+
+### View Available Color Schemes
+
+```vim
+" List all color schemes
+:colorscheme <Tab>
+
+" Or use the menu (in GUI)
+:menu Syntax.Color\ Scheme
+```
+
+### Apply a Color Scheme
+
+```vim
+" Apply color scheme
+:colorscheme desert
+:colorscheme slate  
+:colorscheme pablo
+:colorscheme evening
+
+" Try different schemes
+:colorscheme morning
+:colorscheme shine
+:colorscheme blue
+```
+
+### Set in vimrc
+
+Set a permanent color scheme:
+
+```vim
+" Enable syntax first
+syntax enable
+
+" Then set color scheme
+colorscheme desert
+
+" Or check if it exists
+if filereadable(expand("$VIMRUNTIME/colors/desert.vim"))
+  colorscheme desert
+endif
+```
+
+## Background Setting
+
+The `background` option affects how colors are displayed:
+
+```vim
+" For dark backgrounds
+set background=dark
+colorscheme desert
+
+" For light backgrounds
+set background=light
+colorscheme morning
+```
+
+Vim tries to detect the background automatically, but you can override it:
+
+```vim
+" In your vimrc
+if $TERM_PROGRAM ==# 'Apple_Terminal'
+  set background=light
+else
+  set background=dark
+endif
+colorscheme solarized
+```
+
+<Warning>
+Set `background` before loading a color scheme, as many color schemes check this value to adjust their colors.
+</Warning>
+
+## Terminal Colors
+
+### Enable 256 Colors
+
+For better colors in terminal Vim:
+
+```vim
+" In your vimrc
+if &term =~ '256color'
+  " Enable 256 colors
+  set t_Co=256
+endif
+
+" Or force it
+set t_Co=256
+```
+
+### True Color Support
+
+For terminals that support true color (16 million colors):
+
+```vim
+" Enable true color
+if has('termguicolors')
+  set termguicolors
+endif
+
+" Some terminals need this
+let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+```
+
+## Customizing Highlight Groups
+
+### View Current Highlighting
+
+```vim
+" Show all highlight groups
+:highlight
+
+" Show specific group
+:highlight Comment
+
+" Show with verbose info
+:verbose highlight Comment
+```
+
+### Modify Highlight Groups
+
+```vim
+" Change comment color
+highlight Comment ctermfg=cyan guifg=#00ffff
+
+" Change string color
+highlight String ctermfg=green guifg=#00ff00
+
+" Make keywords bold
+highlight Keyword cterm=bold gui=bold
+
+" Set background for current line
+highlight CursorLine ctermbg=235 guibg=#262626
+```
+
+### Common Highlight Attributes
+
+```vim
+" Foreground and background colors
+highlight Group ctermfg=color ctermbg=color guifg=#rrggbb guibg=#rrggbb
+
+" Text attributes
+highlight Group cterm=bold,italic gui=bold,italic
+
+" Attributes: none, bold, italic, underline, reverse, inverse
+highlight Group cterm=underline
+highlight Group gui=italic
+```
+
+### Standard Highlight Groups
+
+The most important highlight groups:
+
+```vim
+" Syntax groups
+highlight Comment      " Comments
+highlight Constant     " Constants (strings, numbers)
+highlight Identifier   " Variable names
+highlight Statement    " Keywords (if, while, etc.)
+highlight PreProc      " Preprocessor directives
+highlight Type         " Types (int, char, etc.)
+highlight Special      " Special symbols
+highlight Error        " Errors
+highlight Todo         " TODO, FIXME, XXX
+
+" UI groups
+highlight Normal       " Normal text
+highlight LineNr       " Line numbers
+highlight CursorLine   " Current line
+highlight Visual       " Visual selection
+highlight Search       " Search matches
+highlight StatusLine   " Status line
+highlight TabLine      " Tab line
+```
+
+## Creating Custom Colors
+
+### Override in vimrc
+
+Customize colors after loading a scheme:
+
+```vim
+" Load base color scheme
+colorscheme desert
+
+" Override specific colors
+highlight Comment ctermfg=green guifg=#90EE90
+highlight String ctermfg=yellow guifg=#FFFF00
+highlight LineNr ctermfg=darkgrey guifg=#666666
+```
+
+### Using autocmd for Persistence
+
+Ensure colors persist when switching schemes:
+
+```vim
+augroup CustomColors
+  autocmd!
+  autocmd ColorScheme * highlight Comment cterm=italic gui=italic
+  autocmd ColorScheme * highlight Todo ctermbg=yellow ctermfg=black
+augroup END
+
+" Now load color scheme
+colorscheme desert
+```
+
+### GUI vs Terminal Colors
+
+```vim
+" For GUI (gvim, MacVim)
+highlight Comment guifg=#00ff00 guibg=#000000 gui=italic
+
+" For terminal
+highlight Comment ctermfg=green ctermbg=black cterm=italic
+
+" Both
+highlight Comment
+  \ guifg=#00ff00 guibg=#000000 gui=italic
+  \ ctermfg=green ctermbg=black cterm=italic
+```
+
+## File-Specific Syntax
+
+### Set File Type
+
+```vim
+" Manually set file type
+:set filetype=python
+:set ft=javascript
+
+" In a file (modeline)
+" vim: ft=python
+
+" Using autocmd
+autocmd BufRead,BufNewFile *.conf set filetype=config
+autocmd BufRead,BufNewFile Dockerfile* set filetype=dockerfile
+```
+
+### Disable Syntax for Specific Files
+
+```vim
+" Disable for large files
+autocmd BufReadPre *
+  \ if getfsize(expand("%"))
+ > 1000000 |
+  \   syntax off |
+  \ endif
+
+" Disable for specific file types
+autocmd FileType text syntax off
+```
+
+## Syntax Groups and Regions
+
+### View Syntax Under Cursor
+
+Find out what syntax group is under the cursor:
+
+```vim
+" Show syntax group under cursor
+:echo synIDattr(synID(line('.'), col('.'), 1), 'name')
+
+" Create a mapping
+nnoremap <F10> :echo "hi<" . synIDattr(synID(line("."),col("."),1),"name")
+  \ . '> trans<' . synIDattr(synID(line("."),col("."),0),"name")
+  \ . "> lo<" . synIDattr(synIDtrans(synID(line("."),col("."),1)),"name")
+  \ . ">"<CR>
+```
+
+### Link Highlight Groups
+
+Link one group to another:
+
+```vim
+" Make Identifier look like Type
+highlight link Identifier Type
+
+" Common links in color schemes
+highlight link String Constant
+highlight link Character Constant
+highlight link Number Constant
+```
+
+### Clear Highlight Links
+
+```vim
+" Clear a highlight group
+highlight clear Comment
+
+" Clear all highlighting
+highlight clear
+
+" Then reload
+syntax on
+```
+
+## Creating a Color Scheme
+
+### Basic Color Scheme Structure
+
+Create a file `~/.vim/colors/myscheme.vim`:
+
+```vim
+" Vim color scheme
+" Name:       myscheme
+" Maintainer: Your Name
+" License:    MIT
+
+" Remove all existing highlighting
+highlight clear
+
+if exists('syntax_on')
+  syntax reset
+endif
+
+let g:colors_name = 'myscheme'
+
+" Set background
+set background=dark
+
+" Normal should come first
+highlight Normal guifg=#e0e0e0 guibg=#1e1e1e ctermfg=254 ctermbg=234
+
+" Syntax highlighting
+highlight Comment guifg=#608b4e ctermfg=65 gui=italic cterm=italic
+highlight Constant guifg=#4ec9b0 ctermfg=79
+highlight String guifg=#ce9178 ctermfg=174
+highlight Character guifg=#ce9178 ctermfg=174
+highlight Number guifg=#b5cea8 ctermfg=151
+highlight Boolean guifg=#569cd6 ctermfg=74
+
+highlight Identifier guifg=#9cdcfe ctermfg=117
+highlight Function guifg=#dcdcaa ctermfg=186
+
+highlight Statement guifg=#c586c0 ctermfg=175
+highlight Conditional guifg=#c586c0 ctermfg=175
+highlight Repeat guifg=#c586c0 ctermfg=175
+highlight Label guifg=#c586c0 ctermfg=175
+highlight Operator guifg=#d4d4d4 ctermfg=188
+highlight Keyword guifg=#569cd6 ctermfg=74
+
+highlight PreProc guifg=#c586c0 ctermfg=175
+highlight Type guifg=#4ec9b0 ctermfg=79
+
+highlight Special guifg=#ce9178 ctermfg=174
+highlight Error guifg=#f44747 guibg=#1e1e1e ctermfg=203 ctermbg=234
+highlight Todo guifg=#000000 guibg=#ffff00 ctermfg=0 ctermbg=226
+
+" UI highlighting
+highlight LineNr guifg=#858585 ctermfg=102
+highlight CursorLine guibg=#2d2d2d ctermbg=236 cterm=none
+highlight CursorLineNr guifg=#dcdcaa ctermfg=186
+
+highlight Visual guibg=#264f78 ctermbg=24
+highlight Search guifg=#000000 guibg=#ffff00 ctermfg=0 ctermbg=226
+
+highlight StatusLine guifg=#ffffff guibg=#007acc ctermfg=15 ctermbg=31
+highlight StatusLineNC guifg=#ffffff guibg=#68217a ctermfg=15 ctermbg=54
+
+highlight VertSplit guifg=#444444 guibg=#1e1e1e ctermfg=238 ctermbg=234
+highlight TabLine guifg=#d4d4d4 guibg=#2d2d2d ctermfg=188 ctermbg=236
+highlight TabLineSel guifg=#ffffff guibg=#1e1e1e ctermfg=15 ctermbg=234
+highlight TabLineFill guibg=#252526 ctermbg=235
+
+" More UI elements
+highlight Pmenu guifg=#d4d4d4 guibg=#252526 ctermfg=188 ctermbg=235
+highlight PmenuSel guifg=#ffffff guibg=#062f4a ctermfg=15 ctermbg=23
+highlight PmenuSbar guibg=#3e3e3e ctermbg=237
+highlight PmenuThumb guibg=#555555 ctermbg=240
+```
+
+### Testing Your Color Scheme
+
+```vim
+" Load your color scheme
+:colorscheme myscheme
+
+" Edit and reload
+:edit ~/.vim/colors/myscheme.vim
+" Make changes...
+:write
+:colorscheme myscheme
+```
+
+## Practical Examples
+
+### Dark Background with Custom Colors
+
+```vim
+set background=dark
+colorscheme desert
+
+" Enhance comments
+highlight Comment cterm=italic gui=italic ctermfg=grey guifg=#808080
+
+" Better line numbers
+highlight LineNr ctermfg=darkgrey guifg=#606060
+
+" Cursor line
+highlight CursorLine ctermbg=235 guibg=#2d2d30 cterm=none gui=none
+highlight CursorLineNr ctermfg=yellow guifg=#ffff00 cterm=bold gui=bold
+```
+
+### Light Background for Printing
+
+```vim
+set background=light
+colorscheme morning
+
+" Readable comments
+highlight Comment ctermfg=darkblue guifg=#000080
+
+" Clear syntax
+highlight String ctermfg=darkred guifg=#800000
+highlight Keyword ctermfg=darkgreen guifg=#008000
+```
+
+### Minimal Distraction
+
+```vim
+" Start with a clean slate
+colorscheme default
+set background=dark
+
+" Subtle highlighting
+highlight Normal guibg=#1a1a1a guifg=#d0d0d0
+highlight Comment ctermfg=242 guifg=#6c6c6c gui=italic
+highlight LineNr ctermfg=238 guifg=#444444
+highlight CursorLineNr ctermfg=246 guifg=#949494
+
+" No cursor line background
+highlight CursorLine ctermbg=none guibg=none cterm=none gui=none
+
+" Minimal status line
+highlight StatusLine ctermbg=238 ctermfg=246 guibg=#444444 guifg=#949494
+highlight StatusLineNC ctermbg=234 ctermfg=238 guibg=#1c1c1c guifg=#444444
+```
+
+## Troubleshooting
+
+### Colors Look Wrong
+
+1. Check terminal settings:
+   ```vim
+   :set t_Co?
+   :set termguicolors?
+   ```
+
+2. Test with 256 colors:
+   ```vim
+   :set t_Co=256
+   :colorscheme desert
+   ```
+
+3. Test true color:
+   ```vim
+   :set termguicolors
+   :colorscheme gruvbox
+   ```
+
+### Syntax Highlighting Not Working
+
+```vim
+" Check if syntax is enabled
+:syntax
+
+" Enable if needed
+:syntax enable
+
+" Check file type
+:set filetype?
+
+" Set manually if needed
+:set filetype=python
+```
+
+### Color Scheme Not Found
+
+```vim
+" Check runtime path
+:echo &runtimepath
+
+" List colors directories
+:echo globpath(&rtp, 'colors', 0, 1)
+
+" Check specific color scheme
+:echo filereadable(expand('$VIMRUNTIME/colors/desert.vim'))
+```
+
+<Warning>
+When experiencing syntax highlighting issues with long lines, consider setting `synmaxcol` to a lower value to improve performance:
+
+```vim
+set synmaxcol=200  " Only highlight first 200 columns
+```
+</Warning>
+
+## Related Topics
+
+- [Creating vimrc](/customization/vimrc) - Configure Vim startup
+- [Setting Options](/customization/options) - Configure Vim behavior
+- [Autocommands](/customization/autocommands) - Automate color changes

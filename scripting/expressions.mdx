@@ -1,0 +1,617 @@
+---
+title: 'Expressions and Operators'
+description: 'Complete guide to Vimscript expressions, operators, and evaluation'
+---
+
+## Expression Overview
+
+Vimscript expressions are evaluated to produce values. They can be used in variable assignments, conditionals, function arguments, and many other contexts.
+
+```vim
+vim9script
+
+# Simple expressions
+var num = 42
+var str = 'Hello'
+var result = num * 2 + 10  # 94
+
+# Expressions in conditionals
+if result > 100 || str =~ 'Hel'
+  echo 'Condition met'
+endif
+```
+
+## Operator Precedence
+
+Operators are evaluated in this order (highest to lowest precedence):
+
+<Accordion title="Complete Precedence Table">
+| Level | Operators | Description | Example |
+|-------|-----------|-------------|----------|
+| 1 | `[idx]`, `.key`, `(args)` | Subscript, member, call | `list[0]`, `dict.key`, `Func()` |
+| 2 | `!`, `-`, `+` | Logical NOT, unary minus/plus | `!true`, `-5`, `+3` |
+| 3 | `*`, `/`, `%` | Multiplication, division, modulo | `5 * 3`, `10 / 2`, `7 % 3` |
+| 4 | `+`, `-`, `.`, `..` | Add, subtract, concatenate | `5 + 3`, `10 - 2`, `'a' .. 'b'` |
+| 5 | `<<`, `>>` | Bitwise shift | `1 << 3`, `8 >> 1` |
+| 6 | `==`, `!=`, `>`, `>=`, `<`, `<=`, `=~`, `!~`, `is`, `isnot` | Comparisons | `5 == 5`, `'abc' =~ 'a'` |
+| 7 | `&&` | Logical AND | `true && false` |
+| 8 | `||` | Logical OR | `true || false` |
+| 9 | `? :` | Ternary conditional | `x > 0 ? 'pos' : 'neg'` |
+</Accordion>
+
+Use parentheses to override precedence:
+```vim
+var result = (5 + 3) * 2  # 16, not 11
+var check = !(x > 0 && y < 10)
+```
+
+## Arithmetic Operators
+
+<Tabs>
+  <Tab title="Basic Arithmetic">
+```vim
+vim9script
+
+# Addition and subtraction
+var sum = 5 + 3        # 8
+var diff = 10 - 3      # 7
+
+# Multiplication and division
+var product = 4 * 5    # 20
+var quotient = 20 / 4  # 5
+var quotient2 = 7 / 2  # 3 (integer division)
+
+# Modulo (remainder)
+var remainder = 10 % 3  # 1
+var remainder2 = 7 % 4  # 3
+
+# Unary plus and minus
+var positive = +5      # 5
+var negative = -5      # -5
+```
+  </Tab>
+  <Tab title="Division Edge Cases">
+```vim
+vim9script
+
+# Division by zero (legacy behavior)
+# In Vim9 script, division by zero is an error
+# In legacy script:
+echo 0 / 0    # -0x80000000 (like NaN)
+echo 5 / 0    # 0x7fffffff (like positive infinity)
+echo -5 / 0   # -0x7fffffff (like negative infinity)
+
+# Float division
+var precise = 7.0 / 2.0  # 3.5
+var mixed = 7 / 2.0      # 3.5 (number converted to float)
+```
+  </Tab>
+  <Tab title="Increment/Decrement">
+```vim
+vim9script
+
+# Vim9 script has ++ and -- operators
+var count = 0
+++count        # count is now 1
+++count        # count is now 2
+--count        # count is now 1
+
+# Compound assignment (both scripts)
+count += 5     # count = count + 5
+count -= 2     # count = count - 2
+count *= 3     # count = count * 3
+count /= 2     # count = count / 2
+count %= 3     # count = count % 3
+```
+  </Tab>
+</Tabs>
+
+## Bitwise Operators
+
+<Info>
+Bitwise operations work on integers and treat them as bit patterns.
+</Info>
+
+```vim
+vim9script
+
+# Bitwise AND, OR, XOR (using functions)
+var and_result = and(0b1100, 0b1010)   # 0b1000 (8)
+var or_result = or(0b1100, 0b1010)     # 0b1110 (14)
+var xor_result = xor(0b1100, 0b1010)   # 0b0110 (6)
+
+# Bitwise NOT (invert)
+var not_result = invert(0b00001111)    # 0b11110000
+
+# Bit shift operators
+var left_shift = 1 << 3    # 8 (1 * 2^3)
+var right_shift = 16 >> 2  # 4 (16 / 2^2)
+
+# Practical uses
+var flags = 0
+flags = or(flags, 0x01)      # Set bit 0
+flags = or(flags, 0x04)      # Set bit 2
+var has_bit = and(flags, 0x04) != 0  # Check if bit 2 is set
+```
+
+## String Operators
+
+<Tabs>
+  <Tab title="Concatenation">
+```vim
+vim9script
+
+# String concatenation with ..
+var greeting = 'Hello' .. ' ' .. 'World'  # "Hello World"
+
+# Legacy . operator (avoid in Vim9)
+var legacy = 'Hello' . ' ' . 'World'  # Works but discouraged
+
+# Concatenation with conversion
+var message = 'Count: ' .. 42           # "Count: 42"
+var with_float = 'Value: ' .. 3.14      # "Value: 3.14"
+var with_bool = 'Status: ' .. true      # "Status: true"
+
+# Multi-line concatenation
+var long_text = 'This is a long '
+  .. 'string that spans '
+  .. 'multiple lines'
+```
+  </Tab>
+  <Tab title="String Indexing">
+```vim
+vim9script
+
+# Character indexing (Vim9 uses character index, not byte)
+var text = 'Hello'
+echo text[0]       # 'H'
+echo text[4]       # 'o'
+echo text[-1]      # 'o' (last character)
+echo text[-2]      # 'l' (second to last)
+
+# String slicing
+echo text[0 : 2]   # 'Hel' (characters 0-2 inclusive)
+echo text[1 :]     # 'ello' (from index 1 to end)
+echo text[: 3]     # 'Hell' (from start to index 3)
+echo text[:]       # 'Hello' (full copy)
+
+# Unicode handling (Vim9)
+var unicode = 'bár'
+echo unicode[1]    # 'á' (character, not byte!)
+echo unicode[0 : 1] # 'bá'
+```
+  </Tab>
+  <Tab title="String Functions">
+```vim
+vim9script
+
+# Length
+echo len('Hello')           # 5 (character count)
+echo strlen('Hello')        # 5 (byte count)
+echo strchars('bár')        # 3 (character count)
+echo strlen('bár')          # 4 (byte count, á is 2 bytes)
+
+# Case conversion
+echo toupper('hello')       # 'HELLO'
+echo tolower('HELLO')       # 'hello'
+
+# Substring operations
+echo strpart('Hello', 0, 3) # 'Hel'
+echo slice('Hello', 0, 3)   # 'Hel' (exclusive end)
+echo substitute('Hello World', 'World', 'Vim', '')  # 'Hello Vim'
+
+# Split and join
+var words = split('one,two,three', ',')
+echo words  # ['one', 'two', 'three']
+echo join(words, ' ')  # 'one two three'
+```
+  </Tab>
+</Tabs>
+
+## Comparison Operators
+
+### Numeric Comparisons
+
+```vim
+vim9script
+
+var a = 10
+var b = 20
+
+echo a == b     # false (equal)
+echo a != b     # true (not equal)
+echo a < b      # true (less than)
+echo a <= b     # true (less than or equal)
+echo a > b      # false (greater than)
+echo a >= b     # false (greater than or equal)
+```
+
+### String Comparisons
+
+<Tabs>
+  <Tab title="Case Sensitivity">
+```vim
+vim9script
+
+# Case-sensitive comparison (default in Vim9)
+echo 'abc' == 'ABC'    # false
+echo 'abc' == 'abc'    # true
+
+# Explicit case-sensitive with #
+echo 'abc' ==# 'ABC'   # false
+echo 'abc' ==# 'abc'   # true
+
+# Case-insensitive with ?
+echo 'abc' ==? 'ABC'   # true
+echo 'abc' ==? 'abc'   # true
+
+# Other operators with case control
+echo 'abc' !=# 'ABC'   # true (not equal, case-sensitive)
+echo 'abc' !=? 'ABC'   # false (not equal, case-insensitive)
+```
+  </Tab>
+  <Tab title="Pattern Matching">
+```vim
+vim9script
+
+# Match operator =~ (like grep)
+echo 'hello' =~ 'hel'        # true (contains)
+echo 'hello' =~ '^hel'       # true (starts with)
+echo 'hello' =~ 'lo$'        # true (ends with)
+echo 'hello' =~ 'xyz'        # false
+
+# Not match operator !~
+echo 'hello' !~ 'xyz'        # true
+
+# Case control
+echo 'Hello' =~# 'hello'     # false (case-sensitive)
+echo 'Hello' =~? 'hello'     # true (case-insensitive)
+
+# Pattern examples
+echo 'test123' =~ '\d'       # true (contains digit)
+echo 'user@example.com' =~ '@'  # true
+echo 'file.txt' =~ '\.txt$' # true (ends with .txt)
+```
+  </Tab>
+  <Tab title="Identity Comparison">
+```vim
+vim9script
+
+# is/isnot - check if same object (not just equal value)
+var list1 = [1, 2, 3]
+var list2 = [1, 2, 3]
+var list3 = list1
+
+echo list1 == list2      # true (same values)
+echo list1 is list2      # false (different objects)
+echo list1 is list3      # true (same object)
+
+# Works with lists, dicts, blobs
+var dict1 = {a: 1}
+var dict2 = {a: 1}
+echo dict1 == dict2      # true
+echo dict1 is dict2      # false
+
+# Strings are never identical in Vim9
+echo 'hello' is 'hello'  # false (strings are copied)
+```
+  </Tab>
+</Tabs>
+
+## Logical Operators
+
+### Boolean Logic
+
+<Tabs>
+  <Tab title="Vim9 Script">
+```vim
+vim9script
+
+# Boolean values
+var t = true
+var f = false
+
+# Logical AND (&&)
+echo true && true     # true
+echo true && false    # false
+echo false && false   # false
+
+# Logical OR (||)
+echo true || false    # true
+echo false || false   # false
+
+# Logical NOT (!)
+echo !true            # false
+echo !false           # true
+echo !!5              # true (convert to bool)
+
+# Short-circuit evaluation
+var result = exists('var') && var > 0
+# If exists('var') is false, var > 0 is never evaluated
+```
+  </Tab>
+  <Tab title="Legacy Script">
+```vim
+" Numbers as booleans (0 is false, non-zero is true)
+let t = 1
+let f = 0
+
+" Logical AND (&&)
+echo 1 && 1     " 1 (true)
+echo 1 && 0     " 0 (false)
+echo 5 && 3     " 1 (both non-zero)
+
+" Logical OR (||)
+echo 1 || 0     " 1 (true)
+echo 0 || 0     " 0 (false)
+
+" Logical NOT (!)
+echo !1         " 0 (false)
+echo !0         " 1 (true)
+```
+  </Tab>
+</Tabs>
+
+### Truthy and Falsy Values
+
+<Info>
+In Vim9 script, boolean operators expect boolean values. Use `!!` to convert any value to boolean.
+</Info>
+
+```vim
+vim9script
+
+# Falsy values (when converted with !!)
+echo !!0           # false
+echo !!0.0         # false
+echo !!''          # false (empty string)
+echo !![]          # false (empty list)
+echo !!{}          # false (empty dict)
+echo !!0z          # false (empty blob)
+
+# Truthy values
+echo !!1           # true
+echo !!-1          # true (any non-zero number)
+echo !!0.1         # true
+echo !!'text'      # true (non-empty string)
+echo !![1]         # true (non-empty list)
+echo !!{a: 1}      # true (non-empty dict)
+
+# Using in conditionals
+if !![1, 2, 3]  # Convert to boolean explicitly
+  echo 'List has items'
+endif
+```
+
+## Ternary Operator
+
+The ternary operator provides inline conditional expressions:
+
+```vim
+vim9script
+
+# Basic ternary: condition ? true_value : false_value
+var result = score >= 60 ? 'Pass' : 'Fail'
+var sign = num >= 0 ? '+' : '-'
+
+# Nested ternary (use sparingly)
+var grade = score >= 90 ? 'A'
+  : score >= 80 ? 'B'
+  : score >= 70 ? 'C'
+  : score >= 60 ? 'D'
+  : 'F'
+
+# With function calls
+var message = has_errors ? GetErrorMsg() : GetSuccessMsg()
+
+# Compound conditions
+var status = (count > 0 && !disabled) ? 'active' : 'inactive'
+```
+
+## Falsy Operator (??)
+
+Provide default values for falsy expressions:
+
+```vim
+vim9script
+
+# Use value if truthy, otherwise use default
+var name = GetName() ?? 'Unknown'
+var count = GetCount() ?? 0
+var items = GetItems() ?? []
+
+# Different from ternary:
+var list = []
+echo list ?? [1, 2, 3]        # [1, 2, 3] (empty list is falsy)
+echo list != [] ? list : [1, 2, 3]  # [] (list != [] is false)
+
+# Chain multiple defaults
+var value = GetPrimary()
+  ?? GetSecondary()
+  ?? GetDefault()
+  ?? 'fallback'
+```
+
+## List and Collection Operations
+
+### List Operations
+
+```vim
+vim9script
+
+# List concatenation
+var list1 = [1, 2, 3]
+var list2 = [4, 5, 6]
+var combined = list1 + list2  # [1, 2, 3, 4, 5, 6]
+
+# List indexing and slicing
+var first = list1[0]          # 1
+var last = list1[-1]          # 3
+var slice = list1[1 : 2]      # [2, 3]
+
+# List comparison
+echo [1, 2] == [1, 2]         # true
+echo [1, 2] == [2, 1]         # false (order matters)
+
+# List membership (use index())
+var has_item = index(list1, 2) != -1  # true
+```
+
+### Dictionary Operations
+
+```vim
+vim9script
+
+# Dictionary access
+var dict = {name: 'Vim', version: 9}
+echo dict.name                # 'Vim'
+echo dict['version']          # 9
+
+# Dictionary comparison
+var dict2 = {name: 'Vim', version: 9}
+echo dict == dict2            # true
+echo dict is dict2            # false (different objects)
+
+# Check key existence
+echo has_key(dict, 'name')    # true
+echo has_key(dict, 'author')  # false
+
+# Get with default
+echo get(dict, 'author', 'Unknown')  # 'Unknown'
+```
+
+## Type Checking and Conversion
+
+### Check Types
+
+```vim
+vim9script
+
+var value: any = 42
+
+# Get type as number
+var type_num = type(value)
+echo type_num == v:t_number   # true
+
+# Type constants
+echo v:t_number               # 0
+echo v:t_string               # 1
+echo v:t_func                 # 2
+echo v:t_list                 # 3
+echo v:t_dict                 # 4
+echo v:t_float                # 5
+echo v:t_bool                 # 6
+
+# Get type as string
+echo typename(value)          # 'number'
+echo typename([1, 2])         # 'list<number>'
+echo typename({a: 1})         # 'dict<number>'
+```
+
+### Convert Types
+
+```vim
+vim9script
+
+# String to number
+var num = str2nr('42')        # 42
+var hex = str2nr('FF', 16)    # 255
+var bin = str2nr('1010', 2)   # 10
+
+# Number to string
+var str = string(42)          # '42'
+var str2 = 42 .. ''           # '42' (concat trick)
+
+# String to float
+var flt = str2float('3.14')   # 3.14
+
+# Float to number
+var int = float2nr(3.14)      # 3 (truncates)
+
+# Any to string
+var str3 = string([1, 2, 3])  # '[1, 2, 3]'
+
+# Boolean to number (legacy behavior)
+var n1 = true ? 1 : 0         # 1
+var n2 = false ? 1 : 0        # 0
+```
+
+## Expression Examples
+
+<AccordionGroup>
+  <Accordion title="Validation expressions">
+```vim
+vim9script
+
+# Email validation
+var is_email = email =~ '^[a-zA-Z0-9._%+-]\+@[a-zA-Z0-9.-]\+\.[a-zA-Z]\{2,\}$'
+
+# Range validation
+var in_range = value >= min && value <= max
+
+# Multiple conditions
+var is_valid = !empty(name)
+  && len(name) >= 3
+  && name =~# '^[A-Z]'
+```
+  </Accordion>
+
+  <Accordion title="Default value patterns">
+```vim
+vim9script
+
+# Use config or default
+var timeout = get(config, 'timeout', 30)
+
+# Multiple fallbacks
+var value = GetFromCache()
+  ?? GetFromAPI()
+  ?? GetDefault()
+
+# Clamp to range
+var clamped = value < min ? min : value > max ? max : value
+```
+  </Accordion>
+
+  <Accordion title="List processing">
+```vim
+vim9script
+
+# Filter and map
+var numbers = range(1, 10)
+var evens = numbers->filter((_, v) => v % 2 == 0)
+var doubled = evens->map((_, v) => v * 2)
+
+# Find first match
+var found = numbers->filter((_, v) => v > 5)[0] ?? -1
+
+# All/any checks
+var all_positive = numbers->filter((_, v) => v <= 0)->len() == 0
+var has_negative = numbers->filter((_, v) => v < 0)->len() > 0
+```
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Vimscript Basics" icon="book" href="/scripting/vimscript-basics">
+    Learn core Vimscript concepts
+  </Card>
+  <Card title="Vim9 Script" icon="bolt" href="/scripting/vim9script">
+    Modern compiled script syntax
+  </Card>
+  <Card title="Functions" icon="function" href="/scripting/functions">
+    Define custom functions
+  </Card>
+  <Card title="Creating Plugins" icon="plug" href="/scripting/plugins">
+    Build complete plugins
+  </Card>
+</CardGroup>
+
+## See Also
+
+- `:help expression-syntax` - Complete expression syntax
+- `:help eval.txt` - Expression evaluation reference
+- `:help operator` - All available operators
+- `:help functions` - Built-in function reference

@@ -1,0 +1,525 @@
+---
+title: Vim9 Script Functions
+description: Functions and features specific to Vim9 script
+---
+
+Vim9 script introduces a new syntax and semantics for writing Vim scripts with improved performance and type safety. This guide covers functions and features specific to Vim9 script.
+
+## Defining Functions
+
+### The `:def` Command
+
+Vim9 functions are defined with `:def` instead of `:function`. They are compiled for better performance.
+
+```vim
+vim9script
+
+def MyFunction(name: string): string
+  return 'Hello, ' .. name .. '!'
+enddef
+
+echo MyFunction('World')  # Output: Hello, World!
+```
+
+#### Key Differences from Legacy Functions
+
+- Functions are compiled when first called or with `:defcompile`
+- Type checking is performed at compile time
+- Much faster execution (10-100x speedup)
+- Arguments require type declarations
+- No `a:` prefix for arguments
+- No options like `range`, `abort`, `dict`
+
+### Function Signatures
+
+#### Basic Syntax
+
+```vim
+def FunctionName(arg1: type1, arg2: type2): returntype
+  # function body
+enddef
+```
+
+#### Optional Arguments
+
+```vim
+def Greet(name: string, greeting: string = 'Hello'): string
+  return greeting .. ', ' .. name
+enddef
+
+echo Greet('Alice')              # Hello, Alice
+echo Greet('Bob', 'Hi')          # Hi, Bob
+echo Greet('Eve', v:none)        # Hello, Eve (uses default)
+```
+
+#### Variable Arguments
+
+```vim
+def Sum(...numbers: list<number>): number
+  var total = 0
+  for num in numbers
+    total += num
+  endfor
+  return total
+enddef
+
+echo Sum(1, 2, 3, 4, 5)  # Returns: 15
+```
+
+#### Ignored Arguments
+
+Use `_` to ignore arguments (useful in callbacks):
+
+```vim
+map(numberList, (_, v) => v * 2)
+```
+
+## Type System
+
+### Basic Types
+
+```vim
+var num: number = 42
+var str: string = 'hello'
+var flag: bool = true
+var floating: float = 3.14
+```
+
+### Collection Types
+
+```vim
+# Lists with specific item types
+var numbers: list<number> = [1, 2, 3]
+var strings: list<string> = ['a', 'b', 'c']
+var mixed: list<any> = [1, 'two', 3.0]
+
+# Nested lists
+var matrix: list<list<number>> = [[1, 2], [3, 4]]
+
+# Dictionaries with specific value types
+var config: dict<string> = {key: 'value', name: 'test'}
+var counts: dict<number> = {apples: 5, oranges: 3}
+```
+
+### Function Types
+
+```vim
+# Function reference with signature
+var Callback: func(string): number
+
+def ProcessString(text: string): number
+  return strlen(text)
+enddef
+
+Callback = ProcessString
+echo Callback('hello')  # Returns: 5
+```
+
+### Type Inference
+
+Vim9 can infer types from initial values:
+
+```vim
+var count = 0        # Inferred as number
+var name = 'test'    # Inferred as string
+var items = [1, 2]   # Inferred as list<number>
+```
+
+## Variables and Constants
+
+### Variable Declaration
+
+```vim
+vim9script
+
+# Must declare with var
+var count = 0
+count += 1
+
+# Assignment without var (after declaration)
+count = 10
+```
+
+### Constants
+
+#### `final` - Constant Reference
+
+```vim
+final myList = [1, 2, 3]
+myList = [4, 5, 6]     # Error: Cannot assign to final
+myList[0] = 10         # OK: Can modify contents
+myList->add(4)         # OK: Can modify contents
+```
+
+#### `const` - Fully Immutable
+
+```vim
+const NAMES = ['Alice', 'Bob']
+NAMES = ['Eve']        # Error: Cannot assign
+NAMES[0] = 'Eve'       # Error: Cannot modify
+NAMES->add('Eve')      # Error: Cannot modify
+```
+
+### Scopes
+
+Variables and functions are script-local by default:
+
+```vim
+vim9script
+
+var scriptVar = 10      # Script-local
+
+def ScriptFunc()        # Script-local
+enddef
+
+def g:GlobalFunc()     # Global (needs g: prefix)
+enddef
+```
+
+## Lambda Expressions
+
+### New Syntax
+
+Vim9 uses `=>` instead of `->` for lambdas:
+
+```vim
+# Single expression
+var Double = (x) => x * 2
+echo Double(5)  # Returns: 10
+
+# With type annotations
+var Add: func(number, number): number = (a, b): number => a + b
+
+# Multiple statements with block
+var Process = (text) => {
+  var result = toupper(text)
+  result = trim(result)
+  return result
+}
+```
+
+### Lambda in Higher-Order Functions
+
+```vim
+var numbers = [1, 2, 3, 4, 5]
+
+# Filter even numbers
+var evens = filter(numbers, (_, v) => v % 2 == 0)
+
+# Map to squares
+var squares = map(numbers, (_, v) => v * v)
+
+# Variable arguments in lambda
+var Callback = (..._) => 'anything'
+```
+
+## Control Flow
+
+### Boolean Expressions
+
+Vim9 requires proper boolean expressions:
+
+```vim
+# Legacy Vim script
+if "string"     # Converts to 0 (false)
+if "1"          # Converts to 1 (true)
+
+# Vim9 script - must be boolean
+if some_bool    # Must be true/false
+if !empty(str)  # Explicitly check for empty
+if !!value      # Convert to boolean
+```
+
+### Type-Safe Operators
+
+```vim
+# Boolean operators require boolean operands
+if flag1 && flag2        # OK
+if count > 0 || is_ready # OK
+if 5 || 0                # Error!
+
+# Falsy operator - for default values
+var result = GetValue() ?? 'default'
+var count = dict.count ?? 0
+```
+
+## String Operations
+
+### String Indexing
+
+Vim9 uses character indexing (not byte indexing):
+
+```vim
+var text = 'café'
+echo text[0]    # Returns: 'c'
+echo text[3]    # Returns: 'é' (character, not bytes)
+echo text[-1]   # Returns: 'é' (last character)
+```
+
+### String Concatenation
+
+Use `..` operator (`.` is not allowed):
+
+```vim
+var name = 'World'
+var greeting = 'Hello, ' .. name .. '!'
+
+# Automatic conversion of simple types
+var message = 'Count: ' .. 42 .. ', Active: ' .. true
+# Result: "Count: 42, Active: true"
+```
+
+## Compilation and Performance
+
+### Compiling Functions
+
+```vim
+# Automatically compiled on first call
+def FastFunc()
+  # code
+enddef
+
+# Force compilation
+defcompile
+
+# View compiled instructions
+disassemble FastFunc
+```
+
+### Performance Tips
+
+1. **Use Vim9 script for computationally intensive code**
+   ```vim
+   def ProcessLargeList(items: list<number>): number
+     var total = 0
+     for item in items
+       total += item * item
+     endfor
+     return total
+   enddef
+   ```
+
+2. **Avoid legacy script in hot paths**
+   - 10-100x performance improvement with Vim9
+   - Type checking eliminates runtime overhead
+
+3. **Use proper types**
+   ```vim
+   # Good - specific types
+   def Process(items: list<string>): list<string>
+     return map(items, (_, v) => toupper(v))
+   enddef
+   
+   # Slower - any type requires runtime checking
+   def Process(items: list<any>): list<any>
+     return map(items, (_, v) => toupper(v))
+   enddef
+   ```
+
+## Method Chaining
+
+Vim9 supports method call syntax:
+
+```vim
+# List operations
+var result = [1, 2, 3, 4, 5]
+  ->filter((_, v) => v % 2 == 0)
+  ->map((_, v) => v * v)
+  ->reverse()
+# Result: [16, 4]
+
+# String operations
+var text = '  HELLO WORLD  '
+  ->trim()
+  ->tolower()
+  ->substitute('world', 'vim', '')
+# Result: "hello vim"
+```
+
+## Vim9 Built-in Functions
+
+### Type Checking Functions
+
+#### `typename({expr})`
+
+Returns type information as a string:
+
+```vim
+echo typename(42)              # "number"
+echo typename([1, 2])          # "list<number>"
+echo typename({a: 1})          # "dict<number>"
+echo typename((x) => x * 2)    # "func(any): any"
+```
+
+#### `exists_compiled({expr})`
+
+Check if variable/function exists at compile time:
+
+```vim
+if exists_compiled('g:loaded_plugin')
+  g:PluginFunc()  # Safe to call
+endif
+```
+
+### Collection Functions
+
+#### `extendnew({expr1}, {expr2})`
+
+Like `extend()` but creates a new List/Dict:
+
+```vim
+var list1 = [1, 2]
+var list2 = extendnew(list1, [3, 4])
+# list1 is still [1, 2]
+# list2 is [1, 2, 3, 4]
+```
+
+#### `mapnew({expr1}, {expr2})`
+
+Like `map()` but creates a new List/Dict:
+
+```vim
+var numbers = [1, 2, 3]
+var doubled = mapnew(numbers, (_, v) => v * 2)
+# numbers is still [1, 2, 3]
+# doubled is [2, 4, 6]
+```
+
+#### `flattennew({list})`
+
+Like `flatten()` but creates a new List:
+
+```vim
+var nested = [[1, 2], [3, 4]]
+var flat = flattennew(nested)
+# nested is still [[1, 2], [3, 4]]
+# flat is [1, 2, 3, 4]
+```
+
+## Import and Export
+
+### Exporting Functions
+
+```vim
+vim9script
+
+export def PublicFunc(): string
+  return 'exported'
+enddef
+
+def PrivateFunc(): string
+  return 'private'
+enddef
+```
+
+### Importing Functions
+
+```vim
+vim9script
+
+import './mylib.vim'
+
+echo mylib.PublicFunc()
+
+# Or import specific items
+import {PublicFunc} from './mylib.vim'
+echo PublicFunc()
+```
+
+## Common Patterns
+
+### Error Handling
+
+```vim
+def SafeDivide(a: number, b: number): number
+  if b == 0
+    throw 'Division by zero'
+  endif
+  return a / b
+enddef
+
+try
+  var result = SafeDivide(10, 0)
+catch /Division by zero/
+  echo 'Cannot divide by zero'
+endtry
+```
+
+### Configuration Functions
+
+```vim
+vim9script
+
+var config: dict<any> = {}
+
+export def Setup(options: dict<any>)
+  config = extend(config, options)
+enddef
+
+export def Get(key: string): any
+  return get(config, key, v:none)
+enddef
+```
+
+### Callback Pattern
+
+```vim
+def Retry(Fn: func(): bool, max_attempts: number = 3): bool
+  var attempts = 0
+  while attempts < max_attempts
+    if Fn()
+      return true
+    endif
+    attempts += 1
+  endwhile
+  return false
+enddef
+
+# Usage
+var success = Retry(() => ConnectToServer(), 5)
+```
+
+## Migration from Legacy Script
+
+### Quick Conversion Guide
+
+```vim
+" Legacy Vim script
+function! MyFunc(name)
+  let l:greeting = 'Hello'
+  return l:greeting . ', ' . a:name
+endfunction
+
+let s:count = 0
+call MyFunc('World')
+```
+
+Becomes:
+
+```vim
+vim9script
+
+def MyFunc(name: string): string
+  var greeting = 'Hello'
+  return greeting .. ', ' .. name
+enddef
+
+var count = 0
+MyFunc('World')
+```
+
+### Key Changes
+
+1. Add `vim9script` at the top
+2. Replace `:function` with `:def`
+3. Remove `a:`, `l:`, `s:` prefixes (except `s:` in legacy functions)
+4. Change `let` to `var`
+5. Add type annotations
+6. Use `..` for string concatenation
+7. Remove `:call` when calling functions
+
+## See Also
+
+- [Built-in Functions](/reference/builtin-functions) - Complete function reference
+- [Variables and Scopes](/reference/variables) - Variable declarations
+- [Channels and Jobs](/reference/channels-jobs) - Asynchronous programming

@@ -1,0 +1,610 @@
+---
+title: Code Folding
+description: Hide and reveal sections of code to focus on what matters
+---
+
+Code folding allows you to collapse sections of text to hide details and reveal structure. This is invaluable for navigating large files and understanding code architecture at a glance.
+
+## What is Folding?
+
+Folding temporarily hides lines of text, replacing them with a single line showing summary information. Folded text is still part of the buffer—it's just hidden from view.
+
+```vim
+" Before folding
+function processData() {
+    let data = fetchData();
+    let cleaned = cleanData(data);
+    let result = analyzeData(cleaned);
+    return result;
+}
+
+" After folding (shows as one line)
++--  5 lines: function processData() {··············
+```
+
+## Fold Methods
+
+Vim supports six folding methods, set with `:set foldmethod={method}`:
+
+| Method | Description | Use Case |
+|--------|-------------|----------|
+| `manual` | Manually define folds | Custom, precise control |
+| `indent` | Based on indentation | Python, YAML, generic code |
+| `expr` | Custom expression | Complex rules, custom logic |
+| `syntax` | Based on syntax | C, Java, JavaScript |
+| `marker` | Special markers in text | Documentation, organized files |
+| `diff` | Fold unchanged text | Diff mode comparisons |
+
+<Steps>
+  <Step title="Choose a folding method">
+    Start with indent for most code:
+    ```vim
+    :set foldmethod=indent
+    ```
+  </Step>
+  
+  <Step title="Enable folding display">
+    Show fold markers in a column:
+    ```vim
+    :set foldcolumn=4
+    ```
+    You'll see `+`, `-`, and `|` characters indicating folds.
+  </Step>
+  
+  <Step title="Create and toggle folds">
+    With indent method, folds are automatic. Try:
+    ```vim
+    zo  " Open fold under cursor
+    zc  " Close fold under cursor
+    ```
+  </Step>
+</Steps>
+
+## Fold Method Details
+
+### Manual Folding
+
+Create folds explicitly:
+
+```vim
+:set foldmethod=manual
+
+" Create folds
+zf10j        " Fold next 10 lines
+zf%          " Fold to matching brace/paren
+zf'a         " Fold to mark 'a'
+{Visual}zf   " Fold visual selection
+:5,20fold    " Fold lines 5-20
+
+" Delete folds
+zd           " Delete fold at cursor
+zD           " Delete folds recursively
+zE           " Eliminate all folds
+```
+
+<Warning>
+Manual folds are lost when you close the file unless you save the view with `:mkview` and restore with `:loadview`.
+</Warning>
+
+### Indent Folding
+
+Automatic folds based on indentation:
+
+```vim
+:set foldmethod=indent
+:set shiftwidth=4    " Defines indent level
+
+" Folds are created automatically
+" Each indent level = one fold level
+```
+
+Control maximum nesting:
+
+```vim
+:set foldnestmax=3   " Max 3 levels deep
+```
+
+**Perfect for**:
+- Python (significant indentation)
+- YAML/JSON (structured data)
+- Any indented code
+
+### Marker Folding
+
+Use special markers in comments:
+
+```vim
+:set foldmethod=marker
+:set foldmarker={{{,}}}   " Default markers
+
+" In your code:
+" Section 1 {{{1
+function one() {
+    // code
+}
+" }}}
+
+" Section 2 {{{1
+function two() {
+    // code
+}
+" }}}
+```
+
+Marker levels:
+
+```vim
+" {{{1    - Level 1 fold
+" {{{2    - Level 2 fold (nested)
+" {{{3    - Level 3 fold (deeply nested)
+" }}}     - End fold (matches any level)
+" }}}2    - End specific level
+```
+
+Create marker folds:
+
+```vim
+zf           " In visual mode, adds markers automatically
+:set commentstring=#\ %s  " Customize marker comment style
+```
+
+### Syntax Folding
+
+Automatic based on language syntax:
+
+```vim
+:set foldmethod=syntax
+
+" Folds based on syntax rules
+" - Functions
+" - Classes
+" - Blocks
+" - Comments
+```
+
+<Note>
+Syntax folding requires syntax highlighting to be enabled (`:syntax on`) and can be slower on large files.
+</Note>
+
+### Expression Folding
+
+Custom logic via expression:
+
+```vim
+:set foldmethod=expr
+:set foldexpr=MyFoldExpr(v:lnum)
+
+function! MyFoldExpr(lnum)
+    " Return fold level for line 'lnum'
+    let line = getline(a:lnum)
+    if line =~ '^\s*$'
+        return '-1'  " Undefined, inherit level
+    elseif line =~ '^###'
+        return '>3'  " Start level 3 fold
+    elseif line =~ '^##'
+        return '>2'  " Start level 2 fold
+    elseif line =~ '^#'
+        return '>1'  " Start level 1 fold
+    else
+        return '='   " Same as previous line
+    endif
+endfunction
+```
+
+Expression return values:
+
+| Value | Meaning |
+|-------|----------|
+| `0` | No fold |
+| `1`, `2`, ... | Fold level |
+| `=` | Same level as previous line |
+| `a1`, `s1` | Increase/decrease previous level |
+| `>1`, `<1` | Start/end fold level |
+| `-1` | Undefined (use lower level) |
+
+### Diff Folding
+
+Automatic in diff mode:
+
+```vim
+:set foldmethod=diff
+
+" Or start diff mode (enables automatically)
+:diffsplit other_file.txt
+```
+
+Folds unchanged text, showing only differences.
+
+## Opening and Closing Folds
+
+### Basic Commands
+
+```vim
+" Open folds
+zo           " Open one fold under cursor
+zO           " Open all folds under cursor recursively
+zv           " View cursor line (open just enough)
+
+" Close folds
+zc           " Close one fold under cursor
+zC           " Close all folds under cursor recursively
+
+" Toggle
+za           " Toggle fold under cursor
+zA           " Toggle folds recursively
+```
+
+### Fold Levels
+
+Work with all folds by level:
+
+```vim
+zm           " Fold more (close one level globally)
+zM           " Close all folds
+
+zr           " Reduce folding (open one level globally)
+zR           " Open all folds
+
+" Set specific level
+:set foldlevel=0    " Close all folds
+:set foldlevel=1    " Open level 1, close rest
+:set foldlevel=99   " Open all folds
+```
+
+<Tip>
+Use `zm` and `zr` to progressively reveal more or less structure. Great for exploring unfamiliar code!
+</Tip>
+
+### Enable/Disable Folding
+
+```vim
+zi           " Toggle folding on/off (invert 'foldenable')
+zn           " Disable folding (all folds open)
+zN           " Enable folding (restore previous state)
+```
+
+## Navigating Folds
+
+```vim
+zj           " Move to start of next fold
+zk           " Move to end of previous fold
+
+[z           " Move to start of current open fold
+]z           " Move to end of current open fold
+```
+
+## Fold Appearance
+
+### Fold Column
+
+Show fold indicators:
+
+```vim
+:set foldcolumn=4    " Width of fold indicator column
+```
+
+Indicators:
+- `+` Closed fold
+- `-` Open fold (at start)
+- `|` Open fold (continuation)
+- ` ` (space) No fold
+
+Customize characters:
+
+```vim
+:set fillchars=fold:·,foldopen:▾,foldclose:▸
+```
+
+### Fold Text
+
+Customize what closed folds display:
+
+```vim
+:set foldtext=MyFoldText()
+
+function! MyFoldText()
+    let line = getline(v:foldstart)
+    let nucolwidth = &fdc + &number * &numberwidth
+    let windowwidth = winwidth(0) - nucolwidth - 3
+    let foldedlinecount = v:foldend - v:foldstart
+    
+    let line = strpart(line, 0, windowwidth - 2 - len(foldedlinecount))
+    let fillcharcount = windowwidth - len(line) - len(foldedlinecount)
+    
+    return line . '…' . repeat(' ', fillcharcount) . foldedlinecount . ' '
+endfunction
+```
+
+Available variables in `foldtext` expression:
+- `v:foldstart` - First line number
+- `v:foldend` - Last line number  
+- `v:folddashes` - String of dashes representing fold level
+- `v:foldlevel` - Fold level number
+
+### Highlight Groups
+
+Customize fold colors:
+
+```vim
+:highlight Folded guibg=grey20 guifg=cyan
+:highlight FoldColumn guibg=darkgrey guifg=white
+```
+
+## Fold Options
+
+```vim
+:set foldmethod=indent     " Folding method
+:set foldlevel=0           " Start with folds closed
+:set foldnestmax=3         " Maximum nesting level
+:set foldminlines=1        " Minimum lines to create fold
+:set foldcolumn=4          " Width of fold column
+:set foldenable            " Enable folding
+:set foldclose=all         " Auto-close folds when leaving
+:set foldopen=block,hor    " Auto-open when using these motions
+```
+
+### Auto-Opening Folds
+
+`:set foldopen` controls when folds auto-open:
+
+```vim
+:set foldopen=all          " Open for any command
+:set foldopen=block,hor,mark,percent,quickfix,search,tag,undo
+```
+
+Options:
+- `block` - `(`, `)`, `{`, `}`, `[[`, `]]`, etc.
+- `hor` - Horizontal movements: `l`, `w`, `fx`, etc.
+- `mark` - Jumping to marks
+- `percent` - `%` matching
+- `quickfix` - `:cn`, `:cc`, etc.
+- `search` - Search commands
+- `tag` - Tag jumps
+- `undo` - Undo/redo
+
+## Saving and Restoring Folds
+
+### Session Management
+
+Save manual folds:
+
+```vim
+:mkview           " Save folds and settings
+:loadview         " Restore folds and settings
+
+" Automatic in vimrc
+autocmd BufWinLeave *.* mkview
+autocmd BufWinEnter *.* silent! loadview
+```
+
+<Warning>
+`:mkview` saves to `~/.vim/view/` by default. Ensure this directory exists or set `viewdir`.
+</Warning>
+
+### Manual Save/Load
+
+```vim
+:mkview ~/my_folds.vim
+:source ~/my_folds.vim
+```
+
+## Practical Examples
+
+### Python Development
+
+```vim
+" In .vimrc or ftplugin/python.vim
+autocmd FileType python setlocal foldmethod=indent
+autocmd FileType python setlocal foldlevel=1
+autocmd FileType python setlocal foldnestmax=2
+```
+
+### Markdown Sections
+
+```vim
+" Fold by heading level
+autocmd FileType markdown setlocal foldmethod=expr
+autocmd FileType markdown setlocal foldexpr=MarkdownLevel()
+
+function! MarkdownLevel()
+    let line = getline(v:lnum)
+    if line =~ '^# '
+        return '>1'
+    elseif line =~ '^## '
+        return '>2'
+    elseif line =~ '^### '
+        return '>3'
+    else
+        return '='
+    endif
+endfunction
+```
+
+### C/C++ Functions
+
+```vim
+" Fold functions using markers
+autocmd FileType c,cpp setlocal foldmethod=syntax
+autocmd FileType c,cpp setlocal foldnestmax=2
+
+" Or use markers
+autocmd FileType c,cpp setlocal foldmethod=marker
+autocmd FileType c,cpp setlocal foldmarker={,}
+```
+
+### Configuration Files
+
+```vim
+" ~/.vimrc with sections
+" System Settings {{{1
+set nocompatible
+set encoding=utf-8
+" }}}
+
+" Appearance {{{1
+set number
+set cursorline
+" }}}
+
+" Plugins {{{1
+call plug#begin()
+" plugins...
+call plug#end()
+" }}}
+```
+
+## Advanced Techniques
+
+### Folding Commands on Multiple Files
+
+```vim
+" Close all folds in all windows
+:windo normal zM
+
+" Open level 1 in all buffers
+:bufdo set foldlevel=1
+```
+
+### Context-Aware Folding
+
+```vim
+" Fold everything except current function
+function! FoldExceptCurrent()
+    normal! zM        " Close all
+    normal! zv        " Open current
+    normal! zt        " Move to top
+endfunction
+
+nnoremap <Leader>z :call FoldExceptCurrent()<CR>
+```
+
+### Fold Status in Status Line
+
+```vim
+" Show fold info in status line
+set statusline+=%{foldlevel('.')?'['.(foldlevel('.')).'\]':''}
+```
+
+## Common Fold Patterns
+
+### Quick Fold Creation
+
+```vim
+" In visual mode
+zf           " Create fold
+
+" With motion
+zf10j        " Fold next 10 lines
+zf}          " Fold to next paragraph
+zf%          " Fold to matching brace
+```
+
+### Incremental Reveal
+
+```vim
+" Start with everything folded
+:set foldlevel=0
+
+" Progressively open levels
+zr           " Open one more level
+zr           " Open another level
+zr           " Keep opening...
+
+" Or close progressively
+zm           " Close one level
+```
+
+### Fold Cycling
+
+Create a function to cycle through fold levels:
+
+```vim
+function! FoldCycle()
+    if &foldlevel == 0
+        set foldlevel=1
+    elseif &foldlevel == 1
+        set foldlevel=2
+    elseif &foldlevel == 2
+        set foldlevel=99
+    else
+        set foldlevel=0
+    endif
+    echo "Fold level: " . &foldlevel
+endfunction
+
+nnoremap <Leader>f :call FoldCycle()<CR>
+```
+
+## Troubleshooting
+
+### Folds Not Working
+
+Check these:
+
+```vim
+:set foldenable?     " Should be 'foldenable'
+:set foldmethod?     " Should be set to a method
+:set foldlevel?      " Higher = more open
+```
+
+### Performance Issues
+
+Syntax and expression folding can be slow:
+
+```vim
+" Switch to faster method
+:set foldmethod=indent
+
+" Or increase update time
+:set foldlevel=99    " Start with all open
+```
+
+### Lost Folds
+
+Manual folds disappear when:
+- File is closed (save with `:mkview`)
+- Fold method changes
+- File is reloaded (`:e!`)
+
+Solution: Use `:mkview` and `:loadview`
+
+## Best Practices
+
+<Check>Choose the right fold method for your file type</Check>
+<Check>Start with `foldlevel=1` to see top-level structure</Check>
+<Check>Use `zM` and `zR` to quickly show/hide all</Check>
+<Check>Enable `foldcolumn` for visual fold indicators</Check>
+<Check>Save manual folds with `:mkview` if you need them</Check>
+
+<Tip>
+Combine folding with search: use `/pattern` to find something, then `zM` to close all folds and `zv` to reveal just that match!
+</Tip>
+
+## Tips and Tricks
+
+### Focus Mode
+
+```vim
+" Close all folds except current
+nnoremap <Leader>z zMzvzt
+```
+
+### Fold Under Cursor Info
+
+```vim
+" Show how many lines are folded
+nnoremap <Leader>i :echo (foldclosed('.') != -1 ? 'Folded' : 'Not folded')<CR>
+```
+
+### Quick Fold Toggle
+
+```vim
+" Toggle fold under cursor smartly
+nnoremap <Space> za
+```
+
+## See Also
+
+- [Windows and Tabs](/advanced/windows-tabs) - Manage multiple views
+- [Macros](/advanced/macros) - Automate fold creation
+- [Syntax Highlighting](/customization/syntax) - Required for syntax folding

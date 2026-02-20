@@ -1,0 +1,565 @@
+---
+title: Autocommand System
+description: Master Vim's autocommand system to automatically execute commands in response to events.
+---
+
+Autocommands allow you to execute commands automatically when certain events occur, such as reading a file, changing buffers, or entering a window.
+
+## Understanding Autocommands
+
+An autocommand consists of:
+
+- **Event**: What triggers the command (e.g., `BufRead`, `BufWrite`)
+- **Pattern**: Which files match (e.g., `*.py`, `*.vim`)
+- **Command**: What to execute (e.g., `setlocal expandtab`)
+
+```vim
+" Basic syntax
+autocmd Event Pattern Command
+
+" Example: Set tab settings for Python files
+autocmd FileType python setlocal tabstop=4 shiftwidth=4 expandtab
+```
+
+## Creating Autocommands
+
+### Simple Autocommands
+
+```vim
+" Set text width for text files
+autocmd FileType text setlocal textwidth=78
+
+" Remove trailing whitespace on save
+autocmd BufWritePre * :%s/\s\+$//e
+
+" Jump to last known cursor position
+autocmd BufReadPost *
+  \ if line("'\"'")
+ > 1 && line("'\"'") <= line("$") |
+  \   exe "normal! g`\"" |
+  \ endif
+```
+
+### Multiple Events
+
+Separate events with commas:
+
+```vim
+" Auto-save on focus lost and buffer leave
+autocmd FocusLost,BufLeave * silent! wall
+
+" Highlight on yank (copy)
+autocmd TextYankPost * silent! lua vim.highlight.on_yank()
+```
+
+## Autocommand Groups
+
+Groups help organize and manage autocommands:
+
+```vim
+" Define a group
+augroup vimrcEx
+  au!  " Clear all autocommands in this group
+
+  " For all text files set 'textwidth' to 78 characters
+  autocmd FileType text setlocal textwidth=78
+
+  " When editing a file, always jump to the last known cursor position
+  autocmd BufReadPost *
+    \ if line("'\"'")
+ > 1 && line("'\"'") <= line("$") |
+    \   exe "normal! g`\"" |
+    \ endif
+augroup END
+```
+
+<Warning>
+Always use `au!` (autocmd clear) at the start of your group to remove previous autocommands. This prevents duplicates when sourcing your vimrc multiple times.
+</Warning>
+
+### Why Use Groups?
+
+1. **Prevent duplicates**: Clear before adding
+2. **Organization**: Group related autocommands
+3. **Easy removal**: Remove entire group at once
+
+```vim
+" Remove all autocommands in a group
+autocmd! vimrcEx
+
+" Remove specific autocommands in a group
+autocmd! vimrcEx BufRead
+```
+
+## Common Events
+
+### File Reading Events
+
+```vim
+" Before starting to edit a non-existent file
+autocmd BufNewFile *.py 0r ~/.vim/templates/python.py
+
+" After reading a file into buffer
+autocmd BufReadPost *.log setlocal readonly
+
+" Before reading a file
+autocmd BufReadPre *.gpg set noswapfile
+
+" After reading from stdin
+autocmd StdinReadPost * setlocal buftype=nofile
+```
+
+### File Writing Events
+
+```vim
+" Before writing entire buffer to file
+autocmd BufWritePre * :%s/\s\+$//e
+
+" After writing entire buffer to file
+autocmd BufWritePost ~/.vimrc source ~/.vimrc
+
+" Before appending to a file
+autocmd FileAppendPre * echo "Appending to file"
+```
+
+### Buffer Events
+
+```vim
+" After entering a buffer
+autocmd BufEnter * silent! lcd %:p:h
+
+" Before leaving to another buffer
+autocmd BufLeave * let b:winview = winsaveview()
+
+" After a buffer is displayed in a window
+autocmd BufWinEnter * if &previewwindow | setlocal wrap | endif
+
+" Before a buffer is removed from a window
+autocmd BufWinLeave * if exists('b:winview') | call winrestview(b:winview) | endif
+
+" Before completely deleting a buffer
+autocmd BufDelete * echo "Deleting buffer: " . expand('<afile>')
+```
+
+### FileType Event
+
+The most commonly used event for file-specific settings:
+
+```vim
+autocmd FileType python setlocal
+    \ tabstop=4
+    \ shiftwidth=4
+    \ softtabstop=4
+    \ expandtab
+    \ textwidth=79
+    \ autoindent
+    \ fileformat=unix
+
+autocmd FileType go setlocal
+    \ tabstop=4
+    \ shiftwidth=4
+    \ softtabstop=4
+    \ noexpandtab
+
+autocmd FileType html,css,javascript setlocal
+    \ tabstop=2
+    \ shiftwidth=2
+    \ softtabstop=2
+    \ expandtab
+```
+
+### Window and Tab Events
+
+```vim
+" After entering a window
+autocmd WinEnter * setlocal cursorline
+
+" Before leaving a window
+autocmd WinLeave * setlocal nocursorline
+
+" After entering a tab page
+autocmd TabEnter * let t:cwd = getcwd()
+
+" Before closing a tab page
+autocmd TabClosed * echo "Closed tab"
+```
+
+### Insert Mode Events
+
+```vim
+" When starting Insert mode
+autocmd InsertEnter * set norelativenumber
+
+" When leaving Insert mode
+autocmd InsertLeave * set relativenumber
+
+" Just before leaving Insert mode
+autocmd InsertLeavePre * call SaveDraft()
+```
+
+### Other Useful Events
+
+```vim
+" File was changed outside of Vim
+autocmd FileChangedShell * echo "File changed on disk. Buffer reloaded."
+
+" Working directory changed
+autocmd DirChanged * echo "Changed directory to: " . v:event.cwd
+
+" After Vim starts
+autocmd VimEnter * echo "Welcome to Vim!"
+
+" Before Vim exits
+autocmd VimLeavePre * call SaveSession()
+
+" Color scheme loaded
+autocmd ColorScheme * highlight Comment cterm=italic gui=italic
+```
+
+## Pattern Matching
+
+### File Patterns
+
+```vim
+" Match specific extension
+autocmd BufRead *.py setlocal filetype=python
+
+" Match multiple extensions
+autocmd BufRead *.c,*.h setlocal cindent
+
+" Match all files
+autocmd BufRead * echo "Reading file"
+
+" Match files in specific directory
+autocmd BufRead /etc/* setlocal readonly
+
+" Match with wildcards
+autocmd BufRead test_*.py setlocal makeprg=pytest\ %
+```
+
+### Buffer-Local Patterns
+
+```vim
+" Trigger for current buffer only
+autocmd BufWritePost <buffer> echo "Buffer saved"
+
+" Trigger for specific buffer number
+autocmd BufWritePost <buffer=5> echo "Buffer 5 saved"
+```
+
+## Special Arguments
+
+### `++once` - One-Time Execution
+
+```vim
+" Execute only once, then remove
+autocmd BufRead *.log ++once setlocal readonly
+```
+
+### `++nested` - Allow Nested Autocommands
+
+```vim
+" Allow triggering other autocommands
+autocmd FileType python ++nested edit config.py
+
+" In Vim9 script (preferred)
+autocmd FileType python nested edit config.py
+```
+
+## Expanding Special Keywords
+
+Special keywords expand at execution time:
+
+```vim
+" <afile> - File name for which event triggered
+autocmd BufRead * echo "Reading: " . expand('<afile>')
+
+" <abuf> - Buffer number
+autocmd BufRead * echo "Buffer: " . expand('<abuf>')
+
+" <amatch> - Pattern that matched
+autocmd FileType * echo "FileType: " . expand('<amatch>')
+
+" <sfile> - Script file name (at definition time)
+autocmd BufRead *.html execute 'source ' . expand('<sfile>:h') . '/html.vim'
+```
+
+### Common Expansion Modifiers
+
+```vim
+" <afile>:p - Full path
+autocmd BufRead * echo expand('<afile>:p')
+
+" <afile>:t - Tail (filename only)
+autocmd BufRead * echo expand('<afile>:t')
+
+" <afile>:h - Head (directory)
+autocmd BufRead * echo expand('<afile>:h')
+
+" <afile>:r - Root (without extension)
+autocmd BufRead * echo expand('<afile>:r')
+
+" <afile>:e - Extension only
+autocmd FileType * let ext = expand('<afile>:e')
+```
+
+## Practical Examples
+
+### Auto-Create Directories
+
+```vim
+" Create directory if it doesn't exist when writing
+augroup AutoMkdir
+  autocmd!
+  autocmd BufWritePre *
+    \ if !isdirectory(expand('<afile>:h')) |
+    \   call mkdir(expand('<afile>:h'), 'p') |
+    \ endif
+augroup END
+```
+
+### Auto-Reload vimrc
+
+```vim
+augroup VimrcReload
+  autocmd!
+  autocmd BufWritePost $MYVIMRC source $MYVIMRC | echo "Reloaded vimrc"
+  autocmd BufWritePost ~/.vim/*.vim source $MYVIMRC
+augroup END
+```
+
+### File Templates
+
+```vim
+augroup Templates
+  autocmd!
+  autocmd BufNewFile *.sh 0r ~/.vim/templates/bash.sh
+  autocmd BufNewFile *.py 0r ~/.vim/templates/python.py
+  autocmd BufNewFile *.html 0r ~/.vim/templates/html.html
+  
+  " Replace template variables
+  autocmd BufNewFile * %s/{{DATE}}/\=strftime('%Y-%m-%d')/ge
+  autocmd BufNewFile * %s/{{AUTHOR}}/\=$USER/ge
+augroup END
+```
+
+### Highlight on Yank
+
+```vim
+augroup HighlightYank
+  autocmd!
+  autocmd TextYankPost * silent! lua vim.highlight.on_yank{timeout=200}
+augroup END
+
+" Or in pure Vimscript (Vim 8.2+)
+augroup HighlightYank
+  autocmd!
+  autocmd TextYankPost * silent! call YankHighlight()
+augroup END
+
+function! YankHighlight()
+  let pos = getpos('.')
+  execute "normal! `[v`]\<Esc>"
+  call setpos('.', pos)
+endfunction
+```
+
+### Auto-Format on Save
+
+```vim
+augroup AutoFormat
+  autocmd!
+  autocmd BufWritePre *.py execute ':Black'
+  autocmd BufWritePre *.js,*.jsx,*.ts,*.tsx execute ':Prettier'
+  autocmd BufWritePre *.go execute ':!gofmt -w %'
+augroup END
+```
+
+### Resize Windows on Terminal Resize
+
+```vim
+augroup ResizeWindows
+  autocmd!
+  autocmd VimResized * wincmd =
+augroup END
+```
+
+### Remember Cursor Position
+
+```vim
+augroup RememberCursorPosition
+  autocmd!
+  autocmd BufReadPost *
+    \ if line("'\"'")
+ > 1 && line("'\"'") <= line("$") |
+    \   exe "normal! g`\"" |
+    \ endif
+augroup END
+```
+
+### Large File Handling
+
+```vim
+augroup LargeFile
+  autocmd!
+  " Disable heavy features for large files (>10MB)
+  autocmd BufReadPre *
+    \ let f=expand("<afile>") |
+    \ if getfsize(f)
+ > 10485760 |
+    \   set eventignore+=FileType |
+    \   setlocal noswapfile bufhidden=unload undolevels=-1 |
+    \ else |
+    \   set eventignore-=FileType |
+    \ endif
+augroup END
+```
+
+## Listing and Removing Autocommands
+
+### List Autocommands
+
+```vim
+" List all autocommands
+:autocmd
+
+" List autocommands for specific event
+:autocmd BufRead
+
+" List autocommands for specific pattern
+:autocmd * *.py
+
+" List autocommands in a group
+:autocmd vimrcEx
+
+" Verbose listing (shows where defined)
+:verbose autocmd BufRead
+```
+
+### Remove Autocommands
+
+```vim
+" Remove all autocommands for an event and pattern
+:autocmd! BufRead *.py
+
+" Remove all autocommands for an event
+:autocmd! BufRead
+
+" Remove all autocommands in a group
+:autocmd! vimrcEx
+
+" Remove all autocommands (dangerous!)
+:autocmd!
+```
+
+<Warning>
+`:autocmd!` without a group removes ALL autocommands, including those from plugins and syntax files. Always specify a group.
+</Warning>
+
+## Best Practices
+
+### 1. Always Use Groups
+
+```vim
+" Good
+augroup MyGroup
+  autocmd!
+  autocmd BufRead *.py setlocal expandtab
+augroup END
+
+" Bad - creates duplicates on re-sourcing
+autocmd BufRead *.py setlocal expandtab
+```
+
+### 2. Keep Commands Short
+
+```vim
+" Good - calls function
+augroup MySettings
+  autocmd!
+  autocmd FileType python call SetupPython()
+augroup END
+
+function! SetupPython()
+  setlocal tabstop=4
+  setlocal shiftwidth=4
+  setlocal expandtab
+  nnoremap <buffer> <F5> :!python %<CR>
+endfunction
+
+" Bad - long command
+autocmd FileType python setlocal ts=4 sw=4 et | nnoremap <buffer> <F5> ...
+```
+
+### 3. Use Specific Patterns
+
+```vim
+" Good - specific
+autocmd BufRead *.py,*.pyw setlocal filetype=python
+
+" Bad - too broad, may slow Vim down
+autocmd BufRead * call CheckAllFiles()
+```
+
+### 4. Check for Features
+
+```vim
+if has('autocmd')
+  augroup MyAutocommands
+    autocmd!
+    autocmd FileType python setlocal expandtab
+  augroup END
+endif
+```
+
+## Troubleshooting
+
+### Autocommand Not Firing
+
+1. Check if event exists:
+   ```vim
+   :help autocmd-events
+   ```
+
+2. Verify pattern matching:
+   ```vim
+   :echo expand('%')         " Current file name
+   :echo &filetype          " Current file type
+   ```
+
+3. Test manually:
+   ```vim
+   :doautocmd FileType python
+   ```
+
+### Autocommand Firing Too Often
+
+Use `++once` or add conditions:
+
+```vim
+autocmd BufRead *.log ++once setlocal readonly
+
+" Or with condition
+autocmd BufRead * if !exists('b:setup_done') | call Setup() | let b:setup_done = 1 | endif
+```
+
+### Performance Issues
+
+Optimize slow autocommands:
+
+```vim
+" Bad - runs for every file
+autocmd BufRead * call SlowFunction()
+
+" Good - runs only for specific files
+autocmd FileType python call SlowFunction()
+
+" Good - limits execution
+autocmd CursorHold * ++once call DelayedSetup()
+```
+
+## Related Topics
+
+- [Creating vimrc](/customization/vimrc) - Configure Vim startup
+- [Setting Options](/customization/options) - Configure Vim behavior
+- [Key Mappings](/customization/mappings) - Create custom key bindings

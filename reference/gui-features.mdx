@@ -1,0 +1,452 @@
+---
+title: GUI Features
+description: GUI-specific features and configuration in Vim
+---
+
+## Overview
+
+Vim's Graphical User Interface (GUI) provides enhanced features beyond terminal mode, including scrollbars, menus, mouse support, and font customization. This guide covers GUI-specific functionality and how it differs from terminal mode.
+
+## Starting the GUI
+
+### Launching gvim
+
+Start the GUI version of Vim:
+
+```bash
+gvim [options] [files...]
+```
+
+### GUI Initialization
+
+When the GUI starts, initializations occur in this order:
+
+1. Terminal options reset to GUI defaults (`term` set to `builtin_gui`)
+2. System menu file loaded (`$VIMRUNTIME/menu.vim`)
+3. User `gvimrc` file sourced
+4. GUI window opened after all initializations
+
+### Configuration Files
+
+GUI-specific startup commands go in `gvimrc`:
+
+| Platform | Location |
+|----------|----------|
+| Unix | `$HOME/.gvimrc` or `$HOME/.vim/gvimrc` |
+| Windows | `$HOME/_gvimrc` or `$HOME/vimfiles/gvimrc` |
+| Amiga | `s:.gvimrc` or `home:.gvimrc` |
+
+**Example gvimrc:**
+
+```vim
+" Set GUI font
+set guifont=Monospace\ 11
+
+" Position window on startup
+autocmd GUIEnter * winpos 100 50
+
+" Set color scheme
+colorscheme desert
+highlight Normal guibg=grey90
+```
+
+## GUI vs Terminal Differences
+
+### Key Differences
+
+| Feature | GUI | Terminal |
+|---------|-----|----------|
+| Mouse | Full support with modifiers | Limited by terminal capabilities |
+| Colors | 16.7 million (true color) | Depends on terminal (8-256 colors) |
+| Fonts | Custom fonts | Fixed terminal font |
+| Menus | Menu bar available | Menu commands only via `:emenu` |
+| Scrollbars | Vertical and horizontal | None |
+| Window sizing | Pixel-precise | Character-based |
+
+### Feature Availability
+
+**GUI-only features:**
+- Graphical scrollbars
+- Pull-down menus
+- Toolbar with icons
+- Font selection dialog
+- Cursor shape/color customization
+- Window title and icon text
+
+**Shared features:**
+- Syntax highlighting
+- Split windows
+- Tabs
+- Command-line mode
+
+## Scrollbars
+
+### Configuration
+
+Control scrollbar visibility with `guioptions`:
+
+```vim
+" Left and right scrollbars, bottom scrollbar
+set guioptions=mlrb
+
+" Right scrollbar only
+set guioptions=r
+
+" No scrollbars
+set guioptions-=rLb
+```
+
+### Scrollbar Options
+
+- `l` - Left scrollbar
+- `r` - Right scrollbar  
+- `b` - Bottom scrollbar (requires `nowrap`)
+- `L` - Left scrollbar in vertically split windows
+- `R` - Right scrollbar in vertically split windows
+
+### Scrollbar Behavior
+
+**Vertical scrollbars:**
+- Thumb size indicates visible portion of buffer
+- Dragging scrolls through file
+- Appears/disappears with window visibility
+
+**Horizontal scrollbars:**
+- Only useful with `nowrap` option
+- Scrolls text left/right
+- Thumb sized for longest visible line
+
+## Mouse Support
+
+### Mouse Options
+
+In GUI mode, `mouse` is automatically set to `a` (all modes):
+
+```vim
+" Mouse enabled in all modes
+set mouse=a
+
+" Configure mouse behavior
+set mousemodel=popup    " Right-click shows popup menu
+set mousefocus         " Window focus follows mouse
+set mousehide          " Hide mouse while typing
+```
+
+### Mouse Actions
+
+**Normal mode:**
+
+| Action | Effect |
+|--------|--------|
+| `<LeftMouse>` | Move cursor |
+| `<RightMouse>` | Extend selection |
+| `<MiddleMouse>` | Paste |
+| `<C-LeftMouse>` | Jump to tag |
+| `<S-LeftMouse>` | Search forward for word |
+
+**Visual mode:**
+- Left mouse: Extend selection
+- Middle mouse: Yank and paste
+- Shift + left: Start/extend selection
+
+### Drag and Drop
+
+Drop files into Vim window to open them:
+
+- **Normal drop**: Opens file(s)
+- **Shift + drop**: Changes to file's directory first
+- **Ctrl + drop**: Splits window for file(s)
+
+## Menus
+
+### Menu Commands
+
+Create custom menus:
+
+```vim
+" Add menu item
+:menu File.Save :w<CR>
+:menu Edit.Big\ Changes.Delete\ Spaces :%s/[ \t]//g<CR>
+
+" Add with priority (controls position)
+:80menu Buffer.Next :bn<CR>
+
+" Mode-specific menus
+:nmenu Tools.Make :make<CR>      " Normal mode
+:vmenu Edit.Comment :s/^/# /<CR> " Visual mode  
+:imenu Edit.Date <C-R>=strftime("%c")<CR>
+```
+
+### Default Menu Priorities
+
+| Menu | Priority |
+|------|----------|
+| File | 10 |
+| Edit | 20 |
+| Tools | 40 |
+| Syntax | 50 |
+| Buffers | 60 |
+| Window | 70 |
+| Help | 9999 |
+
+### Menu Shortcuts
+
+Use `&` for keyboard shortcuts:
+
+```vim
+:menu &File.&Open<Tab>:e :browse e<CR>
+```
+
+Shortcut `F` then `O` activates the menu.
+
+### Removing Menus
+
+```vim
+" Remove specific item
+:unmenu Edit.Paste
+
+" Remove all menus
+:unmenu *
+
+" Hide menu bar
+set guioptions-=m
+```
+
+## Fonts
+
+### Setting Fonts
+
+**Interactive selection:**
+
+```vim
+:set guifont=*
+```
+
+Brings up font chooser dialog.
+
+**Direct specification:**
+
+```vim
+" GTK+ (Linux)
+set guifont=Monospace\ 11
+set guifont=DejaVu\ Sans\ Mono\ 10
+
+" Windows
+set guifont=Consolas:h11
+set guifont=Courier_New:h10:cANSI
+
+" macOS
+set guifont=Monaco:h12
+set guifont=Menlo:h11
+```
+
+### Windows Font Options
+
+Windows supports additional options:
+
+```vim
+set guifont=Courier_New:h12:w6:b:i
+```
+
+- `hXX` - Height in points
+- `wXX` - Width in points
+- `b` - Bold
+- `i` - Italic
+- `u` - Underline
+- `s` - Strikeout
+- `cXX` - Character set (ANSI, UTF8, etc.)
+- `qXX` - Quality (ANTIALIASED, CLEARTYPE, etc.)
+
+### Wide Character Fonts
+
+For double-width characters (CJK):
+
+```vim
+set guifontwide=Microsoft\ YaHei\ 12
+set guifontwide=WenQuanYi\ Zen\ Hei\ 12
+```
+
+## Window Management
+
+### Window Positioning
+
+```vim
+" Query current position
+:winpos
+
+" Set position (X, Y in pixels)
+:winpos 100 50
+
+" Set size (width, height in characters)
+:set lines=40 columns=120
+```
+
+### Window Title
+
+Customize window title:
+
+```vim
+set title
+set titlestring=VIM\ -\ %F
+set titlelen=85
+```
+
+## Toolbar
+
+### Toolbar Options
+
+Configure toolbar appearance:
+
+```vim
+" Show/hide toolbar
+set guioptions+=T  " Show
+set guioptions-=T  " Hide
+
+" Toolbar style
+set toolbar=icons       " Icons only
+set toolbar=text        " Text only
+set toolbar=icons,text  " Both
+```
+
+### Custom Toolbar Items
+
+```vim
+" Add toolbar button
+:amenu icon=/path/to/icon.png ToolBar.Build :make<CR>
+
+" Use built-in icon
+:amenu ToolBar.Open :browse e<CR>
+
+" Use numbered built-in (0-30)
+:amenu ToolBar.BuiltIn22 :call SearchNext()<CR>
+```
+
+### Built-in Icons
+
+Vim provides 31 built-in toolbar icons (0-30):
+
+- 0: New
+- 1: Open
+- 2: Save  
+- 3: Undo
+- 4: Redo
+- 5: Cut
+- 6: Copy
+- 7: Paste
+- 8: Print
+- 9: Help
+- 10: Find
+
+## Popup Menus
+
+Configure right-click behavior:
+
+```vim
+" Use popup menu on right-click
+set mousemodel=popup
+
+" Define PopUp menu
+nnoremenu PopUp.&Undo u
+nnoremenu PopUp.&Redo <C-R>
+menu PopUp.-sep1- :
+nnoremenu PopUp.&Paste "+gP
+```
+
+## GUI Options
+
+The `guioptions` setting controls GUI features:
+
+```vim
+" Common configurations
+set guioptions=aegimrLtT  " Full GUI
+set guioptions=aci        " Minimal GUI
+```
+
+| Flag | Meaning |
+|------|----------|
+| `a` | Autoselect - copy selection to clipboard |
+| `c` | Use console dialogs instead of popups |
+| `e` | Use GUI tab pages |
+| `i` | Use Vim icon |
+| `m` | Menu bar |
+| `r` | Right scrollbar |
+| `L` | Left scrollbar in split windows |
+| `t` | Tearoff menu items |
+| `T` | Toolbar |
+
+## Color Configuration
+
+### GUI Colors
+
+Set GUI-specific colors:
+
+```vim
+" Background/foreground
+highlight Normal guibg=#1e1e1e guifg=#d4d4d4
+
+" Cursor colors
+set guicursor=n-v-c:block-Cursor/lCursor
+set guicursor+=i-ci:ver25-Cursor/lCursor
+```
+
+### True Color Support
+
+GUI automatically supports 16.7 million colors:
+
+```vim
+" Use GUI colors
+colorscheme molokai
+highlight Comment guifg=#75715e gui=italic
+```
+
+## Platform-Specific Features
+
+### X11 (Linux/Unix)
+
+```vim
+" Query X11 window info
+:!xwininfo -id $WINDOWID
+:execute '!xprop -id ' .. v:windowid
+```
+
+### Windows
+
+```vim
+" Windows-specific rendering
+set renderoptions=type:directx,renmode:5
+```
+
+### macOS
+
+```vim
+" Use macOS font dialog
+set guifont=*
+```
+
+## Shell Commands
+
+Executing shell commands in GUI:
+
+```vim
+" Run command, output in new window
+:!ls
+
+" Pipe buffer through command
+:%!sort
+```
+
+GUI handles output differently than terminal mode - creates temporary window for command output.
+
+## Best Practices
+
+1. **Separate configurations**: Keep GUI settings in `gvimrc`, terminal settings in `vimrc`
+2. **Test both modes**: Some plugins behave differently in GUI vs terminal
+3. **Use conditions**: Check `has('gui_running')` for mode-specific code
+4. **Font fallbacks**: Specify multiple fonts for cross-platform compatibility
+5. **Keyboard shortcuts**: Don't rely solely on menus, provide key mappings
+
+## See Also
+
+- [Terminal Options](/reference/terminal-options) - Terminal-specific configuration
+- [Key Notation](/reference/key-notation) - Key notation and special keys
+- [Colorschemes](/customization/colorschemes) - Color scheme configuration

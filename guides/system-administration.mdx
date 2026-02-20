@@ -1,0 +1,659 @@
+---
+title: Vim for System Administration
+description: Essential workflows for managing configuration files, logs, and system tasks
+---
+
+Vim is a sysadmin's best friend. Available on virtually every Unix-like system, often as the only text editor, mastering Vim is essential for system administration work.
+
+## Why Vim for Sysadmin Work
+
+- **Universally available**: Installed by default on most systems
+- **Works over SSH**: Full functionality in terminal environments
+- **Handles large files**: Edit log files efficiently
+- **Pattern matching**: Powerful search and replace for configs
+- **Remote editing**: Edit files on remote systems easily
+- **Root access**: Sudoedit integration for safe privileged editing
+
+## Essential Setup for Sysadmins
+
+Minimal `.vimrc` for system work:
+
+```vim
+" Essential settings for sysadmin work
+set nocompatible        " Use Vim improvements
+filetype plugin indent on
+syntax on
+
+" Practical defaults
+set number              " Show line numbers
+set ruler               " Show cursor position
+set showcmd             " Show partial commands
+set incsearch           " Incremental search
+set hlsearch            " Highlight search results
+
+" Handle large files
+set noswapfile          " Disable swap files
+set nobackup            " Disable backup files
+set nowritebackup       " Disable backup before writing
+
+" Preserve indentation in config files
+set autoindent
+set preserveindent
+set copyindent
+
+" Show whitespace issues
+set list
+set listchars=tab:»\ ,trail:·,extends:→,precedes:←
+```
+
+## Editing Configuration Files
+
+### Common Config File Patterns
+
+Vim recognizes and highlights many config file formats:
+
+```vim
+" Automatic filetype detection
+:set filetype=conf      " Generic config
+:set filetype=apache    " Apache configs
+:set filetype=nginx     " Nginx configs
+:set filetype=yaml      " YAML files
+:set filetype=json      " JSON files
+:set filetype=systemd   " Systemd unit files
+:set filetype=dockerfile " Dockerfiles
+```
+
+### Safe Editing with Sudoedit
+
+Edit files requiring root access safely:
+
+```bash
+# Instead of: sudo vim /etc/hosts
+# Use:
+sudoedit /etc/hosts
+sudo -e /etc/hosts
+
+# Or configure vim to use sudo when needed
+vim /etc/hosts  # Then inside Vim:
+:w !sudo tee %
+```
+
+Add to `.vimrc` for easier sudo writes:
+
+```vim
+" Allow saving files with sudo
+command! W execute 'w !sudo tee % > /dev/null' | edit!
+```
+
+### Backup Before Editing
+
+Always backup critical configs:
+
+```vim
+" Before editing, create backup
+:!cp % %.backup
+:!cp % %.backup.$(date +%Y%m%d-%H%M%S)
+
+" Or use Vim's built-in backup
+set backup
+set backupdir=~/.vim/backup
+set backupext=.bak
+```
+
+## Working with Log Files
+
+### Opening Large Log Files
+
+Optimize Vim for large files:
+
+```vim
+" Before opening large files
+:set noswapfile
+:set nobackup
+:set noundofile
+:set lazyredraw
+
+" Or use LargeFile plugin approach
+augroup LargeFile
+    autocmd!
+    autocmd BufReadPre * let f=getfsize(expand("<afile>"))
+        \ | if f > 10485760 || f == -2
+        \ | set eventignore+=FileType
+        \ | setlocal noswapfile bufhidden=unload buftype=nowrite undolevels=-1
+        \ | else
+        \ | set eventignore-=FileType
+        \ | endif
+augroup END
+```
+
+### Viewing and Analyzing Logs
+
+Navigate log files efficiently:
+
+```vim
+" Jump to end of file (most recent logs)
+G
+
+" Jump to beginning
+gg
+
+" Search for errors
+/ERROR
+/FAIL\|ERROR\|CRITICAL
+
+" Case-insensitive search for error patterns
+/\cerror
+:set ignorecase
+:set smartcase
+
+" View specific time range
+/2024-02-20
+
+" Count occurrences
+:%s/ERROR//gn
+```
+
+### Extract and Filter Log Data
+
+Create filtered views:
+
+```vim
+" Copy all error lines to end of file
+:g/ERROR/t$
+
+" Delete all non-error lines
+:v/ERROR/d
+
+" Extract specific field (e.g., 4th column)
+:%s/^\(\S\+\s\+\)\{3\}\(\S\+\).*/\2/
+
+" Filter by date range
+:g!/^2024-02-20/d
+```
+
+### Real-Time Log Monitoring
+
+View logs as they update:
+
+```vim
+" Auto-reload file when it changes
+:set autoread
+
+" Go to end and refresh periodically
+:au CursorHold * checktime | if line('$') > line('w$') | norm G | endif
+```
+
+Or use external tools from Vim:
+
+```vim
+" Open log in split and tail it
+:split | terminal tail -f /var/log/syslog
+
+" Or read tail output into buffer
+:enew | read !tail -f /var/log/syslog
+```
+
+## System Configuration Tasks
+
+### Editing /etc/hosts
+
+Common hosts file operations:
+
+```vim
+" Add entry
+:$a
+192.168.1.100 server.local server
+.
+
+" Comment out entry
+:s/^/#/
+
+" Uncomment entry
+:s/^#//
+
+" Find and edit entry
+/hostname
+
+" Add multiple entries
+:$
+i
+192.168.1.101 web01.local web01
+192.168.1.102 web02.local web02
+192.168.1.103 db01.local db01
+.
+```
+
+### Managing SSH Config
+
+Edit `~/.ssh/config` efficiently:
+
+```vim
+" Template for new host
+Host webserver
+    HostName 192.168.1.100
+    User admin
+    Port 22
+    IdentityFile ~/.ssh/id_rsa
+
+" Copy host configuration
+yap         " Yank paragraph
+p           " Paste
+
+" Find specific host
+/^Host webserver
+
+" Edit all occurrences of hostname
+:%s/old-hostname/new-hostname/g
+```
+
+### Systemd Unit Files
+
+Edit and validate service files:
+
+```vim
+" Edit service file
+sudoedit /etc/systemd/system/myapp.service
+
+" Check syntax (from within Vim)
+:!systemd-analyze verify %
+
+" Reload after editing
+:!sudo systemctl daemon-reload
+:!sudo systemctl restart %:t:r
+```
+
+### Crontab Editing
+
+Safely edit cron jobs:
+
+```bash
+# Use crontab -e (uses EDITOR=vim)
+crontab -e
+
+# Or edit directly with validation
+EDITOR=vim crontab -e
+```
+
+Inside Vim:
+
+```vim
+" Add new job
+0 2 * * * /usr/local/bin/backup.sh
+
+" Comment out job temporarily
+:s/^/#/
+
+" Uncomment
+:s/^#//
+
+" Validate cron expression (with external tool)
+:!crontab -l | grep -A1 .
+```
+
+## Network Configuration
+
+### Editing Network Interfaces
+
+Manage network configs:
+
+```vim
+" Debian/Ubuntu: /etc/network/interfaces
+sudoedit /etc/network/interfaces
+
+auto eth0
+iface eth0 inet static
+    address 192.168.1.100
+    netmask 255.255.255.0
+    gateway 192.168.1.1
+    dns-nameservers 8.8.8.8 8.8.4.4
+
+" RHEL/CentOS: /etc/sysconfig/network-scripts/ifcfg-eth0
+sudoedit /etc/sysconfig/network-scripts/ifcfg-eth0
+
+DEVICE=eth0
+BOOTPROTO=static
+IPADDR=192.168.1.100
+NETMASK=255.255.255.0
+GATEWAY=192.168.1.1
+ONBOOT=yes
+```
+
+### Firewall Rules
+
+Edit iptables rules:
+
+```vim
+" Save current rules
+:!sudo iptables-save > /tmp/iptables.rules
+
+" Edit rules file
+:e /tmp/iptables.rules
+
+" Apply after editing
+:!sudo iptables-restore < /tmp/iptables.rules
+```
+
+## Remote File Editing
+
+### Edit Files Over SCP/SFTP
+
+Vim has built-in remote editing:
+
+```vim
+" Edit remote file
+:e scp://user@hostname//etc/nginx/nginx.conf
+:e sftp://user@hostname/path/to/file
+
+" Browse remote directory
+:e scp://user@hostname/path/to/dir/
+
+" With SSH config host
+:e scp://webserver//etc/nginx/nginx.conf
+```
+
+Or open from command line:
+
+```bash
+vim scp://user@host//path/to/file
+```
+
+### Edit Multiple Remote Files
+
+```vim
+" Open multiple remote files
+:args scp://server//etc/nginx/sites-enabled/*
+
+" Navigate between files
+:next
+:previous
+
+" Edit all files
+:argdo %s/old/new/ge | update
+```
+
+## Data Processing and Transformation
+
+### CSV File Manipulation
+
+Process structured data:
+
+```vim
+" Align CSV columns visually
+:set nowrap
+:%!column -t -s,
+
+" Extract specific column (field 3)
+:%!cut -d, -f3
+
+" Sort by column
+:%!sort -t, -k2
+
+" Remove duplicate lines
+:sort u
+
+" Add line numbers
+:%s/^/\=printf('%03d,', line('.'))/
+```
+
+### Process Lists and Tables
+
+```vim
+" Remove duplicates
+:sort u
+
+" Sort alphabetically
+:sort
+
+" Sort numerically
+:sort n
+
+" Sort in reverse
+:sort!
+
+" Filter unique entries
+:%!uniq
+
+" Count occurrences
+:%s/pattern//gn
+```
+
+### Text Transformations
+
+Common sysadmin text operations:
+
+```vim
+" Convert to lowercase
+:s/.*/\L&/
+Vu          " Visual mode + u
+
+" Convert to uppercase
+:s/.*/\U&/
+VU          " Visual mode + U
+
+" Remove whitespace
+:%s/\s\+$//      " Trailing whitespace
+:%s/^\s\+//     " Leading whitespace
+
+" Convert spaces to tabs
+:%s/    /\t/g
+
+" Convert tabs to spaces
+:%s/\t/    /g
+:retab
+
+" Add prefix to all lines
+:%s/^/prefix: /
+
+" Number lines
+:%s/^/\=printf('%3d: ', line('.'))/
+```
+
+## Scripting and Automation
+
+### Batch File Operations
+
+Process multiple files:
+
+```vim
+" Open multiple config files
+:args /etc/nginx/sites-enabled/*
+
+" Make changes to all
+:argdo %s/old_value/new_value/ge | update
+
+" Process all logs in directory
+:args /var/log/*.log
+:argdo g/ERROR/w >> /tmp/all-errors.log
+```
+
+### Execute Shell Commands
+
+Run commands from Vim:
+
+```vim
+" Run command and show output
+:!command
+
+" Run command and insert output
+:r !command
+:r !date
+:r !hostname
+:r !ip addr show
+
+" Filter buffer through command
+:%!sort
+:%!uniq
+:%!column -t
+
+" Filter selection
+:'<,'>!sort
+```
+
+### Create Templates
+
+Use abbreviations and templates:
+
+```vim
+" In .vimrc
+augroup sysadmin_templates
+    autocmd!
+    " Nginx server block
+    autocmd BufNewFile */nginx/sites-*/* 0r ~/.vim/templates/nginx-site.conf
+    
+    " Systemd service
+    autocmd BufNewFile *.service 0r ~/.vim/templates/systemd.service
+    
+    " Shell script
+    autocmd BufNewFile *.sh 0r ~/.vim/templates/script.sh
+augroup END
+```
+
+## Diff and Comparison
+
+### Compare Configuration Files
+
+Compare current config with backup:
+
+```vim
+" Open in diff mode
+vim -d /etc/nginx/nginx.conf /etc/nginx/nginx.conf.backup
+
+" Or from within Vim
+:vertical diffsplit nginx.conf.backup
+
+" Navigate differences
+]c          " Next difference
+[c          " Previous difference
+
+" Merge changes
+do          " Obtain change from other file
+dp          " Put change to other file
+
+" Update diff
+:diffupdate
+```
+
+### Three-Way Merge
+
+Resolve conflicts between versions:
+
+```vim
+" Compare three versions
+vimdiff original.conf mine.conf theirs.conf
+
+" Or use as merge tool
+vim -d base.conf local.conf remote.conf -c 'wincmd w' -c 'wincmd J'
+```
+
+## Practical Workflows
+
+### Incident Response
+
+1. **Check logs quickly**:
+   ```vim
+   vim /var/log/syslog
+   G          " Jump to end
+   /ERROR     " Search for errors
+   ```
+
+2. **Extract relevant entries**:
+   ```vim
+   :g/ERROR/w >> /tmp/incident.log
+   ```
+
+3. **Analyze patterns**:
+   ```vim
+   :%s/ERROR//gn    " Count errors
+   ```
+
+### Configuration Deployment
+
+1. **Edit config**:
+   ```vim
+   sudoedit /etc/nginx/nginx.conf
+   ```
+
+2. **Test syntax**:
+   ```vim
+   :!sudo nginx -t
+   ```
+
+3. **Apply if valid**:
+   ```vim
+   :!sudo systemctl reload nginx
+   ```
+
+### Audit and Compliance
+
+```vim
+" Find all users with shell access
+:e /etc/passwd
+:g!/nologin\|false$/p
+
+" Check for suspicious entries in sudoers
+:e /etc/sudoers
+/NOPASSWD
+
+" Review SSH authorized keys
+:args ~/.ssh/authorized_keys /home/*/.ssh/authorized_keys
+:argdo g/^/p
+```
+
+## Useful Mappings for Sysadmins
+
+Add to `.vimrc`:
+
+```vim
+" Sudo save
+nnoremap <Leader>W :w !sudo tee % > /dev/null<CR>
+
+" Reload file
+nnoremap <F5> :checktime<CR>
+
+" Show file info
+nnoremap <F2> :!file %<CR>
+
+" Quick diff with backup
+nnoremap <Leader>d :vert diffsplit %.backup<CR>
+
+" Execute current file
+nnoremap <Leader>x :!chmod +x % && ./%<CR>
+
+" Insert timestamp
+nnoremap <Leader>t i<C-R>=strftime("%Y-%m-%d %H:%M:%S")<CR><Esc>
+
+" Comment/uncomment line
+nnoremap <Leader>c :s/^/#/<CR>:noh<CR>
+nnoremap <Leader>u :s/^#//<CR>:noh<CR>
+```
+
+## Related Topics
+
+<CardGroup cols={2}>
+  <Card title="File Operations" icon="file" href="/commands/file-operations">
+    Master file management in Vim
+  </Card>
+  <Card title="External Commands" icon="terminal" href="/tools/external-commands">
+    Integrate shell commands with Vim
+  </Card>
+  <Card title="Diff Mode" icon="code-compare" href="/tools/diff-mode">
+    Compare and merge files
+  </Card>
+  <Card title="Search and Replace" icon="magnifying-glass" href="/commands/search-replace">
+    Advanced pattern matching
+  </Card>
+</CardGroup>
+
+## Best Practices
+
+1. **Always backup**: Before editing critical configs, create a backup
+2. **Test before applying**: Validate configuration syntax before reloading services
+3. **Use version control**: Keep configs in Git for audit trail
+4. **Document changes**: Add comments explaining why changes were made
+5. **Use sudoedit**: Safer than `sudo vim` for editing system files
+6. **Learn regex**: Essential for log analysis and config editing
+7. **Keep .vimrc simple**: Your config should work on minimal systems
+
+<Warning>
+Always test configuration changes in a staging environment before applying to production systems.
+</Warning>

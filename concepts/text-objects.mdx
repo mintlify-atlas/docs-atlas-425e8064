@@ -1,0 +1,579 @@
+---
+title: 'Text Objects'
+description: 'Understanding and using text objects in Vim for efficient text manipulation'
+keywords: ['vim text objects', 'words', 'sentences', 'paragraphs', 'blocks', 'motions', 'operators']
+---
+
+# Text Objects
+
+Text objects are one of Vim's most powerful features, allowing you to operate on semantic units of text like words, sentences, paragraphs, and code blocks. They make editing faster and more intuitive by letting you think in terms of what you want to change, not just where.
+
+## What Are Text Objects?
+
+Text objects define regions of text that can be operated on. Unlike motions (which move the cursor), text objects select an entire unit of text for an operation.
+
+<Note>
+Text objects can only be used in Visual mode or after an operator (like `d`, `c`, `y`). They cannot be used alone in Normal mode.
+</Note>
+
+## Inner vs Outer Text Objects
+
+Every text object comes in two variants:
+
+<Columns cols={2}>
+  <Card title="Inner (i)" icon="bullseye">
+    Selects the text object **without** surrounding whitespace or delimiters.
+    
+    ```vim
+    ciw  " Change inner word
+    di(  " Delete inner parentheses
+    vi"  " Visual select inner quotes
+    ```
+  </Card>
+  
+  <Card title="Around/A (a)" icon="circle-dot">
+    Selects the text object **with** surrounding whitespace or delimiters.
+    
+    ```vim
+    caw  " Change a word (includes surrounding space)
+    da(  " Delete around parentheses (includes parens)
+    va"  " Visual select around quotes (includes quotes)
+    ```
+  </Card>
+</Columns>
+
+<Info>
+The "around" commands include trailing whitespace, or leading whitespace if there's no trailing whitespace.
+</Info>
+
+## Word Text Objects
+
+### Words (w)
+
+A **word** consists of letters, digits, underscores, or a sequence of other non-blank characters, separated by whitespace.
+
+<Tabs>
+  <Tab title="iw - Inner word">
+    ```vim
+    iw  " Inner word (excludes surrounding space)
+    ```
+    
+    **Example:**
+    ```
+    The quick brown fox
+        ^---- cursor here
+    
+    diw  → "The brown fox"
+    ```
+    
+    Deletes "quick" but preserves the spacing.
+  </Tab>
+  
+  <Tab title="aw - A word">
+    ```vim
+    aw  " A word (includes surrounding space)
+    ```
+    
+    **Example:**
+    ```
+    The quick brown fox
+        ^---- cursor here
+    
+    daw  → "The brown fox"
+    ```
+    
+    Deletes "quick " including the trailing space.
+  </Tab>
+</Tabs>
+
+### WORDs (W)
+
+A **WORD** consists of any sequence of non-blank characters, separated by whitespace. This is broader than a word.
+
+```vim
+iW  " Inner WORD
+aW  " A WORD
+```
+
+**Example:**
+```
+file.txt config-file setup_script
+         ^---- cursor here
+
+diw  → "file.txt file setup_script"  (deletes just "config")
+diW  → "file.txt setup_script"       (deletes "config-file")
+```
+
+<Tip>
+Use `w` for programming (respects snake_case, camelCase), use `W` for prose or paths.
+</Tip>
+
+## Sentence Text Objects
+
+A **sentence** ends at a `.`, `!`, or `?` followed by a space, tab, or end of line. Closing characters like `)`, `]`, `"`, and `'` can appear before the space.
+
+```vim
+is  " Inner sentence
+as  " A sentence
+```
+
+**Example:**
+```
+First sentence. Second sentence. Third sentence.
+                ^---- cursor here
+
+das  → "First sentence. Third sentence."
+```
+
+<Info>
+Paragraph and section boundaries are also sentence boundaries.
+</Info>
+
+### Sentence Detection Rules
+
+<Steps>
+  <Step title="Check for sentence-ending punctuation">
+    Look for `.`, `!`, or `?`
+  </Step>
+  
+  <Step title="Allow closing characters">
+    Any number of `)`, `]`, `"`, `'` can follow the punctuation
+  </Step>
+  
+  <Step title="Require whitespace or EOL">
+    Must be followed by space, tab, or end of line
+  </Step>
+  
+  <Step title="Check cpoptions flag">
+    If `'J'` flag is in `cpoptions`, require at least two spaces
+  </Step>
+</Steps>
+
+## Paragraph Text Objects
+
+A **paragraph** begins after an empty line or after paragraph macros (specified in `paragraphs` option).
+
+```vim
+ip  " Inner paragraph
+ap  " A paragraph
+```
+
+**Example:**
+```
+First paragraph
+with multiple lines.
+
+Second paragraph here.
+^---- cursor here
+
+dap  → Deletes the entire second paragraph including blank lines
+```
+
+<Note>
+A blank line containing only whitespace is **not** a paragraph boundary. The line must be completely empty.
+</Note>
+
+### Default Paragraph Macros
+
+The default `paragraphs` option is `IPLPPPQPP TPHPLIPpLpItpplpipbp`, which corresponds to nroff macros:
+- `.IP` - Indented paragraph
+- `.LP` - Left paragraph  
+- `.PP` - Paragraph
+- `.QP` - Quoted paragraph
+- etc.
+
+## Block Text Objects
+
+Block text objects select text within matching delimiters.
+
+<CodeGroup>
+
+```vim Parentheses
+ib  or  i(  " Inner block ()
+ab  or  a(  " A block () including parentheses
+
+" Example:
+" function(arg1, arg2)
+"          ^---- cursor here
+" dib → "function()"
+" dab → "function"
+```
+
+```vim Brackets
+i[  " Inner [] block
+a[  " A [] block including brackets
+
+" Example:
+" array[0]
+"       ^---- cursor here
+" di[ → "array[]"
+" da[ → "array"
+```
+
+```vim Braces
+iB  or  i{  " Inner {} block
+aB  or  a{  " A {} block including braces
+
+" Example:
+" if (condition) { code; }
+"                  ^---- cursor here
+" diB → "if (condition) {}"
+" daB → "if (condition)"
+```
+
+```vim Angle brackets
+i<  or  i>  " Inner <> block
+a<  or  a>  " A <> block including brackets
+
+" Example:
+" <tag>content</tag>
+"      ^---- cursor here
+" di< → "<tag></tag>"
+```
+
+</CodeGroup>
+
+<Warning>
+If the cursor is not inside a block, Vim searches forward for the opening delimiter. It's an error to select an empty block like `()` with inner commands.
+</Warning>
+
+### Bracket Behavior
+
+The `cpo-M` option controls how escaped brackets are handled:
+- With `M`: Ignore backslashes before delimiters
+- Without `M`: Count backslashes (even number doesn't match odd number)
+
+## Quote Text Objects
+
+Quote text objects work with strings enclosed in quotes.
+
+<Tabs>
+  <Tab title="Double quotes">
+    ```vim
+    i"  " Inner double quotes
+    a"  " Around double quotes
+    ```
+    
+    **Example:**
+    ```
+    print("Hello, World!")
+           ^---- cursor here
+    
+    di"  → print("")
+    da"  → print()
+    ```
+  </Tab>
+  
+  <Tab title="Single quotes">
+    ```vim
+    i'  " Inner single quotes
+    a'  " Around single quotes
+    ```
+    
+    **Example:**
+    ```
+    echo 'message'
+          ^---- cursor here
+    
+    ci'  → Start editing: echo '|'
+    ```
+  </Tab>
+  
+  <Tab title="Backticks">
+    ```vim
+    i`  " Inner backticks
+    a`  " Around backticks
+    ```
+    
+    **Example:**
+    ```
+    const cmd = `ls -la`
+                 ^---- cursor here
+    
+    di`  → const cmd = ``
+    ```
+  </Tab>
+</Tabs>
+
+<Info>
+Quote text objects only work within a single line. The `quoteescape` option determines which escaped quotes are skipped.
+</Info>
+
+### Quote Selection Rules
+
+1. Vim searches from the start of the line to find matching quote pairs
+2. The "around" variant includes trailing whitespace if present, otherwise leading whitespace
+3. Repeating in Visual mode extends to the next quoted string
+
+## Tag Text Objects
+
+Tag text objects are useful for HTML and XML.
+
+```vim
+it  " Inner tag block
+at  " A tag block (includes tags)
+```
+
+**Example:**
+```html
+<div>
+  <p>Content here</p>
+</div>
+^---- cursor anywhere in the <p> element
+
+dit  → "<p></p>"
+dat  → (removes entire <p> element)
+```
+
+<Note>
+Tag blocks require the `+eval` feature. Self-closing tags like `<br/>` are skipped. Case is ignored.
+</Note>
+
+## Combining Operators with Text Objects
+
+Text objects are most powerful when combined with operators:
+
+<CodeGroup>
+
+```vim Delete
+daw   " Delete a word
+di(   " Delete inner parentheses
+dap   " Delete a paragraph
+da"   " Delete around quotes
+```
+
+```vim Change
+ciw   " Change inner word
+ci{   " Change inner braces
+cis   " Change inner sentence
+ca'   " Change around single quotes
+```
+
+```vim Yank (copy)
+yaw   " Yank a word
+yi[   " Yank inner brackets
+yap   " Yank a paragraph
+ya<   " Yank around angle brackets
+```
+
+```vim Visual select
+viw   " Visual select inner word
+va(   " Visual select around parentheses
+vip   " Visual select inner paragraph
+vat   " Visual select around tag
+```
+
+</CodeGroup>
+
+## Advanced Examples
+
+### Example 1: Quick Word Changes
+
+<Steps>
+  <Step title="Position cursor on any character in a word">
+    ```
+    The old word is here
+        ^
+    ```
+  </Step>
+  
+  <Step title="Change the entire word">
+    ```vim
+    ciw  " Change inner word
+    ```
+    Cursor position doesn't matter - works anywhere in the word.
+  </Step>
+  
+  <Step title="Type replacement and Esc">
+    ```
+    The new word is here
+    ```
+  </Step>
+</Steps>
+
+### Example 2: Code Refactoring
+
+```vim
+" Delete function arguments
+function(arg1, arg2, arg3)
+         ^---- cursor here
+di(  → function()
+
+" Change string content
+const msg = "old message"
+             ^---- cursor here
+ci"  → Start Insert mode: const msg = "|"
+
+" Delete entire if block
+if (condition) { code here; }
+                 ^---- cursor here
+daB  → if (condition)
+```
+
+### Example 3: Text Object Sizes
+
+Comparison of delete commands from small to large:
+
+```vim
+dl    " Delete character
+diw   " Delete inner word
+daw   " Delete a word
+diW   " Delete inner WORD
+daW   " Delete a WORD
+dd    " Delete line
+dis   " Delete inner sentence
+das   " Delete a sentence
+dip   " Delete inner paragraph
+dap   " Delete a paragraph
+diB   " Delete inner { } block
+daB   " Delete a { } block
+```
+
+<Tip>
+This hierarchy helps you think about text in terms of structure rather than character counts.
+</Tip>
+
+## Common Patterns
+
+<AccordionGroup>
+  <Accordion title="Delete function call but keep name">
+    ```vim
+    " Before: function(arg1, arg2)
+    "         ^---- cursor on 'f'
+    
+    di(     " Delete arguments
+    
+    " After: function()
+    ```
+  </Accordion>
+  
+  <Accordion title="Change quoted string">
+    ```vim
+    " Before: print("old text")
+    "               ^---- cursor anywhere in string
+    
+    ci"     " Change inner quotes
+    
+    " After: print("|")
+    "        ^---- in Insert mode
+    ```
+  </Accordion>
+  
+  <Accordion title="Swap function arguments">
+    ```vim
+    " Before: function(first, second)
+    "                  ^---- cursor
+    
+    diwelp  " Delete inner word, move to next word, paste
+    
+    " After: function(second, first)
+    ```
+  </Accordion>
+  
+  <Accordion title="Extract code from block">
+    ```vim
+    " Before:
+    " if (true) {
+    "     code here;
+    " }
+    
+    di{     " Delete inner block
+    
+    " After:
+    " if (true) {
+    " }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Visual Mode with Text Objects
+
+Text objects work in Visual mode to select text:
+
+```vim
+v      " Start Visual mode
+iw     " Select inner word
+       " Can continue extending: 2iw selects more
+```
+
+<Info>
+In Visual mode, repeatedly using a text object extends the selection. For example, `viw` then `iw` again extends to include surrounding words.
+</Info>
+
+## Counts with Text Objects
+
+You can use counts with text objects:
+
+```vim
+d2aw   " Delete two words
+c3is   " Change three sentences  
+v4ip   " Visual select four paragraphs
+y2a{   " Yank two brace blocks
+```
+
+<Warning>
+The count applies to the text object, not the operator. `2d2aw` would delete two words twice (4 words total).
+</Warning>
+
+## Custom Text Objects
+
+You can define custom text objects with plugins or mappings:
+
+```vim
+" Example: Create an indent text object
+" (requires plugin like vim-indent-object)
+viI    " Visual select inner indentation
+dai    " Delete around indentation (includes blank lines)
+```
+
+Popular text object plugins:
+- `vim-textobj-user` - Framework for custom text objects
+- `vim-textobj-entire` - Text object for entire buffer
+- `vim-textobj-indent` - Text object for indentation
+- `vim-textobj-line` - Text object for current line
+
+## Best Practices
+
+<Steps>
+  <Step title="Think in text objects">
+    Instead of thinking "delete 5 characters", think "delete word" (`daw`).
+  </Step>
+  
+  <Step title="Use 'i' for content, 'a' for structure">
+    Use `i` when you want to keep delimiters, `a` when you want to remove them.
+  </Step>
+  
+  <Step title="Combine with repeat (.)">
+    Text object operations can be repeated with `.` for quick edits:
+    ```vim
+    ciw new Esc  " Change word to 'new'
+    .            " Repeat on next word
+    ```
+  </Step>
+  
+  <Step title="Practice common combinations">
+    Master these essential combinations:
+    - `ciw` - Change inner word
+    - `di(` - Delete inner parentheses
+    - `ci"` - Change inner quotes
+    - `dap` - Delete around paragraph
+    - `viB` - Visual select inner block
+  </Step>
+</Steps>
+
+## Quick Reference
+
+| Text Object | Inner | Around | Description |
+|-------------|-------|--------|-------------|
+| `w` | `iw` | `aw` | Word |
+| `W` | `iW` | `aW` | WORD |
+| `s` | `is` | `as` | Sentence |
+| `p` | `ip` | `ap` | Paragraph |
+| `(` or `b` | `ib` | `ab` | Parentheses block |
+| `[` | `i[` | `a[` | Bracket block |
+| `{` or `B` | `iB` | `aB` | Brace block |
+| `<` or `>` | `i<` | `a<` | Angle bracket block |
+| `"` | `i"` | `a"` | Double quoted string |
+| `'` | `i'` | `a'` | Single quoted string |
+| `` ` `` | `` i` `` | `` a` `` | Backtick string |
+| `t` | `it` | `at` | Tag block |

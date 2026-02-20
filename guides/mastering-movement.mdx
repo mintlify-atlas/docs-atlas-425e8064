@@ -1,0 +1,748 @@
+---
+title: 'Mastering Movement in Vim'
+description: 'Learn efficient cursor navigation techniques for lightning-fast editing'
+---
+
+## Why Movement Matters
+
+Efficient movement is the foundation of Vim mastery. While other editors rely on mouse clicks and arrow keys, Vim provides a rich vocabulary of motion commands that keep your hands on the home row and your editing at peak speed.
+
+<Tip>
+The faster you can move to where you want to edit, the faster you can work. Master these motions and watch your productivity soar.
+</Tip>
+
+## Character and Line Movement
+
+### Basic Motions
+
+<Steps>
+  <Step title="The hjkl Keys">
+    The fundamental motion keys:
+    
+    ```
+         k (up)
+    h (left)  l (right)
+        j (down)
+    ```
+    
+    **Why hjkl?**
+    - Keeps hands on home row
+    - No need to reach for arrow keys
+    - Works in all Vim modes
+    
+    <Note>
+    On old keyboards, the `j` key had a physical arrow pointing down. This design choice persists today.
+    </Note>
+  </Step>
+  
+  <Step title="Line Navigation">
+    Move efficiently within a line:
+    
+    | Command | Action | Example |
+    |---------|--------|----------|
+    | `0` | Start of line | Always goes to column 0 |
+    | `^` | First non-blank character | Skips leading whitespace |
+    | `$` | End of line | Last character |
+    | `g_` | Last non-blank character | Ignores trailing spaces |
+    | `|` | Column (with count) | `10|` goes to column 10 |
+    
+    **Practice Pattern:**
+    ```vim
+    0  " Jump to start
+    $  " Jump to end
+    ^  " Jump to first non-blank
+    ```
+  </Step>
+</Steps>
+
+## Word Movement
+
+### Understanding Words vs WORDS
+
+Vim has two concepts of "word":
+
+<Tabs>
+  <Tab title="word (lowercase)">
+    A sequence of letters, digits, and underscores, OR a sequence of other non-blank characters.
+    
+    **Example breakdown:**
+    ```
+    foo-bar.baz_qux
+    ^^^ ^^^ ^^^ ^^^
+    word word word word
+    ```
+    
+    **Commands:**
+    - `w` - Forward to start of next word
+    - `b` - Backward to start of word
+    - `e` - Forward to end of word
+    - `ge` - Backward to end of word
+  </Tab>
+  
+  <Tab title="WORD (uppercase)">
+    A sequence of non-blank characters separated by whitespace.
+    
+    **Example breakdown:**
+    ```
+    foo-bar.baz_qux
+    ^^^^^^^^^^^^^^^
+    one WORD
+    ```
+    
+    **Commands:**
+    - `W` - Forward to start of next WORD
+    - `B` - Backward to start of WORD
+    - `E` - Forward to end of WORD
+    - `gE` - Backward to end of WORD
+  </Tab>
+</Tabs>
+
+### Word Motion Practice
+
+<Steps>
+  <Step title="Basic Word Navigation">
+    Try these on the practice line:
+    
+    ```
+    The quick-brown fox jumps over the lazy_dog
+    ```
+    
+    - Place cursor at start
+    - Press `w` repeatedly - notice how it stops at each "word"
+    - Go back to start
+    - Press `W` repeatedly - notice fewer stops
+    - Try `b` and `B` to move backward
+  </Step>
+  
+  <Step title="Combining with Operators">
+    Word motions combine with operators:
+    
+    | Command | Effect |
+    |---------|--------|
+    | `dw` | Delete word forward |
+    | `db` | Delete word backward |
+    | `cw` | Change word forward |
+    | `dW` | Delete WORD forward |
+    | `yiw` | Yank inner word (anywhere on word) |
+    | `yaw` | Yank around word (includes space) |
+    
+    **Real-world example:**
+    ```python
+    def calculateUserScore(self, user_id):
+    ```
+    
+    - Cursor on "calculate", type `ciw` to change just that word
+    - Cursor on "User", type `daw` to delete "User" and space
+  </Step>
+  
+  <Step title="Count Prefixes">
+    Add numbers to multiply motions:
+    
+    ```vim
+    3w   " Move forward 3 words
+    5b   " Move back 5 words
+    2e   " Move to end of 2nd word ahead
+    d3w  " Delete 3 words
+    c5W  " Change 5 WORDS
+    ```
+    
+    <Tip>
+    Use counts instead of repeating motions. `5w` is faster than pressing `w` five times.
+    </Tip>
+  </Step>
+</Steps>
+
+## Line Movement
+
+### Vertical Navigation
+
+<Steps>
+  <Step title="Relative Line Jumps">
+    Move by screen lines or file lines:
+    
+    | Command | Action | Use Case |
+    |---------|--------|----------|
+    | `j` / `k` | Down/up one line | Basic movement |
+    | `gj` / `gk` | Down/up display line | Long wrapped lines |
+    | `5j` | Down 5 lines | Quick small jumps |
+    | `10k` | Up 10 lines | Return to context |
+    | `CTRL-D` | Down half screen | Fast scrolling |
+    | `CTRL-U` | Up half screen | Fast scrolling |
+    | `CTRL-F` | Forward one screen | Page down |
+    | `CTRL-B` | Back one screen | Page up |
+    
+    <Note>
+    With `relativenumber` option enabled, you can see the count needed: `:set relativenumber`
+    </Note>
+  </Step>
+  
+  <Step title="Absolute Line Jumps">
+    Jump to specific line numbers:
+    
+    ```vim
+    G       " Go to last line
+    gg      " Go to first line
+    50G     " Go to line 50
+    :50     " Also goes to line 50
+    50gg    " Alternative syntax
+    ```
+    
+    **See current position:**
+    ```vim
+    CTRL-G  " Show file info and line number
+    ```
+    
+    **With line numbers visible:**
+    ```vim
+    :set number
+    :set relativenumber
+    ```
+  </Step>
+  
+  <Step title="Screen Position Jumps">
+    Move cursor to different screen positions:
+    
+    | Command | Position |
+    |---------|----------|
+    | `H` | Top of screen (High) |
+    | `M` | Middle of screen |
+    | `L` | Bottom of screen (Low) |
+    | `5H` | 5 lines below top |
+    | `3L` | 3 lines above bottom |
+    | `zt` | Current line to top |
+    | `zz` | Current line to center |
+    | `zb` | Current line to bottom |
+    
+    **Workflow example:**
+    ```vim
+    /function    " Find function
+    zt           " Move to top of screen
+    ```
+  </Step>
+</Steps>
+
+## Search-Based Movement
+
+### Character Search
+
+<Steps>
+  <Step title="Find Character in Line">
+    Super fast intra-line navigation:
+    
+    | Command | Action | Repeatable |
+    |---------|--------|------------|
+    | `fx` | Find next 'x' on line | `;` / `,` |
+    | `Fx` | Find previous 'x' on line | `;` / `,` |
+    | `tx` | Till before next 'x' | `;` / `,` |
+    | `Tx` | Till after previous 'x' | `;` / `,` |
+    | `;` | Repeat last f/F/t/T forward | - |
+    | `,` | Repeat last f/F/t/T backward | - |
+    
+    **Practice line:**
+    ```python
+    result = calculate(x, y, z, threshold=0.95)
+    ```
+    
+    - `f(` - Jump to opening parenthesis
+    - `f,` - Jump to first comma
+    - `;` - Jump to next comma
+    - `;` - Jump to third comma
+  </Step>
+  
+  <Step title="Combined with Operators">
+    Character search is powerful with operators:
+    
+    ```vim
+    dfx  " Delete from cursor to and including next 'x'
+    dtx  " Delete from cursor to (till) before next 'x'
+    cfx  " Change from cursor to and including next 'x'
+    ytx  " Yank from cursor till before next 'x'
+    ```
+    
+    **Real-world examples:**
+    
+    On this line:
+    ```javascript
+    const user = { name: "Alice", age: 30, city: "NYC" };
+    ```
+    
+    - Cursor on `c` in `const`, type `ct=` changes "const user " (till equals)
+    - Cursor on `{`, type `f:` jumps to first colon
+    - Type `dt,` deletes `"Alice"`
+  </Step>
+  
+  <Step title="Pro Tips">
+    <Tip>
+    **Tip 1:** `f` and `t` are different! Use `t` when you want to preserve the target character.
+    </Tip>
+    
+    <Tip>
+    **Tip 2:** After `fx`, use `;` to repeat. It's faster than typing `fx` again.
+    </Tip>
+    
+    <Warning>
+    Character search only works on the current line. Use `/` for multi-line search.
+    </Warning>
+  </Step>
+</Steps>
+
+### Pattern Search
+
+<Steps>
+  <Step title="Basic Search">
+    Search across the entire file:
+    
+    | Command | Action |
+    |---------|--------|
+    | `/pattern` | Search forward |
+    | `?pattern` | Search backward |
+    | `n` | Next match (same direction) |
+    | `N` | Next match (opposite direction) |
+    | `*` | Search forward for word under cursor |
+    | `#` | Search backward for word under cursor |
+    | `g*` | Search forward for partial word |
+    | `g#` | Search backward for partial word |
+    
+    **Example workflow:**
+    ```vim
+    /function     " Search for 'function'
+    n             " Next match
+    n             " Next match
+    N             " Previous match
+    ```
+  </Step>
+  
+  <Step title="Search Options">
+    Customize search behavior:
+    
+    ```vim
+    :set ignorecase    " Case-insensitive search
+    :set smartcase     " Case-sensitive if uppercase used
+    :set incsearch     " Show matches as you type
+    :set hlsearch      " Highlight all matches
+    :nohlsearch        " Clear highlight (or :noh)
+    ```
+    
+    **One-time case override:**
+    ```vim
+    /pattern\c         " Force case-insensitive
+    /pattern\C         " Force case-sensitive
+    ```
+  </Step>
+  
+  <Step title="Advanced Search Patterns">
+    Use regex for powerful searches:
+    
+    ```vim
+    /^function         " Lines starting with 'function'
+    /function$         " Lines ending with 'function'
+    /^$                " Empty lines
+    /\<word\>          " Exact word (word boundaries)
+    /foo\|bar          " 'foo' OR 'bar'
+    /[0-9]\+           " One or more digits
+    ```
+    
+    <Note>
+    Vim uses its own regex flavor. See `:help pattern` for details.
+    </Note>
+  </Step>
+</Steps>
+
+## Jump Navigation
+
+### The Jump List
+
+<Steps>
+  <Step title="Understanding Jumps">
+    Vim maintains a jump list of your cursor positions:
+    
+    | Command | Action |
+    |---------|--------|
+    | `CTRL-O` | Jump back (older position) |
+    | `CTRL-I` | Jump forward (newer position) |
+    | `:jumps` | View jump list |
+    
+    **What creates a jump?**
+    - Search commands (`/`, `?`, `*`, `#`)
+    - Line jumps (`G`, `gg`, `[line]G`)
+    - File changes (`:e`, `:tag`)
+    - Marks (`'a`, `` `a ``)
+    
+    **What doesn't?**
+    - Basic movement (`hjkl`, `w`, `b`, `e`)
+    - Small jumps (moving a few lines)
+  </Step>
+  
+  <Step title="Jump Workflow">
+    Common navigation pattern:
+    
+    ```vim
+    /errorHandler    " Search for function
+    n                " Find next occurrence
+    CTRL-O           " Jump back to previous position
+    *                " Search word under cursor
+    CTRL-O           " Return to where you started
+    CTRL-I           " Go forward again
+    ```
+    
+    <Tip>
+    Think of `CTRL-O` and `CTRL-I` like browser back/forward buttons.
+    </Tip>
+  </Step>
+</Steps>
+
+### Marks
+
+<Steps>
+  <Step title="Setting Marks">
+    Create bookmarks in your file:
+    
+    | Command | Action |
+    |---------|--------|
+    | `ma` | Set mark 'a' at cursor position |
+    | `` `a `` | Jump to exact position of mark 'a' |
+    | `'a` | Jump to first non-blank of mark 'a' line |
+    | `:marks` | View all marks |
+    | `` ` `` | Jump to position before last jump |
+    | `''` | Jump to line before last jump |
+    
+    **Mark types:**
+    - `a-z` - Local marks (per buffer)
+    - `A-Z` - Global marks (across files)
+    - `0-9` - Last exit positions (automatic)
+  </Step>
+  
+  <Step title="Practical Marking">
+    Real-world usage:
+    
+    ```vim
+    "Edit function header
+    ma              " Mark as 'a'
+    /function_body  " Search for implementation
+    "Edit body...
+    'a              " Return to marked header
+    ```
+    
+    **Multi-file workflow:**
+    ```vim
+    " In file1.py
+    mA              " Set global mark A
+    :e file2.py     " Edit another file
+    " ...work in file2...
+    'A              " Jump back to file1.py at mark A
+    ```
+  </Step>
+  
+  <Step title="Special Automatic Marks">
+    Vim sets these marks automatically:
+    
+    | Mark | Meaning |
+    |------|----------|
+    | `` ` `` | Position before last jump |
+    | `[` | Start of last change/yank |
+    | `]` | End of last change/yank |
+    | `<` | Start of last visual selection |
+    | `>` | End of last visual selection |
+    | `.` | Last change position |
+    | `^` | Last insert position |
+    
+    **Quick actions:**
+    ```vim
+    `.    " Jump to last change
+    `^    " Jump to last insert
+    `[    " Jump to start of last paste
+    ```
+  </Step>
+</Steps>
+
+## Matching and Bracket Navigation
+
+### Bracket Matching
+
+<Steps>
+  <Step title="The % Motion">
+    Jump between matching pairs:
+    
+    | Matches | Examples |
+    |---------|----------|
+    | `( )` | Parentheses |
+    | `[ ]` | Square brackets |
+    | `{ }` | Curly braces |
+    | `/* */` | C comments |
+    | `#if #endif` | Preprocessor (with plugin) |
+    
+    **Usage:**
+    ```vim
+    %    " Jump to matching bracket
+    d%   " Delete to matching bracket
+    y%   " Yank to matching bracket
+    v%   " Select to matching bracket
+    ```
+    
+    <Tip>
+    Essential for debugging unmatched parentheses in code!
+    </Tip>
+  </Step>
+  
+  <Step title="Section Movement">
+    Jump between sections (functions, classes):
+    
+    | Command | Action |
+    |---------|--------|
+    | `]]` | Next section forward (or function) |
+    | `[[` | Previous section backward |
+    | `][` | Next section end |
+    | `[]` | Previous section end |
+    
+    <Note>
+    What constitutes a "section" depends on filetype. For C, it's typically function boundaries.
+    </Note>
+  </Step>
+</Steps>
+
+## Movement Optimization Strategies
+
+### The Vim Way
+
+<Steps>
+  <Step title="Think in Text Objects, Not Characters">
+    ❌ **Slow way:**
+    ```vim
+    llllllllllx    " Move right 10 times, delete
+    ```
+    
+    ✅ **Fast way:**
+    ```vim
+    10l x          " Or better: dw, de, dt)
+    ```
+    
+    ✅ **Best way:**
+    ```vim
+    dw             " Delete word (from anywhere on it)
+    ```
+  </Step>
+  
+  <Step title="Combine Operators with Motions">
+    The power formula: `operator + count + motion`
+    
+    **Examples:**
+    ```vim
+    d3w     " Delete 3 words
+    c2j     " Change current and next 2 lines
+    y$      " Yank to end of line
+    >5j     " Indent 5 lines down
+    gU3w    " Uppercase 3 words
+    ```
+  </Step>
+  
+  <Step title="Use Relative Line Numbers">
+    Enable for easier vertical movement:
+    
+    ```vim
+    :set relativenumber
+    :set number
+    ```
+    
+    Now you can see the count directly:
+    ```
+     7  some line above
+     6  another line
+     5  target line
+     4
+     3
+     2
+     1
+    42  current line (absolute)
+     1  
+     2
+     3  line below
+    ```
+    
+    Type `5k` to jump up to "target line".
+  </Step>
+  
+  <Step title="Develop Muscle Memory">
+    <Card title="Practice Routine" icon="dumbbell">
+      1. **Daily drills**: Set a 5-minute timer and practice motions
+      2. **Conscious practice**: Force yourself to use new motions
+      3. **Ban the arrows**: Unmap arrow keys temporarily
+      4. **Track patterns**: Notice which motions you need most
+    </Card>
+  </Step>
+</Steps>
+
+## Common Movement Patterns
+
+### Real-World Scenarios
+
+<AccordionGroup>
+  <Accordion title="Navigate Function Parameters">
+    ```python
+    def process_data(input_file, output_file, encoding="utf-8", validate=True):
+    ```
+    
+    - `f,` - Jump to first comma
+    - `;` - Next comma
+    - `F(` - Back to opening parenthesis
+    - `%` - Jump to closing parenthesis
+  </Accordion>
+  
+  <Accordion title="Edit HTML/XML Tags">
+    ```html
+    <div class="container" id="main">
+      <p>Content here</p>
+    </div>
+    ```
+    
+    - `*` - Find next occurrence of tag under cursor
+    - `%` - Jump between opening/closing tags
+    - `f"` then `;` - Jump between attribute values
+  </Accordion>
+  
+  <Accordion title="Navigate Through Error Messages">
+    ```vim
+    :make          " Compile project
+    :copen         " Open quickfix window
+    :cnext         " Next error
+    :cprev         " Previous error
+    ```
+    
+    Or use:
+    - `]q` - Next quickfix item (with unimpaired plugin)
+    - `[q` - Previous quickfix item
+  </Accordion>
+  
+  <Accordion title="Jump Around Codebase">
+    ```vim
+    gd             " Go to local definition
+    gD             " Go to global definition
+    CTRL-]         " Jump to tag (requires ctags)
+    CTRL-O         " Jump back
+    CTRL-I         " Jump forward
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Quick Reference
+
+### Movement Command Cheatsheet
+
+<Tabs>
+  <Tab title="Character">
+    ```vim
+    h l         " Left, right
+    0 ^         " Line start, first non-blank
+    $ g_        " Line end, last non-blank
+    fx Fx       " Find char forward, backward
+    tx Tx       " Till char forward, backward
+    ; ,         " Repeat f/F/t/T forward, backward
+    ```
+  </Tab>
+  
+  <Tab title="Word">
+    ```vim
+    w W         " Word, WORD forward
+    b B         " Word, WORD backward
+    e E         " Word, WORD end forward
+    ge gE       " Word, WORD end backward
+    ```
+  </Tab>
+  
+  <Tab title="Line">
+    ```vim
+    j k         " Down, up
+    gj gk       " Display line down, up
+    5j 10k      " Counted movement
+    CTRL-D/U    " Half page down, up
+    CTRL-F/B    " Full page down, up
+    ```
+  </Tab>
+  
+  <Tab title="File">
+    ```vim
+    gg G        " First, last line
+    50G :50     " Line 50
+    H M L       " Screen top, middle, bottom
+    zt zz zb    " Scroll current line to top, center, bottom
+    ```
+  </Tab>
+  
+  <Tab title="Search">
+    ```vim
+    /pattern    " Search forward
+    ?pattern    " Search backward
+    n N         " Next, previous match
+    * #         " Search word under cursor
+    %           " Matching bracket
+    ```
+  </Tab>
+  
+  <Tab title="Jumps">
+    ```vim
+    CTRL-O      " Jump back
+    CTRL-I      " Jump forward
+    ma 'a `a    " Set mark, jump to line, jump to position
+    ``  ''      " Last jump position, last jump line
+    `.  `^      " Last change, last insert
+    ```
+  </Tab>
+</Tabs>
+
+## Practice Exercises
+
+<Steps>
+  <Step title="Exercise 1: Character Hunting">
+    Practice `f`, `F`, `t`, `T` on this line:
+    ```
+    result = process(input_data, output_file, mode="strict", retry=3)
+    ```
+    
+    Tasks:
+    1. Jump to opening `(`
+    2. Jump to first comma
+    3. Jump to each subsequent comma
+    4. Delete from cursor to closing `)` without deleting the `)`
+  </Step>
+  
+  <Step title="Exercise 2: Word Olympics">
+    Navigate this sentence using only `w`, `W`, `b`, `B`, `e`, `E`:
+    ```
+    The quick-brown fox's tail was extra-fluffy today.
+    ```
+    
+    1. Start at beginning
+    2. Move to "quick" using one command
+    3. Move to "fox's" using one command
+    4. Move to end of "extra-fluffy" using one command
+    5. Return to beginning using one command
+  </Step>
+  
+  <Step title="Exercise 3: Line Navigation">
+    Open a large file and:
+    1. Jump to line 100
+    2. Search for a common word
+    3. Jump through 5 matches
+    4. Return to starting position
+    5. Jump forward again
+  </Step>
+</Steps>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Efficient Editing" href="/guides/efficient-editing" icon="bolt">
+    Combine movements with editing operations
+  </Card>
+  
+  <Card title="Text Objects" href="/concepts/text-objects" icon="cube">
+    Advanced selection for precision editing
+  </Card>
+  
+  <Card title="Visual Mode" href="/commands/visual-mode" icon="highlighter">
+    Select text with visual movements
+  </Card>
+  
+  <Card title="Macros" href="/advanced/macros" icon="repeat">
+    Automate complex movement patterns
+  </Card>
+</CardGroup>

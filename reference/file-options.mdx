@@ -1,0 +1,521 @@
+---
+title: File Options
+description: Options that control file handling, encoding, formats, and backups
+---
+
+These options control how Vim reads, writes, and manages files, including backups, encoding, file formats, and automatic file operations.
+
+## File Reading and Writing
+
+### autoread
+
+```vim
+:set autoread         " ar - Automatically read file when changed outside Vim
+:set noautoread
+```
+
+When a file is detected to have changed outside Vim (and not inside Vim), automatically reload it.
+
+### autowrite
+
+```vim
+:set autowrite        " aw - Auto-write file before certain commands
+:set noautowrite
+```
+
+Automatic save when:
+- `:next`, `:previous`, `:rewind`, `:last`
+- `:tag`, CTRL-]
+- `:make`, `:!`
+- CTRL-^ (switching buffers)
+
+### autowriteall
+
+```vim
+:set autowriteall     " awa - Auto-write on more commands
+:set noautowriteall
+```
+
+Like `autowrite`, but also for:
+- `:edit`, `:quit`, `:qall`
+- `:exit`, `:xit`
+- Closing Vim
+
+<Warning>
+Be careful with autowrite options - temporary changes will be saved automatically.
+</Warning>
+
+### hidden
+
+```vim
+:set hidden           " hid - Allow switching buffers without saving
+:set nohidden         " Require save or ! to abandon changes
+```
+
+## File Encoding
+
+### encoding
+
+```vim
+:set encoding=utf-8   " enc - Encoding used internally by Vim
+```
+
+<Note>
+This option should be set early in your vimrc, as changing it later can cause issues.
+</Note>
+
+### fileencoding
+
+```vim
+:set fileencoding=utf-8  " fenc - Encoding of the current file
+```
+
+Set automatically when reading a file. Can be changed before writing.
+
+### fileencodings
+
+```vim
+:set fileencodings=ucs-bom,utf-8,latin1  " fencs - Encodings to try when reading
+```
+
+Vim tries these encodings in order when reading a file:
+
+```vim
+" Common setup
+:set fileencodings=ucs-bom,utf-8,default,latin1
+
+" Add more encodings
+:set fileencodings=ucs-bom,utf-8,utf-16,gbk,big5,latin1
+```
+
+### bomb
+
+```vim
+:set bomb             " Add BOM (Byte Order Mark) when writing UTF files
+:set nobomb           " Don't add BOM
+```
+
+Automatically set when reading a file with BOM.
+
+## File Format (Line Endings)
+
+### fileformat
+
+```vim
+:set fileformat=unix  " ff - Line ending style for current file
+:set fileformat=dos   " Windows-style (CRLF)
+:set fileformat=mac   " Old Mac-style (CR)
+```
+
+| Format | Line Ending | Description |
+|--------|-------------|-------------|
+| unix | LF (`\n`) | Linux/macOS/Unix |
+| dos | CRLF (`\r\n`) | Windows |
+| mac | CR (`\r`) | Old Mac (pre-OS X) |
+
+### fileformats
+
+```vim
+:set fileformats=unix,dos  " ffs - Formats to try when reading
+```
+
+Vim detects line endings automatically based on this list:
+
+```vim
+" Unix/Linux preference
+:set fileformats=unix,dos
+
+" Windows preference
+:set fileformats=dos,unix
+
+" All formats
+:set fileformats=unix,dos,mac
+```
+
+## Backup Options
+
+### backup
+
+```vim
+:set backup           " bk - Keep backup file after writing
+:set nobackup         " Delete backup after successful write
+```
+
+### writebackup
+
+```vim
+:set writebackup      " wb - Make backup before writing
+:set nowritebackup    " Don't make backup
+```
+
+### Backup Strategy
+
+| backup | writebackup | Result |
+|--------|-------------|--------|
+| off | off | No backup at all (dangerous) |
+| off | on | Backup during write, deleted after (default) |
+| on | off | No backup during write, previous version kept |
+| on | on | Backup during write, kept after |
+
+```vim
+" Safe default (backup during write only)
+:set nobackup writebackup
+
+" Keep backup files
+:set backup writebackup
+
+" No backups (not recommended)
+:set nobackup nowritebackup
+```
+
+### backupdir
+
+```vim
+:set backupdir=~/.vim/backup,/tmp  " bdir - Directories for backup files
+```
+
+Comma-separated list of directories:
+- `.` - Same directory as file
+- `./subdir` - Subdirectory relative to file
+- `~/path` - Absolute path
+- Ending with `//` creates unique names with full path
+
+```vim
+" Centralized backup directory
+:set backupdir=~/.vim/backup//,.
+
+" Create directory if needed
+:call mkdir(expand('~/.vim/backup'), 'p', 0700)
+```
+
+### backupext
+
+```vim
+:set backupext=~      " bex - Extension for backup files
+:set backupext=.bak
+```
+
+### backupskip
+
+```vim
+:set backupskip=/tmp/*,/private/tmp/*  " bsk - Files to skip for backup
+```
+
+Patterns for files that should never have backups:
+
+```vim
+" Skip temporary files and sensitive files
+:set backupskip=/tmp/*,$TMPDIR/*,crontab.*
+```
+
+### backupcopy
+
+```vim
+:set backupcopy=auto  " bkc - How to make backup (auto/yes/no)
+```
+
+Options:
+- `yes` - Copy file and overwrite original (preserves links, permissions)
+- `no` - Rename file and create new (may break links)
+- `auto` - Vim decides based on situation
+- `breaksymlink` - Always break symbolic links
+- `breakhardlink` - Always break hard links
+
+```vim
+" Always preserve symlinks
+:set backupcopy=yes
+
+" For crontab editing
+:set backupcopy=yes
+```
+
+## Swap Files
+
+### swapfile
+
+```vim
+:set swapfile         " suf - Use swap file for buffer
+:set noswapfile       " Don't use swap file
+```
+
+### directory
+
+```vim
+:set directory=~/.vim/swap//,/tmp  " dir - Directories for swap files
+```
+
+Same syntax as `backupdir`. Using `//` at end creates unique names:
+
+```vim
+:set directory=~/.vim/swap//,.
+:call mkdir(expand('~/.vim/swap'), 'p', 0700)
+```
+
+### updatecount
+
+```vim
+:set updatecount=200  " uc - Write swap after this many characters typed
+:set updatecount=0    " Disable swap file
+```
+
+### updatetime
+
+```vim
+:set updatetime=4000  " ut - Write swap after this many milliseconds
+```
+
+Also affects how quickly CursorHold events trigger.
+
+## Undo Files
+
+### undofile
+
+```vim
+:set undofile         " udf - Persist undo history to file
+:set noundofile       " Don't save undo history
+```
+
+Allows undo/redo even after closing and reopening file.
+
+### undodir
+
+```vim
+:set undodir=~/.vim/undo//  " udir - Directory for undo files
+```
+
+```vim
+:set undodir=~/.vim/undo//,.
+:call mkdir(expand('~/.vim/undo'), 'p', 0700)
+```
+
+### undolevels
+
+```vim
+:set undolevels=1000  " ul - Maximum number of changes that can be undone
+```
+
+### undoreload
+
+```vim
+:set undoreload=10000 " ur - Maximum lines to save for undo on buffer reload
+```
+
+## Path and File Searching
+
+### path
+
+```vim
+:set path=.,/usr/include,,  " pa - Directories to search for files
+```
+
+Used by `gf`, `:find`, `:edit`, and other commands:
+
+- `.` - Directory of current file
+- `,,` - Current directory
+- `/path` - Absolute path
+- `**` - Search recursively
+
+```vim
+" C/C++ development
+:set path=.,/usr/include,/usr/local/include,,
+
+" Web development
+:set path=.,src/**,node_modules/**,,
+
+" Python
+:set path=.,**
+```
+
+### suffixesadd
+
+```vim
+:set suffixesadd=.java,.class  " sua - Extensions to try with gf
+```
+
+```vim
+" Web development
+:set suffixesadd=.js,.jsx,.ts,.tsx
+
+" C/C++
+:set suffixesadd=.c,.cpp,.h,.hpp
+```
+
+### includeexpr
+
+```vim
+:set includeexpr=substitute(v:fname,'\\','/',g)  " inex - Transform file names
+```
+
+Expression to transform file name before searching.
+
+## Auto-commands Trigger Files
+
+### autochdir
+
+```vim
+:set autochdir        " acd - Change to directory of file in buffer
+:set noautochdir
+```
+
+Changes working directory automatically when opening files.
+
+<Note>
+Can interfere with plugins that expect consistent working directory.
+</Note>
+
+### autoshelldir
+
+```vim
+:set autoshelldir     " asd - Change directory when shell in terminal changes
+:set noautoshelldir
+```
+
+Syncs Vim's working directory with terminal shell directory (requires OSC 7).
+
+## File Type Detection
+
+### filetype
+
+```vim
+:set filetype=python  " ft - File type for current buffer
+```
+
+Set automatically by file type detection, or manually:
+
+```vim
+:set filetype=javascript
+:set filetype=markdown
+```
+
+### modeline
+
+```vim
+:set modeline         " ml - Allow file-specific settings in file
+:set nomodeline       " Ignore modelines (security)
+```
+
+Enables reading settings from special comments:
+
+```vim
+/* vim: set ts=4 sw=4 expandtab: */
+// vim: ts=2:sw=2:et
+```
+
+### modelines
+
+```vim
+:set modelines=5      " mls - Number of lines at start/end to check
+```
+
+## Binary Mode
+
+### binary
+
+```vim
+:set binary           " bin - Edit file in binary mode
+:set nobinary
+```
+
+When set:
+- No `<EOL>` added at end of file
+- No automatic fileformat detection
+- No encoding conversion
+- Sets `textwidth=0`, `wrapmargin=0`, `modeline=off`, `expandtab=off`
+
+```vim
+" Open file in binary mode
+:edit ++bin filename
+
+" Or use command-line flag
+vim -b filename
+```
+
+## File Browser
+
+### browsedir
+
+```vim
+:set browsedir=buffer  " bsdir - Starting directory for file browser
+```
+
+Options:
+- `last` - Last directory used
+- `buffer` - Directory of current buffer
+- `current` - Current directory
+- `{path}` - Specific directory
+
+## Common Configurations
+
+### Safe File Handling
+
+```vim
+" Backup and undo configuration
+set backup writebackup
+set backupdir=~/.vim/backup//,.
+set directory=~/.vim/swap//,.
+set undofile
+set undodir=~/.vim/undo//,.
+
+" Create directories if they don't exist
+for dir in [&backupdir, &directory, &undodir]
+  if !isdirectory(expand(dir))
+    call mkdir(expand(dir), 'p', 0700)
+  endif
+endfor
+```
+
+### Encoding Setup
+
+```vim
+" UTF-8 everywhere
+set encoding=utf-8
+set fileencoding=utf-8
+set fileencodings=ucs-bom,utf-8,latin1
+set termencoding=utf-8
+```
+
+### Cross-platform Line Endings
+
+```vim
+" Unix line endings, but recognize others
+set fileformat=unix
+set fileformats=unix,dos,mac
+```
+
+### Minimal (No Backup/Swap)
+
+```vim
+" No auxiliary files (use with caution)
+set nobackup
+set nowritebackup
+set noswapfile
+set noundofile
+```
+
+<Warning>
+Disabling backups and swap files increases risk of data loss.
+</Warning>
+
+## Quick Reference Table
+
+| Option | Short | Default | Purpose |
+|--------|-------|---------|----------|
+| `autoread` | ar | off | Auto-reload changed files |
+| `autowrite` | aw | off | Auto-save on certain commands |
+| `backup` | bk | off | Keep backup after write |
+| `encoding` | enc | utf-8 | Internal encoding |
+| `fileencoding` | fenc | auto | File's encoding |
+| `fileformat` | ff | unix/dos | Line ending style |
+| `hidden` | hid | off | Allow unsaved buffers |
+| `swapfile` | swf | on | Create swap file |
+| `undofile` | udf | off | Persist undo history |
+| `path` | pa | .,, | File search path |
+
+## See Also
+
+- [Options Overview](/reference/options-overview) - Understanding the option system
+- [Editing Options](/reference/editing-options) - Editing behavior settings
+- [Display Options](/reference/display-options) - Visual appearance settings
+- `:help backup-table` - Backup strategy matrix
+- `:help 'encoding'` - Encoding details
+- `:help 'fileformat'` - Line ending formats

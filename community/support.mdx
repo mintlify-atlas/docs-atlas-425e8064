@@ -1,0 +1,176 @@
+---
+title: Getting Help and Support
+description: Find help and support for Vim through various community channels
+---
+
+## Official Resources
+
+### Built-in Help System
+
+Vim has comprehensive built-in documentation. Access it using the `:help` command:
+
+```vim
+:help
+:help user-manual
+:help tutor
+:help howto
+```
+
+The help system is searchable and cross-referenced. Use `:help <topic>` to find information on specific commands, options, or features.
+
+### Vim Tutor
+
+For beginners, Vim includes an interactive tutorial:
+
+```bash
+vimtutor
+```
+
+This one-hour training course covers the basics of Vim usage. You can also access it from within Vim using `:help tutor`.
+
+## Community Channels
+
+### IRC Chat
+
+Join the `#vim` channel on Libera Chat for real-time help:
+
+- Web interface: [web.libera.chat/#vim](https://web.libera.chat/#vim)
+- Server: irc.libera.chat
+- Channel: #vim
+
+The IRC channel is a great place to ask quick questions and get help from experienced Vim users.
+
+### Reddit
+
+The Vim subreddit is an active community for discussions, tips, and help:
+
+- [reddit.com/r/vim](https://reddit.com/r/vim)
+
+Post questions, share configurations, and learn from other users' experiences.
+
+### Stack Exchange
+
+For in-depth technical questions, use the Vi and Vim Stack Exchange:
+
+- [vi.stackexchange.com](https://vi.stackexchange.com/)
+
+This Q&A site is excellent for searchable, well-documented solutions to specific problems.
+
+### Mailing Lists
+
+Vim has several mailing lists for different purposes:
+
+- **vim-dev**: Development discussions and bug reports
+- **vim-announce**: Release announcements
+- **vim-use**: General usage questions
+
+Subscribe and browse archives at [vim.org/community.php](https://www.vim.org/community.php).
+
+## Reporting Bugs
+
+### GitHub Issues
+
+If you find a bug or want to request a feature:
+
+1. Check existing issues first: [github.com/vim/vim/issues](https://github.com/vim/vim/issues)
+2. Open a new issue: [github.com/vim/vim/issues/new/choose](https://github.com/vim/vim/issues/new/choose)
+3. Provide clear reproduction steps
+4. Include your Vim version (`:version`)
+5. Specify your operating system
+
+### Vim-dev Mailing List
+
+For bugs that require deeper discussion, report them to the vim-dev mailing list:
+
+```
+vim-dev@vim.org
+```
+
+## Documentation and Learning
+
+### Official Website
+
+The Vim homepage contains news, downloads, and links to resources:
+
+- [vim.org](https://www.vim.org/)
+- Documentation: [vim.org/docs.php](https://www.vim.org/docs.php)
+
+### Vim Tips Wiki
+
+Community-contributed tips and tricks:
+
+- [vim.fandom.com/wiki/Vim_Tips_Wiki](https://vim.fandom.com/wiki/Vim_Tips_Wiki)
+
+This wiki contains hundreds of practical examples and solutions to common problems.
+
+## Getting Help Effectively
+
+### Before Asking
+
+1. **Search the built-in help**: Use `:help <keyword>` or `:helpgrep <pattern>`
+2. **Check the FAQ**: See the [FAQ page](/community/faq) for common questions
+3. **Search online**: Many problems have been solved before
+4. **Try to reproduce**: Isolate the problem with a minimal configuration
+
+### When Asking for Help
+
+Provide the following information:
+
+- **Vim version**: Output of `:version`
+- **Operating system**: Windows, macOS, Linux distribution
+- **Configuration**: Relevant parts of your vimrc
+- **Reproduction steps**: Minimal steps to reproduce the issue
+- **Expected vs actual behavior**: What you expected and what happened
+- **Error messages**: Complete error messages if any
+
+### Minimal vimrc Example
+
+When troubleshooting, test with a minimal configuration:
+
+```vim
+" Save as minimal.vim
+set nocompatible
+filetype plugin indent on
+syntax on
+
+" Add only the relevant settings here
+```
+
+Then start Vim with:
+
+```bash
+vim -u minimal.vim
+```
+
+## Platform-Specific Help
+
+### macOS
+
+- [MacVim](https://macvim.org) - GUI version for macOS
+- Install via Homebrew: `brew install vim` or `brew install macvim`
+
+### Windows
+
+- [vim-win32-installer](https://github.com/vim/vim-win32-installer/releases)
+- Installation guides: See `README_dos.txt` in the Vim distribution
+
+### Linux/Unix
+
+- Most distributions include Vim in their package repositories
+- See `README_unix.txt` for compilation instructions
+
+## Professional Support
+
+While Vim is free and open source, some organizations offer professional support and training:
+
+- Custom training programs
+- Enterprise consulting
+- Plugin development
+
+Contact the vim-dev mailing list for inquiries.
+
+## Related Resources
+
+- [Tips and Tricks](/community/tips-tricks) - Practical Vim tips
+- [Plugin Ecosystem](/community/plugins-ecosystem) - Extending Vim with plugins
+- [Contributing](/community/contributing) - Help improve Vim

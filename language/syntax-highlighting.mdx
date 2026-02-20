@@ -1,0 +1,264 @@
+---
+title: Syntax highlighting
+description: Configure and customize Vim's syntax highlighting system for 700+ languages
+---
+
+Vim's syntax highlighting provides lexical highlighting for over 700 programming languages and file formats. Unlike full parsers, Vim's syntax system is designed for speed and simplicity.
+
+## Quick start
+
+Enable syntax highlighting in your vimrc:
+
+```vim
+" Enable syntax highlighting
+syntax on
+
+" Or, preserve existing colors:
+syntax enable
+```
+
+## Supported languages
+
+Vim includes syntax files for:
+- Programming languages: C, C++, Python, JavaScript, TypeScript, Rust, Go, Java, Ruby, PHP, etc.
+- Shell scripts: Bash, Zsh, Fish, PowerShell
+- Markup: HTML, XML, Markdown, reStructuredText, LaTeX
+- Config files: JSON, YAML, TOML, INI
+- And 700+ more
+
+View all available syntax files:
+
+```vim
+:echo globpath(&runtimepath, 'syntax/*.vim')
+```
+
+## Basic configuration
+
+### Set file type
+
+```vim
+" Manually set syntax
+:set syntax=python
+
+" Auto-detect based on filename
+:set filetype=python
+```
+
+### Color scheme
+
+```vim
+" Set color scheme
+colorscheme desert
+
+" Use 256 colors in terminal
+set t_Co=256
+
+" Enable true color support
+set termguicolors
+```
+
+### Background
+
+```vim
+" Light background
+set background=light
+
+" Dark background
+set background=dark
+```
+
+## Customizing highlights
+
+### View highlight groups
+
+```vim
+" Show all highlight groups
+:highlight
+
+" Show specific group
+:highlight Comment
+```
+
+### Modify highlights
+
+```vim
+" Make comments italic
+highlight Comment cterm=italic gui=italic
+
+" Change string color
+highlight String ctermfg=green guifg=#00ff00
+```
+
+## Language-specific settings
+
+Many syntax files support customization variables. Set them in your vimrc before enabling syntax.
+
+### Python
+
+```vim
+" Highlight all Python syntax
+let g:python_highlight_all = 1
+
+" Highlight space errors
+let g:python_space_error_highlight = 1
+```
+
+### C
+
+```vim
+" Highlight GNU extensions
+let g:c_gnu = 1
+
+" Highlight function names
+let g:c_functions = 1
+
+" Highlight comment strings
+let g:c_comment_strings = 1
+```
+
+### JavaScript
+
+```vim
+" Enable JSDoc highlighting
+let g:javascript_plugin_jsdoc = 1
+
+" Enable Flow highlighting
+let g:javascript_plugin_flow = 1
+```
+
+## Advanced features
+
+### Syntax regions
+
+Manually define a syntax region:
+
+```vim
+" In ~/.vim/after/syntax/markdown.vim
+syntax region markdownCode start=/```/ end=/```/
+highlight link markdownCode String
+```
+
+### Conceal
+
+Hide or replace characters:
+
+```vim
+" Enable concealing
+set conceallevel=2
+
+" Conceal in normal mode
+set concealcursor=n
+```
+
+### Spell checking integration
+
+```vim
+" Spell check in comments and strings only
+syntax spell toplevel
+```
+
+## Performance
+
+### Limit syntax sync
+
+For large files, limit how far back Vim looks:
+
+```vim
+" Sync from start (slower, accurate)
+syntax sync fromstart
+
+" Sync minimum lines
+syntax sync minlines=100
+
+" Sync maximum lines
+syntax sync maxlines=500
+```
+
+### Disable for large files
+
+```vim
+" Disable syntax for files > 1MB
+autocmd BufReadPre * if getfsize(expand("%")) > 1000000 | syntax off | endif
+```
+
+## File-specific syntax
+
+### Modeline
+
+Add to first or last 5 lines of file:
+
+```
+# vim: syntax=python
+```
+
+### Override
+
+```vim
+" Force syntax for current buffer
+:set syntax=html
+```
+
+## Creating syntax files
+
+Basic structure of a syntax file:
+
+```vim
+" ~/.vim/syntax/myformat.vim
+if exists("b:current_syntax")
+  finish
+endif
+
+" Define keywords
+syntax keyword myKeyword function class return
+
+" Define regions
+syntax region myString start=/"/ end=/"/
+
+" Define matches
+syntax match myComment "#.*$"
+
+" Link to standard groups
+highlight default link myKeyword Keyword
+highlight default link myString String
+highlight default link myComment Comment
+
+let b:current_syntax = "myformat"
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="No colors in terminal">
+    Check terminal color support:
+    ```vim
+    echo &t_Co
+    set termguicolors
+    ```
+  </Accordion>
+
+  <Accordion title="Wrong colors">
+    Color scheme may not match background:
+    ```vim
+    set background=dark
+    colorscheme gruvbox
+    ```
+  </Accordion>
+
+  <Accordion title="Slow highlighting">
+    Limit syntax sync:
+    ```vim
+    syntax sync minlines=100 maxlines=500
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## See also
+
+<CardGroup cols={2}>
+  <Card title="Color schemes" href="/customization/colorschemes" icon="palette">
+    Customize colors and themes
+  </Card>
+  <Card title="Filetype plugins" href="/language/filetype-plugins" icon="plug">
+    Language-specific plugins
+  </Card>
+</CardGroup>

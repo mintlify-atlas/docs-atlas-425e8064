@@ -1,0 +1,322 @@
+---
+title: Ex Command Reference
+description: Comprehensive reference for Vim Ex commands (:commands)
+---
+
+Ex commands are entered by typing `:` followed by the command name. This reference lists all Ex commands available in Vim.
+
+## Command Basics
+
+- Ex commands start with `:` in Normal mode
+- Many commands accept a [range](/user-guide/ranges) before the command name
+- Commands can be abbreviated to their shortest unique form (shown in brackets)
+- Use `|` to separate multiple commands on one line
+- Use `"` at the start of a line or after a command to add comments
+
+## File Operations
+
+| Command | Description |
+|---------|-------------|
+| `:e[dit]` | Edit a file |
+| `:w[rite]` | Write current buffer to file |
+| `:wa[ll]` | Write all changed buffers |
+| `:q[uit]` | Quit current window |
+| `:qa[ll]` | Quit Vim |
+| `:wq` | Write and quit |
+| `:x[it]` | Write if modified and quit |
+| `:sav[eas]` | Save file under another name |
+| `:f[ile]` | Show or set the current file name |
+| `:r[ead]` | Read file into the text |
+| `:fin[d]` | Find file in 'path' and edit it |
+| `:ex` | Same as `:edit` |
+| `:ene[w]` | Edit a new, unnamed buffer |
+
+## Buffer Commands
+
+| Command | Description |
+|---------|-------------|
+| `:b[uffer]` | Go to specific buffer in the buffer list |
+| `:bn[ext]` | Go to next buffer in the buffer list |
+| `:bp[revious]` | Go to previous buffer in the buffer list |
+| `:bN[ext]` | Go to previous buffer (same as `:bprevious`) |
+| `:bf[irst]` | Go to first buffer in the buffer list |
+| `:bl[ast]` | Go to last buffer in the buffer list |
+| `:ba[ll]` | Open a window for each buffer in the buffer list |
+| `:buffers` | List all files in the buffer list |
+| `:ls` | List all buffers |
+| `:files` | List all files in the buffer list |
+| `:bad[d]` | Add buffer to the buffer list |
+| `:bd[elete]` | Remove a buffer from the buffer list |
+| `:bun[load]` | Unload a specific buffer |
+| `:bw[ipeout]` | Really delete a buffer |
+| `:bm[odified]` | Go to next buffer that has been modified |
+
+## Window Commands
+
+| Command | Description |
+|---------|-------------|
+| `:sp[lit]` | Split current window |
+| `:vs[plit]` | Split window vertically |
+| `:new` | Create a new empty window |
+| `:vne[w]` | Create a new empty vertical window |
+| `:clo[se]` | Close current window |
+| `:on[ly]` | Close all windows except the current one |
+| `:res[ize]` | Change current window height |
+| `:vert[ical]` | Make following command split vertically |
+| `:hor[izontal]` | Make following command work horizontally |
+| `:winc[md]` | Execute window command |
+
+## Tab Commands
+
+| Command | Description |
+|---------|-------------|
+| `:tabe[dit]` | Edit file in a new tab |
+| `:tabn[ew]` | Open a new tab |
+| `:tabn[ext]` | Go to next tab |
+| `:tabp[revious]` | Go to previous tab |
+| `:tabN[ext]` | Go to previous tab |
+| `:tabfir[st]` | Go to first tab |
+| `:tabl[ast]` | Go to last tab |
+| `:tabc[lose]` | Close current tab |
+| `:tabo[nly]` | Close all other tabs |
+| `:tabm[ove]` | Move current tab to another position |
+| `:tabs` | List all tabs |
+
+## Text Editing
+
+| Command | Description |
+|---------|-------------|
+| `:d[elete]` | Delete lines |
+| `:c[hange]` | Replace a line or series of lines |
+| `:co[py]` | Copy lines |
+| `:t` | Copy lines (same as `:copy`) |
+| `:m[ove]` | Move lines |
+| `:j[oin]` | Join lines |
+| `:i[nsert]` | Insert text |
+| `:a[ppend]` | Append text |
+| `:pu[t]` | Insert contents of register in the text |
+| `:ip[ut]` | Like `:put`, but adjust indent to current line |
+| `:ret[ab]` | Change tab size |
+
+## Search and Replace
+
+| Command | Description |
+|---------|-------------|
+| `:s[ubstitute]` | Find and replace text |
+| `:g[lobal]` | Execute commands for matching lines |
+| `:v[global]` | Execute commands for non-matching lines |
+| `:%s/pattern/replace/g` | Replace all occurrences in file |
+| `:&` | Repeat last `:substitute` |
+| `:~` | Repeat last substitute with same flags |
+
+## Navigation
+
+| Command | Description |
+|---------|-------------|
+| `:{number}` | Go to line number |
+| `:ju[mps]` | Print the jump list |
+| `:changes` | Print the change list |
+| `:marks` | List all marks |
+| `:k` | Set a mark |
+| `:ma[rk]` | Set a mark |
+| `:delm[arks]` | Delete marks |
+| `:go[to]` | Go to byte in the buffer |
+
+## Options and Settings
+
+| Command | Description |
+|---------|-------------|
+| `:se[t]` | Show or set options |
+| `:setl[ocal]` | Show or set options locally |
+| `:setg[lobal]` | Show global values of options |
+| `:opt[ions]` | Open the options-window |
+| `:let` | Assign a value to a variable or option |
+| `:cons[t]` | Create a variable as a constant |
+| `:unl[et]` | Remove a variable |
+
+## Mappings and Abbreviations
+
+| Command | Description |
+|---------|-------------|
+| `:map` | Show or enter a mapping |
+| `:nmap` | Mapping for Normal mode |
+| `:imap` | Mapping for Insert mode |
+| `:vmap` | Mapping for Visual mode |
+| `:cmap` | Mapping for Command-line mode |
+| `:no[remap]` | Enter non-recursive mapping |
+| `:unm[ap]` | Remove a mapping |
+| `:mapc[lear]` | Clear all mappings |
+| `:ab[breviate]` | Enter abbreviation |
+| `:una[bbrev]` | Remove abbreviation |
+| `:abc[lear]` | Remove all abbreviations |
+
+## Programming and Debugging
+
+| Command | Description |
+|---------|-------------|
+| `:mak[e]` | Execute external command 'makeprg' and parse errors |
+| `:gr[ep]` | Run 'grepprg' and jump to first match |
+| `:vim[grep]` | Search for pattern in files |
+| `:cc` | Go to specific error |
+| `:cn[ext]` | Go to next error |
+| `:cp[revious]` | Go to previous error |
+| `:cfir[st]` | Go to first error |
+| `:cla[st]` | Go to last error |
+| `:cope[n]` | Open quickfix window |
+| `:ccl[ose]` | Close quickfix window |
+| `:cl[ist]` | List all errors |
+| `:deb[ug]` | Run a command in debugging mode |
+| `:breaka[dd]` | Add a debugger breakpoint |
+| `:breakd[el]` | Delete a debugger breakpoint |
+| `:breakl[ist]` | List debugger breakpoints |
+
+## Functions and Scripts
+
+| Command | Description |
+|---------|-------------|
+| `:fu[nction]` | Define a user function |
+| `:delf[unction]` | Delete a user function |
+| `:def` | Define a Vim9 user function |
+| `:enddef` | End of a Vim9 function |
+| `:cal[l]` | Call a function |
+| `:retu[rn]` | Return from a user function |
+| `:so[urce]` | Read Vim or Ex commands from a file |
+| `:ru[ntime]` | Source vim scripts in 'runtimepath' |
+| `:scr[iptnames]` | List names of all sourced Vim scripts |
+| `:fini[sh]` | Quit sourcing a Vim script |
+
+## Control Flow
+
+| Command | Description |
+|---------|-------------|
+| `:if` | Execute commands when condition met |
+| `:el[se]` | Part of an `:if` command |
+| `:elsei[f]` | Part of an `:if` command |
+| `:en[dif]` | End previous `:if` |
+| `:for` | For loop |
+| `:endfo[r]` | End previous `:for` |
+| `:wh[ile]` | While loop |
+| `:endw[hile]` | End previous `:while` |
+| `:con[tinue]` | Go back to `:while` |
+| `:brea[k]` | Break out of while loop |
+| `:try` | Start try-catch block |
+| `:cat[ch]` | Part of a `:try` command |
+| `:fina[lly]` | Part of a `:try` command |
+| `:endt[ry]` | End previous `:try` |
+
+## Autocommands
+
+| Command | Description |
+|---------|-------------|
+| `:au[tocmd]` | Enter or show autocommands |
+| `:aug[roup]` | Select the autocommand group to use |
+| `:do[autocmd]` | Apply autocommands to current buffer |
+| `:doautoa[ll]` | Apply autocommands for all loaded buffers |
+
+## Display and Output
+
+| Command | Description |
+|---------|-------------|
+| `:p[rint]` | Print lines |
+| `:P[rint]` | Print lines |
+| `:l[ist]` | Print lines (showing tabs and EOL) |
+| `:nu[mber]` | Print lines with line number |
+| `:#` | Same as `:number` |
+| `:ec[ho]` | Echo the result of expressions |
+| `:echom[sg]` | Same as `:echo`, put message in history |
+| `:echoe[rr]` | Like `:echo`, show as an error |
+| `:echon` | Same as `:echo`, but without EOL |
+| `:mes[sages]` | View previously displayed messages |
+| `:redr[aw]` | Force a redraw of the display |
+
+## Tags
+
+| Command | Description |
+|---------|-------------|
+| `:ta[g]` | Jump to tag |
+| `:tn[ext]` | Go to next matching tag |
+| `:tp[revious]` | Go to previous matching tag |
+| `:tN[ext]` | Go to previous matching tag |
+| `:tf[irst]` | Go to first matching tag |
+| `:tl[ast]` | Go to last matching tag |
+| `:ts[elect]` | List matching tags and select one |
+| `:tj[ump]` | Jump to tag or select from list |
+| `:tags` | Show the contents of the tag stack |
+| `:po[p]` | Jump to older entry in tag stack |
+| `:helpt[ags]` | Generate help tags for a directory |
+
+## Folding
+
+| Command | Description |
+|---------|-------------|
+| `:fo[ld]` | Create a fold |
+| `:foldc[lose]` | Close folds |
+| `:foldo[pen]` | Open folds |
+| `:foldd[oopen]` | Execute command on lines not in a closed fold |
+| `:folddoc[losed]` | Execute command on lines in a closed fold |
+
+## Diff Mode
+
+| Command | Description |
+|---------|-------------|
+| `:diffs[plit]` | Show differences with another file |
+| `:difft[his]` | Make current window a diff window |
+| `:diffo[ff]` | Switch off diff mode |
+| `:diffg[et]` | Remove differences in current buffer |
+| `:diffpu[t]` | Remove differences in other buffer |
+| `:diffu[pdate]` | Update 'diff' buffers |
+| `:diffp[atch]` | Apply a patch and show differences |
+
+## Help and Information
+
+| Command | Description |
+|---------|-------------|
+| `:h[elp]` | Open a help window |
+| `:helpc[lose]` | Close one help window |
+| `:helpg[rep]` | Like `:grep` but searches help files |
+| `:helpf[ind]` | Dialog to open a help window |
+| `:his[tory]` | Print a history list |
+| `:ve[rsion]` | Show version information |
+| `:exu[sage]` | Overview of Ex commands |
+| `:viu[sage]` | Overview of Normal mode commands |
+
+## Miscellaneous
+
+| Command | Description |
+|---------|-------------|
+| `:!{cmd}` | Execute shell command |
+| `:sh[ell]` | Escape to a shell |
+| `:cd` | Change directory |
+| `:pw[d]` | Print current directory |
+| `:sl[eep]` | Do nothing for a few seconds |
+| `:mode` | Show or change the screen mode |
+| `:norm[al]` | Execute Normal mode commands |
+| `:exe[cute]` | Execute result of expressions |
+| `:ev[al]` | Evaluate an expression and discard the result |
+| `:redi[r]` | Redirect messages to a file or register |
+| `:sil[ent]` | Run a command silently |
+| `:verb[ose]` | Execute a command with 'verbose' set |
+| `:conf[irm]` | Prompt user when confirmation required |
+| `:bro[wse]` | Use file selection dialog |
+| `:keepa[lt]` | Following command keeps the alternate file |
+| `:keepj[umps]` | Following command keeps jumplist and marks |
+| `:keepp[atterns]` | Following command keeps search pattern history |
+| `:loc[kmarks]` | Following command keeps marks where they are |
+| `:noa[utocmd]` | Following commands don't trigger autocommands |
+| `:san[dbox]` | Execute a command in the sandbox |
+
+## Special Characters
+
+In Ex commands:
+- `%` - Current file name
+- `#` - Alternate file name
+- `<cword>` - Word under cursor
+- `<cWORD>` - WORD under cursor
+- `<cfile>` - File path under cursor
+
+## See Also
+
+- [Command-Line Editing](/reference/cmdline-editing)
+- [Normal Mode Commands](/reference/normal-commands)
+- [Ranges](/user-guide/ranges)
+- [Ex Command Line](/user-guide/cmdline)

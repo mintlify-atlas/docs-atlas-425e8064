@@ -1,0 +1,732 @@
+---
+title: 'Marks and Jump List'
+description: 'Using marks and the jump list to navigate efficiently through files in Vim'
+keywords: ['vim marks', 'jump list', 'navigation', 'bookmarks', 'cursor position']
+---
+
+# Marks and Jump List
+
+Marks and the jump list are powerful navigation features in Vim that allow you to quickly move through your code and remember important positions in your files.
+
+## What Are Marks?
+
+Marks are bookmarks in your text - they remember specific cursor positions. Unlike registers (which store text), marks store locations.
+
+<Note>
+A mark is not visible in any way. It's just a position in the file that is remembered. Don't confuse marks with named registers - they are completely different.
+</Note>
+
+## Types of Marks
+
+Vim has several types of marks:
+
+<Tabs>
+  <Tab title="Lowercase (a-z)">
+    **Local marks** - Valid within one file only.
+    
+    ```vim
+    ma      " Set mark a at cursor position
+    `a      " Jump to exact position of mark a
+    'a      " Jump to first non-blank of line with mark a
+    ```
+    
+    - Remembered as long as the file is in the buffer list
+    - Lost when the file is removed from the buffer list
+    - Erased when the marked line is deleted
+    - Restored by undo/redo
+  </Tab>
+  
+  <Tab title="Uppercase (A-Z)">
+    **Global marks** (file marks) - Valid between files.
+    
+    ```vim
+    mA      " Set global mark A
+    `A      " Jump to mark A in its file
+    'A      " Jump to line of mark A
+    ```
+    
+    - Include the filename
+    - Can jump from any file to the marked file
+    - Preserved in viminfo file
+    - Line number stays correct even if text is edited
+  </Tab>
+  
+  <Tab title="Numbered (0-9)">
+    **Automatic marks** - Set by viminfo file.
+    
+    - `'0` - Position when you last exited Vim
+    - `'1` - Position when you exited Vim before that
+    - `'2` to `'9` - Older positions
+    
+    ```vim
+    `0      " Jump to position from last session
+    `1      " Jump to position from session before that
+    ```
+    
+    Cannot be set manually.
+  </Tab>
+  
+  <Tab title="Special">
+    **Automatic special marks** - Set by Vim.
+    
+    - `'[` `']` - Start and end of last change/yank
+    - `'<` `'>` - Start and end of last visual selection
+    - `''` ```` - Position before last jump
+    - `'"` - Position when last exiting buffer
+    - `'^` - Position where Insert mode stopped
+    - `'.` - Position of last change
+    - `'(` `')` - Start/end of current sentence
+    - `'{` `'}` - Start/end of current paragraph
+    
+    Set automatically, cannot be set manually.
+  </Tab>
+</Tabs>
+
+## Setting Marks
+
+### Basic Mark Commands
+
+<CodeGroup>
+
+```vim Set marks
+m{a-zA-Z}    " Set mark at cursor position
+ma           " Set local mark a
+mB           " Set global mark B
+```
+
+```vim Special mark commands
+m'  or  m`   " Set previous context mark
+m[  or  m]   " Set '[ or '] mark
+m<  or  m>   " Set '< or '> mark (visual area)
+```
+
+```vim Ex command
+:mark a      " Set mark a at current line
+:ma a        " Short form
+:5mark b     " Set mark b at line 5
+```
+
+</CodeGroup>
+
+<Warning>
+Setting a mark doesn't move the cursor. It only remembers the current position.
+</Warning>
+
+## Jumping to Marks
+
+There are two ways to jump to a mark:
+
+<Columns cols={2}>
+  <Card title="Backtick (`)" icon="quote">
+    Jump to exact position (line and column).
+    
+    ```vim
+    `a      " Jump to mark a (exact position)
+    `A      " Jump to mark A in its file
+    ```
+    
+    **Motion type:** Exclusive
+  </Card>
+  
+  <Card title="Single quote (')" icon="quote">
+    Jump to first non-blank character of the line.
+    
+    ```vim
+    'a      " Jump to line of mark a
+    'A      " Jump to line of mark A
+    ```
+    
+    **Motion type:** Linewise
+  </Card>
+</Columns>
+
+**Example:**
+```
+1  func tion() {
+2      some code;
+3      return value;
+4  }
+   ^---- mark 'a' set at column 4 of line 2
+
+`a  → cursor at column 4 of line 2
+'a  → cursor at column 0 of line 2 (first non-blank)
+```
+
+## Listing Marks
+
+```vim
+:marks           " List all marks
+:marks aB        " List specific marks (a and B)
+```
+
+**Example output:**
+```
+mark line  col file/text
+ a      3    5 some text
+ B    120    0 ~/project/file.c
+ '      1    0 first line
+ [      5    0 start of last change
+ >     10    5 end of visual selection
+```
+
+<Info>
+The first column has number zero. Use `:marks` without arguments to see all marks.
+</Info>
+
+## Deleting Marks
+
+```vim
+:delmarks a      " Delete mark a
+:delm a          " Short form
+:delmarks a-d    " Delete marks a through d
+:delmarks a b c  " Delete marks a, b, and c
+:delmarks!       " Delete all lowercase marks (a-z) for current buffer
+```
+
+<Warning>
+You cannot delete these marks: `'[`, `']`, `'<`, `'>`, `'"`, `'^`, `'.`, `'(`, `')`, `'{`, `'}`, ``'``.
+</Warning>
+
+## Special Marks Reference
+
+### Change and Yank Marks
+
+<Tabs>
+  <Tab title="'[ and ']">
+    Start and end of last change or yank.
+    
+    ```vim
+    yy       " Yank line
+    `[       " Jump to start of yanked text
+    `]       " Jump to end of yanked text
+    
+    p        " Paste text
+    `[       " Jump to start of pasted text
+    `]       " Jump to end of pasted text
+    ```
+    
+    <Tip>
+    After pasting with `p`, use ``]`` to jump to the last line inserted.
+    </Tip>
+  </Tab>
+  
+  <Tab title="'< and '>">
+    Start and end of last visual selection.
+    
+    ```vim
+    v5j      " Visual select 5 lines
+    <Esc>    " Exit visual mode
+    
+    `<       " Jump to start of selection
+    `>       " Jump to end of selection
+    gv       " Reselect last visual area
+    ```
+    
+    These marks are automatically set when you exit Visual mode.
+  </Tab>
+</Tabs>
+
+### Position History Marks
+
+<AccordionGroup>
+  <Accordion title="'' and `` - Previous position">
+    Position before the last jump.
+    
+    ```vim
+    gg       " Jump to first line
+    ''       " Jump back to previous position
+    ``       " Jump back (exact column)
+    ```
+    
+    Useful for quickly jumping back after a search or movement.
+  </Accordion>
+  
+  <Accordion title="Last exit position">
+    Mark `'"` - Position when you last exited the current buffer.
+    
+    ```vim
+    " When opening a file:
+    `"       " Jump to last edit position
+    ```
+    
+    Add to vimrc to always jump to last position:
+    ```vim
+    autocmd BufReadPost *
+      \ if line("'\"") > 0 && line("'\"") <= line("$") |
+      \   exe "normal! g`\"" |
+      \ endif
+    ```
+  </Accordion>
+  
+  <Accordion title="'^ - Last insert">
+    Position where Insert mode was last stopped.
+    
+    ```vim
+    itext<Esc>  " Type text and exit Insert mode
+    `^          " Jump back to where insert stopped
+    gi          " Resume Insert mode at same position
+    ```
+    
+    The `gi` command is a shortcut for ``^i``.
+  </Accordion>
+  
+  <Accordion title="'. - Last change">
+    Position where the last change was made.
+    
+    ```vim
+    dd       " Delete line
+    `.       " Jump to position of last change
+    ```
+    
+    Use `g;` and `g,` to navigate through change list.
+  </Accordion>
+</AccordionGroup>
+
+### Motion Marks
+
+```vim
+'(  or  `(    " Jump to start of current sentence
+')  or  `)    " Jump to end of current sentence
+'{  or  `{    " Jump to start of current paragraph
+'}  or  `}    " Jump to end of current paragraph
+```
+
+These marks are updated when you use the corresponding motion commands.
+
+## Using Marks with Operators
+
+Marks can be used with operators to affect text regions:
+
+<CodeGroup>
+
+```vim Delete
+d`a      " Delete from cursor to mark a
+d'a      " Delete lines from cursor to mark a
+```
+
+```vim Yank
+y`b      " Yank from cursor to mark b
+y'b      " Yank lines from cursor to line with mark b
+```
+
+```vim Change
+c`c      " Change text from cursor to mark c
+c'c      " Change lines from cursor to mark c
+```
+
+```vim Format
+gq'a     " Format lines from cursor to mark a
+```
+
+</CodeGroup>
+
+<Tip>
+Lowercase marks can be used with operators. Use mark `t` for "top" and `b` for "bottom" to remember text ranges.
+</Tip>
+
+**Example workflow:**
+```vim
+ma       " Mark start of section
+10j      " Move down 10 lines
+d'a      " Delete from mark a to current line
+```
+
+## The Jump List
+
+The jump list records positions when you make a "jump" - a command that moves the cursor several lines away.
+
+### What Counts as a Jump?
+
+These commands are recorded in the jump list:
+
+- `'`, `` ` `` - Jump to mark
+- `G` - Go to line
+- `/`, `?` - Search
+- `n`, `N` - Next/previous search result
+- `%` - Jump to matching bracket
+- `(`, `)` - Jump to sentence
+- `{`, `}` - Jump to paragraph
+- `[[`, `]]` - Jump to section
+- `:s` - Substitute command
+- `:tag` - Jump to tag
+- `L`, `M`, `H` - Jump to screen position
+- Starting to edit a new file
+
+<Note>
+Regular movements like `h`, `j`, `k`, `l`, `w`, `b`, etc., do NOT create jump list entries.
+</Note>
+
+### Navigating the Jump List
+
+<CodeGroup>
+
+```vim Jump backward
+CTRL-O       " Go to older cursor position
+5CTRL-O      " Go back 5 jumps
+```
+
+```vim Jump forward
+CTRL-I       " Go to newer cursor position
+<Tab>        " Same as CTRL-I
+5CTRL-I      " Go forward 5 jumps
+```
+
+```vim View jump list
+:jumps       " Display jump list
+```
+
+```vim Clear jump list
+:clearjumps  " Clear jump list for current window
+```
+
+</CodeGroup>
+
+### Jump List Display
+
+```vim
+:jumps
+```
+
+**Example output:**
+```
+ jump line  col file/text
+   3     1    0 some text
+   2    70    0 another line
+   1  1154   23 end.
+>
+```
+
+The `>` marker shows your current position. The "jump" column shows the count needed for `CTRL-O` to reach that position.
+
+### Jump List Behavior
+
+<Steps>
+  <Step title="Current position">
+    You start at position in line 1167.
+    ```
+    jump line  col file/text
+      3     1    0 some text
+      2    70    0 another line
+      1  1154   23 end.
+   >
+    ```
+  </Step>
+  
+  <Step title="Jump backward">
+    Press `CTRL-O` to jump to line 1154.
+    ```
+    jump line  col file/text
+      2     1    0 some text
+      1    70    0 another line
+   >  0  1154   23 end.
+      1  1167    0 foo bar
+    ```
+  </Step>
+  
+  <Step title="Jump backward again">
+    Press `CTRL-O` to jump to line 70.
+    ```
+    jump line  col file/text
+      1     1    0 some text
+   >  0    70    0 another line
+      1  1154   23 end.
+      2  1167    0 foo bar
+    ```
+  </Step>
+  
+  <Step title="Jump forward">
+    Press `CTRL-I` to jump back to line 1154.
+    ```
+    jump line  col file/text
+      2     1    0 some text
+      1    70    0 another line
+   >  0  1154   23 end.
+      1  1167    0 foo bar
+    ```
+  </Step>
+</Steps>
+
+<Info>
+When you make a new jump, the current line is added to the jump list. If that line was already in the list, it's removed first.
+</Info>
+
+## The Change List
+
+The change list tracks positions where changes were made.
+
+### Navigating Changes
+
+<CodeGroup>
+
+```vim Navigate older
+g;           " Go to older change position
+5g;          " Go back 5 changes
+```
+
+```vim Navigate newer  
+g,           " Go to newer change position
+5g,          " Go forward 5 changes
+```
+
+```vim View change list
+:changes     " Display change list
+```
+
+</CodeGroup>
+
+### Change List Display
+
+```vim
+:changes
+```
+
+**Example output:**
+```
+change line  col text
+    3     9    8 bla bla bla
+    2    11   57 foo is a bar
+    1    14   54 the latest changed line
+>
+```
+
+The `>` marker is below the newest entry, indicating `g;` will take you to the newest change.
+
+### Change List Behavior
+
+<Steps>
+  <Step title="View changes">
+    ```
+    change line  col text
+        3     9    8 bla bla bla
+        2    11   57 foo is a bar
+        1    14   54 the latest changed line
+    >
+    ```
+  </Step>
+  
+  <Step title="Jump to oldest change">
+    ```vim
+    3g;      " Jump to line 9
+    ```
+    
+    ```
+    change line  col text
+    >   0     9    8 bla bla bla
+        1    11   57 foo is a bar
+        2    14   54 the latest changed line
+    ```
+  </Step>
+  
+  <Step title="Jump forward">
+    ```vim
+    g,       " Jump to line 11
+    2g,      " Jump to line 14
+    ```
+  </Step>
+</Steps>
+
+<Tip>
+The change list and undo tree are related but different. The change list shows where changes happened, not what changes were made.
+</Tip>
+
+### Change List Features
+
+- Maximum of 100 entries (same as jump list)
+- Shared with undo tree
+- Multiple undo-able changes in the same line (within `textwidth` characters) count as one entry
+- Changes are remembered even after undo
+
+<Warning>
+When using `:keepjumps`, the position of changes is not recorded in the change list.
+</Warning>
+
+## Practical Examples
+
+### Example 1: Code Navigation
+
+<Steps>
+  <Step title="Mark important locations">
+    ```vim
+    mt       " Mark 't' for top of function
+    }        " Jump to end of function
+    mb       " Mark 'b' for bottom
+    ```
+  </Step>
+  
+  <Step title="Work elsewhere">
+    ```vim
+    /search<CR>  " Search for something
+    cw replacement<Esc>  " Make changes
+    ```
+  </Step>
+  
+  <Step title="Return to marks">
+    ```vim
+    `t       " Jump back to top
+    `b       " Jump to bottom
+    ```
+  </Step>
+</Steps>
+
+### Example 2: Multi-file Editing
+
+```vim
+" Edit first file, mark important spot
+vim file1.c
+/function<CR>
+mA       " Set global mark A
+
+" Edit second file, mark another spot
+:e file2.c
+/struct<CR>
+mB       " Set global mark B
+
+" Jump between files
+`A       " Jump to mark A in file1.c
+`B       " Jump to mark B in file2.c
+```
+
+### Example 3: Quick Edits with Jump List
+
+```vim
+/TODO<CR>    " Find TODO comment
+ciw DONE<Esc>  " Change it to DONE
+CTRL-O       " Jump back to where you were
+```
+
+### Example 4: Reviewing Recent Changes
+
+```vim
+g;       " Jump to last change
+g;       " Jump to change before that
+g;       " Keep going back through changes
+g,       " Go forward through changes
+```
+
+## Advanced Features
+
+### Preventing Jump List Updates
+
+Use `:keepjumps` to prevent commands from modifying the jump list:
+
+```vim
+:keepjumps normal gg    " Go to top without adding to jump list
+:keepjumps /pattern     " Search without adding to jump list
+```
+
+<Info>
+`:keepjumps` also prevents updates to the `''`, ```.```, and `'^` marks, and the change list.
+</Info>
+
+### Jump Without Updating Change List
+
+```vim
+g`a      " Jump to mark a without updating jump list
+g'a      " Jump to line of mark a without updating jump list
+```
+
+The `g` prefix prevents the jump from being added to the jump list.
+
+### Stack vs View Jump List Behavior
+
+Set `jumpoptions` to control jump list behavior:
+
+```vim
+set jumpoptions=stack   " Jump list behaves like tag stack
+```
+
+With `jumpoptions=stack`:
+- Jumping to a new location from the middle of the list discards everything after current position
+- Creates a tree structure instead of linear history
+- `CTRL-O` always goes up the tree
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use meaningful mark names">
+    Develop a consistent system:
+    ```vim
+    mt  " Mark 't' for top
+    mb  " Mark 'b' for bottom
+    mf  " Mark 'f' for function
+    mc  " Mark 'c' for class
+    ```
+  </Accordion>
+  
+  <Accordion title="Uppercase marks for important locations">
+    Use global marks to remember important spots across files:
+    ```vim
+    mA  " Main entry point
+    mB  " Important function
+    mC  " Configuration section
+    ```
+  </Accordion>
+  
+  <Accordion title="Use CTRL-O to go back">
+    After any search or jump, `CTRL-O` is your friend to return.
+    ```vim
+    /pattern<CR>  " Search
+    CTRL-O        " Go back
+    ```
+  </Accordion>
+  
+  <Accordion title="Leverage change list">
+    Use `g;` and `g,` to review your recent edits:
+    ```vim
+    g;   " What did I just change?
+    g;   " And before that?
+    ```
+  </Accordion>
+  
+  <Accordion title="Use '] after paste">
+    Jump to the end of pasted text:
+    ```vim
+    p    " Paste text
+    `]   " Jump to end of paste
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Quick Reference
+
+### Mark Commands
+
+| Command | Action |
+|---------|--------|
+| `m{a-z}` | Set local mark |
+| `m{A-Z}` | Set global mark |
+| `` `{mark} `` | Jump to mark (exact) |
+| `'{mark}` | Jump to mark line |
+| `:marks` | List all marks |
+| `:delmarks {marks}` | Delete marks |
+
+### Special Marks
+
+| Mark | Description |
+|------|-------------|
+| `'[` `']` | Start/end of last change or yank |
+| `'<` `'>` | Start/end of last visual selection |
+| `''` | Position before last jump |
+| `'"` | Position when last exiting buffer |
+| `'^` | Position where Insert mode stopped |
+| `'.` | Position of last change |
+| `'(` `')` | Start/end of current sentence |
+| `'{` `'}` | Start/end of current paragraph |
+
+### Jump List Commands
+
+| Command | Action |
+|---------|--------|
+| `CTRL-O` | Jump to older position |
+| `CTRL-I` | Jump to newer position |
+| `<Tab>` | Same as CTRL-I |
+| `:jumps` | Display jump list |
+| `:clearjumps` | Clear jump list |
+
+### Change List Commands
+
+| Command | Action |
+|---------|--------|
+| `g;` | Jump to older change position |
+| `g,` | Jump to newer change position |
+| `:changes` | Display change list |

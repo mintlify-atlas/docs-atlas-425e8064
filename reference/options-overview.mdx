@@ -1,0 +1,256 @@
+---
+title: Options Overview
+description: Understanding Vim's option system and how to configure it
+---
+
+Vim's behavior can be extensively customized through its option system. Options control everything from editing behavior to display settings and file handling.
+
+## Option Types
+
+Vim options come in three forms:
+
+- **Boolean**: Can only be on or off
+- **Number**: Has a numeric value
+- **String**: Has a string value
+
+## Setting Options
+
+### Basic Syntax
+
+Use the `:set` command to configure options:
+
+```vim
+:set option         " Show value of option
+:set option?        " Query value of option
+:set option=value   " Set string or number option
+:set option+=value  " Add to number option or append to string
+:set option-=value  " Subtract from number or remove from string
+:set option^=value  " Prepend to string option
+```
+
+### Boolean Options
+
+```vim
+:set number         " Turn on line numbers
+:set nonumber       " Turn off line numbers
+:set number!        " Toggle line numbers
+:set invnumber      " Invert/toggle line numbers
+```
+
+### String and Number Options
+
+```vim
+:set tabstop=4      " Set tab width to 4 spaces
+:set path+=/usr/include  " Add to path
+:set formatoptions-=t    " Remove 't' flag
+```
+
+## Option Scope
+
+Options can have different scopes:
+
+### Global Options
+
+One setting for all buffers and windows:
+
+```vim
+:set history=1000
+:set backup
+```
+
+### Local to Window
+
+Each window has its own copy:
+
+```vim
+:setlocal list      " Show invisible characters in this window only
+:setlocal number
+```
+
+### Local to Buffer
+
+Each buffer has its own copy:
+
+```vim
+:setlocal tabstop=2     " Set tab width for this buffer only
+:setlocal expandtab
+```
+
+### Global-Local Options
+
+Some options have both a global and local value:
+
+```vim
+:set makeprg=make           " Set global value
+:setlocal makeprg=perlmake  " Set local value for current buffer
+:setlocal makeprg=          " Clear local value, use global
+```
+
+## Setting Commands
+
+### :set
+
+Sets both global and local values:
+
+```vim
+:set tabstop=4
+```
+
+### :setlocal
+
+Sets only the local value:
+
+```vim
+:setlocal tabstop=2
+```
+
+### :setglobal
+
+Sets only the global value:
+
+```vim
+:setglobal tabstop=4
+```
+
+## Viewing Options
+
+```vim
+:set                " Show options that differ from default
+:set all            " Show all options
+:set option?        " Show value of specific option
+:verbose set option? " Show value and where it was last set
+```
+
+## Resetting Options
+
+```vim
+:set option&        " Reset to default value
+:set option&vi      " Reset to Vi default
+:set option&vim     " Reset to Vim default
+:set all&           " Reset all options to defaults
+```
+
+## Working with Flags
+
+Some options are lists of flags:
+
+```vim
+:set guioptions+=a  " Add 'a' flag
+:set guioptions-=a  " Remove 'a' flag
+```
+
+<Warning>
+Remove flags one at a time. If 'guioptions' is "ab", using `:set guioptions-=ba` won't work because "ba" doesn't appear in that order.
+</Warning>
+
+## Environment Variables
+
+Environment variables are expanded in string options:
+
+```vim
+:set path=/usr/$INCLUDE,$HOME/include,.
+:set term=$TERM.new
+```
+
+## Using ~ for Home Directory
+
+```vim
+:set backupdir=~/.vim/backup    " Expands to home directory
+:set path=~user/include         " Expands to user's home (Unix)
+```
+
+## Special Characters
+
+### Whitespace in Values
+
+Precede spaces with a backslash:
+
+```vim
+:set makeprg=make\ file         " Results in "make file"
+:set makeprg=make\\\ file      " Results in "make\ file"
+```
+
+### Commas in Values
+
+For comma-separated options, escape commas:
+
+```vim
+:set tags=tags,file             " Two items: "tags" and "file"
+:set tags=tags\\,file           " One item: "tags,file"
+```
+
+### Pipe Character
+
+Escape pipes in option values:
+
+```vim
+:set titlestring=hi\|there      " Includes the pipe character
+:set titlestring=hi|set iconstring=there  " Two commands
+```
+
+## Option Window
+
+Open an interactive option browser:
+
+```vim
+:options
+```
+
+This opens a window where you can:
+- View all options grouped by function
+- Read short help for each option
+- Modify values and apply them by pressing Enter
+
+## Modelines
+
+Set options per-file using modelines in the first or last few lines:
+
+```vim
+/* vim: set tabstop=4 shiftwidth=4: */
+// vim: ts=2 sw=2 expandtab
+```
+
+<Note>
+Modelines must be within the first or last N lines of the file, where N is set by the 'modelines' option (default 5).
+</Note>
+
+## Common Patterns
+
+### Check if Option Exists
+
+```vim
+if exists('&option')
+  set option
+endif
+```
+
+### Save and Restore Options
+
+```vim
+let save_option = &option
+set option=newvalue
+" ... do work ...
+let &option = save_option
+```
+
+### Function Option Values
+
+Some options can be set to function names:
+
+```vim
+set completefunc=MyComplete
+set tagfunc=<SID>MyTagFunc
+```
+
+## Related Topics
+
+- [Editing Options](/reference/editing-options) - Options that control editing behavior
+- [Display Options](/reference/display-options) - Options that affect the UI and display
+- [File Options](/reference/file-options) - Options for file handling and formats
+
+## See Also
+
+- `:help set-option` - Detailed help on setting options
+- `:help option-summary` - Complete list of all options
+- `:help local-options` - Understanding local options
+- `:help option-backslash` - Handling special characters

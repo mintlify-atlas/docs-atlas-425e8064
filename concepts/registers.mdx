@@ -1,0 +1,688 @@
+---
+title: Registers and Clipboard
+description: Understanding Vim's register system for copying, cutting, and pasting text
+---
+
+# Registers and Clipboard
+
+Vim's register system is a powerful feature that goes far beyond simple copy and paste. Registers are storage locations for text, and Vim provides multiple types of registers for different purposes.
+
+## What Are Registers?
+
+Registers are like clipboards in Vim. When you delete, change, or yank text, it goes into a register. When you paste, the text comes from a register.
+
+<Note>
+Registers are completely separate from marks. Marks remember positions, registers store text.
+</Note>
+
+## The Ten Types of Registers
+
+Vim has ten types of registers, each serving a specific purpose:
+
+<Tabs>
+  <Tab title="Unnamed">
+    **Register:** `""`
+    
+    The default register. Contains text from the last delete, change, or yank operation.
+    
+    ```vim
+    dd     " Delete line → goes to unnamed register
+    p      " Paste from unnamed register
+    ```
+  </Tab>
+  
+  <Tab title="Numbered">
+    **Registers:** `"0` to `"9`
+    
+    - `"0` contains the last yanked text
+    - `"1` to `"9` contain the last 9 deletions (most recent in `"1`)
+    
+    ```vim
+    yy     " Yank line → goes to "0
+    dd     " Delete line → goes to "1, previous "1 → "2
+    "0p    " Paste last yank
+    "1p    " Paste last delete
+    ```
+  </Tab>
+  
+  <Tab title="Small delete">
+    **Register:** `"-`
+    
+    Contains deletions less than one line (unless a register was specified).
+    
+    ```vim
+    dw     " Delete word → goes to "- and ""
+    "-p    " Paste deleted word
+    ```
+  </Tab>
+  
+  <Tab title="Named">
+    **Registers:** `"a` to `"z` or `"A` to `"Z`
+    
+    Explicitly specified by the user. Uppercase appends.
+    
+    ```vim
+    "ayy   " Yank line to register a
+    "Ayy   " Append line to register a
+    "ap    " Paste from register a
+    ```
+  </Tab>
+</Tabs>
+
+<Tabs>
+  <Tab title="Read-only">
+    **Registers:** `":`, `".`, `"%`
+    
+    - `":` - Last command-line command
+    - `".` - Last inserted text
+    - `"%` - Current file name
+    
+    ```vim
+    "%p    " Paste current filename
+    ".p    " Paste last inserted text
+    ":p    " Paste last command
+    ```
+  </Tab>
+  
+  <Tab title="Alternate buffer">
+    **Register:** `"#`
+    
+    Contains the name of the alternate file.
+    
+    ```vim
+    "#p    " Paste alternate filename
+    ```
+  </Tab>
+  
+  <Tab title="Expression">
+    **Register:** `"=`
+    
+    Evaluates expressions. Used for calculations and function results.
+    
+    ```vim
+    " In Insert mode:
+    <C-R>=2+2<CR>  " Inserts "4"
+    
+    " In Normal mode:
+    "=system('date')<CR>p  " Paste command output
+    ```
+  </Tab>
+  
+  <Tab title="Selection/Clipboard">
+    **Registers:** `"*`, `"+`, `"~`
+    
+    - `"*` - System primary selection (middle-click paste)
+    - `"+` - System clipboard (Ctrl+C/V)
+    - `"~` - Drag-and-drop text
+    
+    ```vim
+    "+yy   " Copy line to system clipboard
+    "+p    " Paste from system clipboard
+    "*p    " Paste X11 selection
+    ```
+  </Tab>
+</Tabs>
+
+<Tabs>
+  <Tab title="Black hole">
+    **Register:** `"_`
+    
+    The black hole register. Text goes in but never comes out.
+    
+    ```vim
+    "_dd   " Delete line without affecting registers
+    "_x    " Delete character without saving
+    ```
+  </Tab>
+  
+  <Tab title="Last search">
+    **Register:** `"/`
+    
+    Contains the last search pattern.
+    
+    ```vim
+    "/p    " Paste last search pattern
+    
+    " Set search pattern from register:
+    let @/ = @a
+    ```
+  </Tab>
+</Tabs>
+
+## Viewing Register Contents
+
+To see what's in all registers:
+
+```vim
+:registers     " Show all registers
+:reg           " Short form
+:display       " Alternative command
+```
+
+**Example output:**
+```
+Type Name Content
+  c  ""   deleted text
+  c  "0   yanked text  
+  c  "1   first deletion
+  c  "a   text in register a
+  c  "+   clipboard content
+```
+
+To view specific registers:
+
+```vim
+:reg a b c     " Show registers a, b, and c
+:reg "0        " Show unnamed and "0 registers
+:reg +         " Show clipboard register
+```
+
+<Info>
+Register types: `c` = characterwise, `l` = linewise, `b` = blockwise.
+</Info>
+
+## Using Registers
+
+### Specifying Registers
+
+Use `"{register}` before an operator, yank, or put command:
+
+<CodeGroup>
+
+```vim Yank to register
+"ayy      " Yank line to register a
+"byw      " Yank word to register b
+"cy$      " Yank to end of line into register c
+```
+
+```vim Delete to register
+"add      " Delete line into register a
+"xdw      " Delete word into register x
+"z3dd     " Delete 3 lines into register z
+```
+
+```vim Paste from register
+"ap       " Paste from register a
+"bP       " Paste from register b before cursor
+"0p       " Paste last yank (from register 0)
+```
+
+</CodeGroup>
+
+### Appending to Registers
+
+Use uppercase register names to append instead of replace:
+
+<Steps>
+  <Step title="Yank first piece">
+    ```vim
+    "ayy     " Yank line to register a
+    ```
+    Register a contains: "first line"
+  </Step>
+  
+  <Step title="Append more text">
+    ```vim
+    j"Ayy    " Move down and append line to register a
+    ```
+    Register a now contains: "first line" + "second line"
+  </Step>
+  
+  <Step title="Paste combined text">
+    ```vim
+    "ap      " Paste both lines
+    ```
+  </Step>
+</Steps>
+
+<Warning>
+Appending only works with named registers (a-z). You cannot append to numbered or special registers.
+</Warning>
+
+## Register Types
+
+Registers store text in three different ways:
+
+<Columns cols={3}>
+  <Card title="Characterwise" icon="font">
+    Text without line breaks.
+    
+    ```vim
+    yw    " Yank word (characterwise)
+    p     " Paste after cursor
+    ```
+  </Card>
+  
+  <Card title="Linewise" icon="align-left">
+    Complete lines.
+    
+    ```vim
+    yy    " Yank line (linewise)
+    p     " Paste below current line
+    ```
+  </Card>
+  
+  <Card title="Blockwise" icon="grip-vertical">
+    Rectangular blocks.
+    
+    ```vim
+    <C-V>jjlly  " Yank visual block
+    p           " Paste block
+    ```
+  </Card>
+</Columns>
+
+The register type affects how text is pasted:
+- **Characterwise:** Pasted after (`p`) or before (`P`) the cursor
+- **Linewise:** Pasted below (`p`) or above (`P`) the current line
+- **Blockwise:** Pasted as a rectangle starting at the cursor
+
+## The Unnamed Register
+
+The unnamed register (`""`) is special:
+
+<Info>
+The unnamed register acts like a pointer to the last used register. When you use an uppercase register name to append, the unnamed register contains the same text as the named register.
+</Info>
+
+```vim
+"ayy     " Yank to register a
+yy       " Yank to unnamed register
+p        " Paste from unnamed (most recent yank)
+"ap      " Paste from register a (first yank)
+```
+
+**Exception:** Operations using the black hole register (`"_`) don't affect any registers:
+
+```vim
+"_dd     " Delete line without changing any register
+p        " Still pastes previous contents
+```
+
+## Numbered Registers (0-9)
+
+### Register 0: Last Yank
+
+Register `"0` always contains the text from the most recent yank command:
+
+```vim
+yy       " Yank line → goes to "0 and ""
+dd       " Delete line → goes to "1 and ""
+p        " Paste deletion (from "")
+"0p      " Paste the yank (from "0)
+```
+
+<Tip>
+Use `"0p` to paste your last yank even after deleting something.
+</Tip>
+
+### Registers 1-9: Deletion History
+
+Registers `"1` through `"9` form a deletion history queue:
+
+- `"1` contains the most recent deletion (more than one line)
+- Each new deletion shifts the previous contents: `"1` → `"2`, `"2` → `"3`, etc.
+- `"9` is discarded when a new deletion enters `"1`
+
+**Example:**
+```vim
+dd       " Delete line 1 → "1
+dd       " Delete line 2 → "1, previous "1 → "2
+dd       " Delete line 3 → "1, previous "1 → "2, previous "2 → "3
+
+"1p      " Paste line 3
+"2p      " Paste line 2  
+"3p      " Paste line 1
+```
+
+<Note>
+Small deletions (less than one line) go to the small delete register `"-` unless a register is explicitly specified.
+</Note>
+
+## Named Registers (a-z, A-Z)
+
+Named registers are yours to use as you wish:
+
+<CodeGroup>
+
+```vim Basic usage
+"ayy     " Yank line to register a
+"add     " Delete line to register a (overwrites)
+"ap      " Paste from register a
+```
+
+```vim Appending
+"ayy     " Yank line to register a
+"Ayy     " Append another line to register a
+"ap      " Paste both lines
+```
+
+```vim Multiple named registers
+"ayy     " Yank to register a
+"byy     " Yank to register b
+"cyy     " Yank to register c
+"ap      " Paste from a
+"bp      " Paste from b
+"cp      " Paste from c
+```
+
+</CodeGroup>
+
+<Tip>
+Develop a system for named registers. For example:
+- `"a` for temporary clipboard
+- `"b` for boilerplate code
+- `"c` for commonly used snippets
+</Tip>
+
+## Read-Only Registers
+
+These registers contain useful information but cannot be written to directly:
+
+### Last Command (":)
+
+```vim
+:echo "Hello"    " Execute command
+":p              " Paste: echo "Hello"
+
+" Useful for editing and re-running commands:
+":    " Opens command-line with last command
+```
+
+### Last Insert (".)
+
+```vim
+iHello<Esc>      " Type and leave Insert mode
+".p              " Paste: Hello
+
+" Useful for repeating typed text in different locations
+```
+
+### Current Filename (%)
+
+```vim
+"%p              " Paste current filename with path
+:echo @%         " Display current filename
+
+" Useful in commands:
+:!gcc %          " Compile current file
+```
+
+## Expression Register (=)
+
+The expression register evaluates Vimscript expressions:
+
+<Tabs>
+  <Tab title="Insert mode">
+    ```vim
+    " In Insert mode:
+    <C-R>=2+2<CR>           " Insert: 4
+    <C-R>=system('date')<CR> " Insert date
+    <C-R>=@a<CR>            " Insert contents of register a
+    ```
+  </Tab>
+  
+  <Tab title="Command-line mode">
+    ```vim
+    " In Command-line mode:
+    :<C-R>=expand('%:t')<CR>  " Insert filename
+    :<C-R>=line('.')<CR>      " Insert current line number
+    ```
+  </Tab>
+  
+  <Tab title="Normal mode">
+    ```vim
+    " Calculate and paste:
+    "=2*21<CR>p             " Paste: 42
+    "=strftime('%Y')<CR>p   " Paste current year
+    "=@a . @b<CR>p          " Concatenate registers a and b
+    ```
+  </Tab>
+</Tabs>
+
+<Info>
+The expression register is incredibly powerful for dynamic text generation and calculations.
+</Info>
+
+## System Clipboard Integration
+
+### Clipboard vs Selection
+
+On systems with X11 (Linux/Unix):
+
+<Columns cols={2}>
+  <Card title="Primary Selection (*)" icon="mouse-pointer">
+    Selected text (middle-click paste).
+    
+    ```vim
+    "*yy   " Copy to primary selection
+    "*p    " Paste from primary selection
+    ```
+    
+    Automatically updated when you select text.
+  </Card>
+  
+  <Card title="Clipboard (+)" icon="clipboard">
+    Ctrl+C / Ctrl+V clipboard.
+    
+    ```vim
+    "+yy   " Copy to clipboard
+    "+p    " Paste from clipboard
+    ```
+    
+    Integrates with system copy/paste.
+  </Card>
+</Columns>
+
+### Checking Clipboard Support
+
+```vim
+:echo has('clipboard')        " Check if compiled with clipboard
+:version                      " Look for +clipboard or +clipboard_provider
+```
+
+<Warning>
+If Vim is compiled without clipboard support, the `"*` and `"+` registers won't work with the system clipboard.
+</Warning>
+
+### Clipboard Configuration
+
+Set the `clipboard` option to change default paste behavior:
+
+```vim
+:set clipboard=unnamed        " Use * register
+:set clipboard=unnamedplus    " Use + register
+:set clipboard=unnamed,unnamedplus  " Use both
+```
+
+With `clipboard=unnamedplus`:
+- Regular `yy` copies to system clipboard
+- Regular `p` pastes from system clipboard
+
+## The Black Hole Register (_)
+
+The black hole register discards text without affecting other registers:
+
+```vim
+"_dd     " Delete line without saving
+"_x      " Delete character without saving
+"_d$     " Delete to end of line without saving
+```
+
+<Tip>
+Use the black hole register when you want to delete something without overwriting your clipboard:
+</Tip>
+
+**Example workflow:**
+```vim
+yy       " Yank line you want to keep
+"_dd     " Delete unwanted line (doesn't affect registers)
+p        " Paste the line you yanked earlier
+```
+
+## Last Search Pattern Register (/)
+
+Contains the last search pattern:
+
+```vim
+/pattern<CR>     " Search for 'pattern'
+"/p              " Paste: pattern
+
+" Set search pattern programmatically:
+let @/ = "newpattern"
+n                " Jump to next occurrence of 'newpattern'
+```
+
+## Practical Examples
+
+### Example 1: Swapping Two Lines
+
+<Steps>
+  <Step title="Delete first line">
+    ```vim
+    dd       " Delete first line → "1
+    ```
+  </Step>
+  
+  <Step title="Delete second line">
+    ```vim
+    dd       " Delete second line → "1, first line → "2
+    ```
+  </Step>
+  
+  <Step title="Paste in reverse order">
+    ```vim
+    "2p      " Paste first line (now second)
+    "1p      " Paste second line (now first)
+    ```
+  </Step>
+</Steps>
+
+### Example 2: Collecting Text from Multiple Locations
+
+```vim
+"ayy      " Yank first line to register a
+/second<CR>
+"Ayy      " Append second line to register a
+/third<CR>
+"Ayy      " Append third line to register a
+"ap       " Paste all three lines
+```
+
+### Example 3: Using Expression Register for Calculations
+
+```vim
+" Calculate sum and insert:
+i<C-R>=25 + 17<CR>  " Inserts: 42
+
+" Insert current date:
+i<C-R>=strftime('%Y-%m-%d')<CR>  " Inserts: 2024-01-15
+
+" Insert line count:
+i<C-R>=line('$')<CR>  " Inserts total line count
+```
+
+### Example 4: Macro Recording Uses Registers
+
+<Info>
+Macros are stored in registers! You can edit them as text.
+</Info>
+
+```vim
+qq       " Start recording macro into register q
+dd       " Delete line
+j        " Move down
+q        " Stop recording
+
+:echo @q " Show macro contents: dd^Mj
+
+" Edit the macro:
+:let @q = 'dw'  " Change macro to delete word
+
+@q       " Execute modified macro
+```
+
+## Register Access in Scripts
+
+In Vimscript, access registers with `@` prefix:
+
+```vim
+" Read register
+let text = @a
+echo @+       " Show clipboard contents
+
+" Write to register
+let @a = "new text"
+let @" = "set unnamed register"
+let @+ = "copy to clipboard"
+
+" Append to register
+let @A = "append this"  " Uppercase appends
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title='Use "0 for last yank'>
+    After yanking text, use `"0p` to paste it even after deleting something else.
+    
+    ```vim
+    yy       " Yank line
+    dd       " Delete another line
+    "0p      " Paste the yank, not the deletion
+    ```
+  </Accordion>
+  
+  <Accordion title="Black hole for non-destructive deletes">
+    Delete without affecting registers using `"_`:
+    
+    ```vim
+    yy       " Yank line
+    "_dd     " Delete without overwriting yank
+    p        " Paste the yank
+    ```
+  </Accordion>
+  
+  <Accordion title="Named registers for common snippets">
+    Store frequently used text in named registers:
+    
+    ```vim
+    " In your vimrc:
+    let @c = "Copyright 2024"
+    let @e = "email@example.com"
+    
+    " Use anywhere:
+    "cp      " Paste copyright text
+    ```
+  </Accordion>
+  
+  <Accordion title="Clipboard integration for system copy/paste">
+    Set up clipboard for seamless integration:
+    
+    ```vim
+    set clipboard=unnamedplus
+    
+    " Now yy/p work with system clipboard
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Quick Reference
+
+| Register | Name | Description |
+|----------|------|-------------|
+| `""` | Unnamed | Last delete, change, or yank |
+| `"0` | Register 0 | Last yank only |
+| `"1` to `"9` | Registers 1-9 | Deletion history |
+| `"-` | Small delete | Deletions less than one line |
+| `"a` to `"z` | Named | User-specified storage |
+| `"A` to `"Z` | Named (append) | Append to lowercase equivalent |
+| `":` | Command | Last command |
+| `".` | Insert | Last inserted text |
+| `"%` | Filename | Current file name |
+| `"#` | Alternate | Alternate file name |
+| `"=` | Expression | Expression evaluation |
+| `"*` | Selection | System primary selection |
+| `"+` | Clipboard | System clipboard |
+| `"_` | Black hole | Discards text |
+| `"/` | Search | Last search pattern |

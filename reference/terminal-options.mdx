@@ -1,0 +1,552 @@
+---
+title: Terminal Options
+description: Terminal configuration and termcap options in Vim
+---
+
+## Overview
+
+Vim uses terminal information to control screen output and recognize key sequences. Terminal options (termcap/terminfo entries) define how Vim communicates with your terminal emulator. This guide covers terminal configuration, common issues, and platform-specific settings.
+
+## Terminal Basics
+
+### Terminal Detection
+
+Vim determines terminal type from:
+
+1. `-T` command-line argument: `vim -T xterm`
+2. `TERM` environment variable: `echo $TERM`
+3. Builtin default (varies by platform)
+
+**Common terminal types:**
+- `xterm`, `xterm-256color` - X terminal emulator
+- `screen`, `tmux` - Terminal multiplexers
+- `linux` - Linux console
+- `win32` - Windows console
+
+### Termcap vs Terminfo
+
+Vim uses either termcap or terminfo database:
+
+```vim
+" Check which is compiled in
+:version
+" Look for +terminfo or +termcap
+```
+
+Terminfo (modern) vs termcap (legacy) - terminfo is preferred on Unix systems.
+
+### Builtin Terminals
+
+Vim includes builtin terminal definitions:
+
+```vim
+" List available builtin terminals
+:set term=xxx
+" Shows error with list of builtin types
+```
+
+**Builtin terminal precedence:**
+
+```vim
+" ttybuiltin on: builtin first, external second
+" ttybuiltin off: external first, builtin second
+set ttybuiltin
+set nottybuiltin
+```
+
+## Terminal Options
+
+### Viewing Terminal Options
+
+View current terminal settings:
+
+```vim
+" Show all terminal options
+:set termcap
+
+" Show specific option
+:set t_Co?
+:set t_AB?
+```
+
+### Setting Terminal Options
+
+Manually configure terminal codes:
+
+```vim
+" Set specific option (CTRL-V, ESC, [, K)
+set t_ce=^V^[[K
+
+" Clear screen code
+let &t_cl = "\<Esc>[H\<Esc>[2J"
+
+" Cursor motion (required!)
+let &t_cm = "\<Esc>[%i%d;%dH"
+```
+
+## Output Codes
+
+Terminal output codes control screen display:
+
+### Color Codes
+
+| Option | Description | Example |
+|--------|-------------|----------|
+| `t_Co` | Number of colors | `:set t_Co=256` |
+| `t_AB` | Set background (ANSI) | `\<Esc>[4%dm` |
+| `t_AF` | Set foreground (ANSI) | `\<Esc>[3%dm` |
+| `t_Sb` | Set background color | Legacy |
+| `t_Sf` | Set foreground color | Legacy |
+| `t_op` | Reset to original colors | `\<Esc>[39;49m` |
+
+### Screen Manipulation
+
+| Option | Description |
+|--------|-------------|
+| `t_cl` | Clear screen |
+| `t_ce` | Clear to end of line |
+| `t_cd` | Clear to end of screen |
+| `t_al` | Add blank line |
+| `t_dl` | Delete line |
+| `t_cs` | Define scrolling region |
+
+### Cursor Control
+
+| Option | Description |
+|--------|-------------|
+| `t_cm` | Cursor motion (required!) |
+| `t_ve` | Cursor visible |
+| `t_vi` | Cursor invisible |
+| `t_vs` | Cursor very visible (blink) |
+| `t_VS` | Cursor normally visible |
+
+### Text Attributes
+
+| Option | Description |
+|--------|-------------|
+| `t_md` | Bold mode |
+| `t_mr` | Reverse/invert mode |
+| `t_so` | Standout mode |
+| `t_se` | Standout end |
+| `t_us` | Underline mode |
+| `t_ue` | Underline end |
+| `t_me` | Normal mode (reset) |
+
+## Key Codes
+
+Terminal key codes map keys to escape sequences:
+
+### Arrow Keys
+
+| Option | Key | Typical Value |
+|--------|-----|---------------|
+| `t_ku` | Up | `\<Esc>[A` |
+| `t_kd` | Down | `\<Esc>[B` |
+| `t_kr` | Right | `\<Esc>[C` |
+| `t_kl` | Left | `\<Esc>[D` |
+
+### Function Keys
+
+| Option | Key | Typical Value |
+|--------|-----|---------------|
+| `t_k1` | F1 | `\<Esc>OP` |
+| `t_k2` | F2 | `\<Esc>OQ` |
+| `t_k3` | F3 | `\<Esc>OR` |
+| `t_k4` | F4 | `\<Esc>OS` |
+| `t_F1` | F11 | `\<Esc>[23~` |
+| `t_F2` | F12 | `\<Esc>[24~` |
+
+### Special Keys
+
+| Option | Key |
+|--------|-----|
+| `t_kh` | Home |
+| `t_@7` | End |
+| `t_kI` | Insert |
+| `t_kD` | Delete |
+| `t_kb` | Backspace |
+| `t_kP` | PageUp |
+| `t_kN` | PageDown |
+
+## Advanced Terminal Features
+
+### True Color Support
+
+Enable 24-bit true color:
+
+```vim
+" Check terminal support
+if has('termguicolors')
+  set termguicolors
+  
+  " Set true color codes
+  let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+  let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+endif
+```
+
+**Compatible terminals:**
+- xterm-256color (newer versions)
+- gnome-terminal
+- konsole  
+- iTerm2
+- Windows Terminal
+
+### Bracketed Paste Mode
+
+Prevents unwanted side effects when pasting:
+
+```vim
+" Enable bracketed paste
+let &t_BE = "\<Esc>[?2004h"
+let &t_BD = "\<Esc>[?2004l"  
+let &t_PS = "\<Esc>[200~"
+let &t_PE = "\<Esc>[201~"
+
+" Disable if problematic
+set t_BE=
+```
+
+### Focus Event Tracking
+
+Detect when Vim gains/loses focus:
+
+```vim
+" Enable focus events
+let &t_fe = "\<Esc>[?1004h"
+let &t_fd = "\<Esc>[?1004l"
+execute "set <FocusGained>=\<Esc>[I"
+execute "set <FocusLost>=\<Esc>[O"
+
+" Use in autocommands
+autocmd FocusGained * checktime
+autocmd FocusLost * silent! wall
+```
+
+### Cursor Shape Changes
+
+Change cursor shape by mode:
+
+```vim
+" Block in normal, line in insert, underline in replace
+let &t_SI = "\<Esc>[6 q"  " Insert mode
+let &t_SR = "\<Esc>[4 q"  " Replace mode
+let &t_EI = "\<Esc>[2 q"  " Normal mode
+```
+
+**Cursor shapes:**
+- `0` or `1`: Blinking block
+- `2`: Steady block
+- `3`: Blinking underline
+- `4`: Steady underline
+- `5`: Blinking bar
+- `6`: Steady bar
+
+### Mouse Reporting
+
+Enable mouse support in terminal:
+
+```vim
+" Enable mouse in all modes
+set mouse=a
+
+" Set mouse protocol
+set ttymouse=sgr  " SGR protocol (modern, supports large terminals)
+set ttymouse=xterm2  " Legacy xterm protocol
+```
+
+**Mouse protocols:**
+- `sgr` - Best for modern terminals, supports clicks beyond column 223
+- `xterm2` - Standard xterm, columns up to 223
+- `dec` - DEC terminal
+
+## Platform-Specific Configuration
+
+### xterm Configuration
+
+Common xterm settings:
+
+```vim
+if &term =~ "xterm"
+  " True color support
+  set termguicolors
+  let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+  let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+  
+  " Cursor shape
+  let &t_SI = "\<Esc>[6 q"
+  let &t_SR = "\<Esc>[4 q"
+  let &t_EI = "\<Esc>[2 q"
+  
+  " Better mouse support
+  set ttymouse=sgr
+endif
+```
+
+### tmux Integration
+
+Configuration for tmux:
+
+```vim
+if !has('gui_running') && &term =~ '^\%(screen\|tmux\)'
+  " Better mouse support
+  set ttymouse=sgr
+  
+  " True colors
+  let &termguicolors = v:true
+  let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+  let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+  
+  " Bracketed paste
+  let &t_BE = "\<Esc>[?2004h"
+  let &t_BD = "\<Esc>[?2004l"
+  let &t_PS = "\<Esc>[200~"
+  let &t_PE = "\<Esc>[201~"
+  
+  " Focus events
+  let &t_fe = "\<Esc>[?1004h"
+  let &t_fd = "\<Esc>[?1004l"
+  execute "set <FocusGained>=\<Esc>[I"
+  execute "set <FocusLost>=\<Esc>[O"
+  
+  " Modified arrow keys
+  execute "silent! set <xUp>=\<Esc>[@;*A"
+  execute "silent! set <xDown>=\<Esc>[@;*B"
+  execute "silent! set <xRight>=\<Esc>[@;*C"
+  execute "silent! set <xLeft>=\<Esc>[@;*D"
+endif
+```
+
+**tmux.conf settings:**
+
+```bash
+# Enable true color
+set -g default-terminal "tmux-256color"
+set -ga terminal-overrides ",*256col*:Tc"
+
+# Enable mouse
+set -g mouse on
+
+# Enable focus events
+set -g focus-events on
+```
+
+### Windows Terminal
+
+Windows-specific configuration:
+
+```vim
+if &term == 'win32' || &term =~ 'xterm'
+  " True color
+  set termguicolors
+  
+  " Cursor shape
+  let &t_SI = "\e[5 q"  " Blink bar
+  let &t_SR = "\e[3 q"  " Blink underline
+  let &t_EI = "\e[1 q"  " Blink block
+  let &t_ti ..= "\e[1 q"
+  let &t_te ..= "\e[0 q"
+endif
+```
+
+### Kitty Terminal
+
+Kitty requires special handling:
+
+```vim
+if &term == 'xterm-kitty'
+  " Kitty-specific settings
+  set termguicolors
+  
+  " Use kitty keyboard protocol if desired
+  " (requires additional configuration)
+endif
+```
+
+## Terminal Compatibility
+
+### Color Support Detection
+
+Check available colors:
+
+```vim
+" Check color support
+echo &t_Co
+" 8, 16, 88, 256, or 16777216 (GUI)
+
+" Force 256 colors
+set t_Co=256
+
+" Check true color support
+if has('termguicolors')
+  echo "True color supported"
+endif
+```
+
+### Modifier Key Support
+
+Newer terminals support modified keys:
+
+```vim
+" Modified arrow keys (Ctrl, Alt, Shift)
+execute "set <xUp>=\<Esc>[@;*A"
+execute "set <xDown>=\<Esc>[@;*B"
+execute "set <xRight>=\<Esc>[@;*C"
+execute "set <xLeft>=\<Esc>[@;*D"
+
+" Modified function keys
+set <F13>=\<Esc>[25~  " Shift-F1
+set <F14>=\<Esc>[26~  " Shift-F2
+```
+
+### Alternate Screen
+
+Control alternate screen buffer:
+
+```vim
+" Terminal initialization
+let &t_ti = "\<Esc>[?1049h"  " Enter alternate screen
+let &t_te = "\<Esc>[?1049l"  " Exit alternate screen
+
+" Raw mode (used internally)
+let &t_TI = "\<Esc>[?1h\<Esc>="
+let &t_TE = "\<Esc>[?1l\<Esc>>"
+```
+
+## Troubleshooting
+
+### Common Issues
+
+**Colors look wrong:**
+
+```vim
+" Check color count
+echo &t_Co
+
+" Try setting explicitly
+set t_Co=256
+set notermguicolors
+```
+
+**Key codes don't work:**
+
+```vim
+" Debug key codes
+set showcmd
+Ctrl-V <key>  " Shows what Vim receives
+
+" Check timeout settings
+set notimeout ttimeout
+set timeoutlen=1000
+set ttimeoutlen=100
+```
+
+**Cursor shape doesn't change:**
+
+```vim
+" Verify terminal support
+let &t_SI = "\<Esc>[6 q"
+" If nothing happens, terminal doesn't support it
+
+" Reset on exit
+autocmd VimLeave * silent !echo -ne "\033[0 q"
+```
+
+**Escape key is slow:**
+
+```vim
+" Reduce timeout
+set ttimeoutlen=50
+set notimeout ttimeout
+```
+
+**Pasted text causes problems:**
+
+```vim
+" Enable bracketed paste
+let &t_BE = "\<Esc>[?2004h"
+let &t_BD = "\<Esc>[?2004l"
+let &t_PS = "\<Esc>[200~"
+let &t_PE = "\<Esc>[201~"
+```
+
+### Terminal Testing
+
+Test terminal capabilities:
+
+```vim
+" Test colors
+:runtime syntax/colortest.vim
+
+" Test keys
+:map <F1> :echo "F1 works"<CR>
+
+" Show terminal info
+:echo $TERM
+:echo &term
+:set termcap
+```
+
+## Performance Tuning
+
+### Fast vs Slow Terminals
+
+**For fast terminals:**
+
+```vim
+set ttyfast
+set ruler
+set showcmd
+set sidescroll=1
+```
+
+**For slow terminals:**
+
+```vim
+set nottyfast
+set noshowcmd
+set scrolljump=5
+set sidescroll=8
+set ttyscroll=3
+```
+
+### Lazy Redrawing
+
+```vim
+" Don't redraw during macros
+set lazyredraw
+
+" Reduce screen updates
+set updatetime=1000
+```
+
+## Raw Mode and Initialization
+
+Vim puts terminal in "raw" mode for editing:
+
+```vim
+" Sequences sent on startup
+" t_ti - Terminal init
+" t_TI - Raw mode init  
+" t_ks - Keypad transmit mode
+
+" Sequences sent on exit
+" t_te - Terminal exit
+" t_TE - Raw mode exit
+" t_ke - Keypad normal mode
+```
+
+## Best Practices
+
+1. **Use builtin settings**: Let Vim detect terminal automatically when possible
+2. **Test changes**: Verify terminal options work before committing to vimrc
+3. **Document workarounds**: Comment why custom terminal codes are needed
+4. **Check features**: Use `has()` to test for feature availability
+5. **Terminal-specific blocks**: Use `if &term =~` for conditional configuration
+6. **Fallback gracefully**: Provide alternatives for unsupported features
+
+## See Also
+
+- [GUI Features](/reference/gui-features) - GUI-specific features
+- [Key Notation](/reference/key-notation) - Key notation and special keys
+- [Mouse Usage](/fundamentals/mouse) - Mouse configuration and usage

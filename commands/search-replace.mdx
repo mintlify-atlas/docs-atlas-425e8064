@@ -1,0 +1,519 @@
+---
+title: Search and Replace
+description: Find, navigate, and replace text using Vim's powerful search and substitute commands
+---
+
+## Overview
+
+Vim provides powerful search and replace capabilities with regular expression support. Master these commands to efficiently find and modify text.
+
+## Basic Search
+
+### Forward and Backward Search
+
+| Command | Description |
+|---------|-------------|
+| `/{pattern}` | Search forward for {pattern} |
+| `?{pattern}` | Search backward for {pattern} |
+| `n` | Repeat search in same direction |
+| `N` | Repeat search in opposite direction |
+| `*` | Search forward for word under cursor |
+| `#` | Search backward for word under cursor |
+| `g*` | Search forward for partial word under cursor |
+| `g#` | Search backward for partial word under cursor |
+
+### Search Examples
+
+```vim
+" Search for 'function'
+/function
+
+" Search backward for 'end'
+?end
+
+" Find next occurrence
+n
+
+" Find previous occurrence
+N
+
+" Search for word under cursor
+*
+```
+
+## Search Modifiers
+
+### Case Sensitivity
+
+| Pattern | Description |
+|---------|-------------|
+| `/\c` | Ignore case for this search |
+| `/\C` | Match case for this search |
+| Set `ignorecase` | Ignore case for all searches |
+| Set `smartcase` | Smart case matching (requires `ignorecase`) |
+
+### Search Offset
+
+| Pattern | Description |
+|---------|-------------|
+| `/pattern/+2` | Search and go 2 lines down |
+| `/pattern/-1` | Search and go 1 line up |
+| `/pattern/e` | Go to end of match |
+| `/pattern/s` | Go to start of match |
+| `/pattern/b+3` | Go 3 chars right of start |
+
+### Search Examples with Modifiers
+
+```vim
+" Case-insensitive search
+/\cpattern
+
+" Case-sensitive search
+/\Cpattern
+
+" Search and position at end
+/function/e
+
+" Search and go 1 line down
+/function/+1
+```
+
+## Search Configuration
+
+### Search Options
+
+| Option | Description |
+|--------|-------------|
+| `set hlsearch` | Highlight search results |
+| `set nohlsearch` | Don't highlight search results |
+| `set incsearch` | Show match while typing |
+| `set ignorecase` | Case-insensitive search |
+| `set smartcase` | Case-sensitive if uppercase present |
+| `set wrapscan` | Wrap search at end of file |
+
+### Clear Search Highlighting
+
+```vim
+" Clear search highlighting
+:nohlsearch
+" or
+:noh
+```
+
+## Substitute Command
+
+### Basic Syntax
+
+```vim
+:[range]s/{pattern}/{replacement}/[flags]
+```
+
+### Substitute Examples
+
+```vim
+" Replace first occurrence in current line
+:s/old/new/
+
+" Replace all occurrences in current line
+:s/old/new/g
+
+" Replace in entire file
+:%s/old/new/g
+
+" Replace in lines 10-20
+:10,20s/old/new/g
+
+" Replace in visual selection
+:'<,'>s/old/new/g
+```
+
+## Substitute Flags
+
+### Common Flags
+
+| Flag | Description |
+|------|-------------|
+| `g` | Replace all occurrences in line (global) |
+| `c` | Confirm each substitution |
+| `i` | Ignore case for this substitute |
+| `I` | Don't ignore case |
+| `n` | Report number of matches, don't substitute |
+
+### Flag Examples
+
+```vim
+" Replace with confirmation
+:%s/old/new/gc
+
+" Case-insensitive replace
+:%s/old/new/gi
+
+" Count matches without replacing
+:%s/pattern//n
+
+" Replace all, case-insensitive, with confirmation
+:%s/old/new/gic
+```
+
+## Range Specifications
+
+### Range Syntax
+
+| Range | Description |
+|-------|-------------|
+| `:s/...` | Current line only |
+| `:%s/...` | Entire file |
+| `:5,10s/...` | Lines 5 to 10 |
+| `:.,$s/...` | Current line to end of file |
+| `:.,+5s/...` | Current line and 5 lines down |
+| `:'<,'>s/...` | Visual selection (automatic in visual mode) |
+| `:g/pattern/s/...` | Lines matching pattern |
+
+### Range Examples
+
+```vim
+" Replace in lines 10-20
+:10,20s/foo/bar/g
+
+" Replace from current line to end
+:.,$s/foo/bar/g
+
+" Replace in lines containing 'class'
+:g/class/s/foo/bar/g
+```
+
+## Special Replacements
+
+### Replacement Patterns
+
+| Pattern | Description |
+|---------|-------------|
+| `&` | Entire matched pattern |
+| `\0` | Entire matched pattern |
+| `\1`, `\2`, ... | Captured groups |
+| `\u` | Uppercase next character |
+| `\U` | Uppercase until `\e` or `\E` |
+| `\l` | Lowercase next character |
+| `\L` | Lowercase until `\e` or `\E` |
+| `\e`, `\E` | End `\u`, `\U`, `\l`, or `\L` |
+| `\r` | Insert newline |
+| `\t` | Insert tab |
+| `~` | Previous substitute string |
+
+### Replacement Examples
+
+```vim
+" Capitalize first letter of words
+:%s/\<\(\w\)/\u\1/g
+
+" Swap two words
+:%s/\(foo\) \(bar\)/\2 \1/g
+
+" Add quotes around words
+:%s/\w\+/"&"/g
+
+" Convert to uppercase
+:%s/.*/\U&/g
+
+" Change snake_case to camelCase
+:%s/_\(\w\)/\u\1/g
+```
+
+## Regular Expressions
+
+### Basic Patterns
+
+| Pattern | Description |
+|---------|-------------|
+| `.` | Any character |
+| `*` | 0 or more of previous |
+| `\+` | 1 or more of previous |
+| `\?` | 0 or 1 of previous |
+| `\{n,m}` | n to m of previous |
+| `^` | Start of line |
+| `$` | End of line |
+| `\<` | Start of word |
+| `\>` | End of word |
+| `\|` | Alternation (or) |
+
+### Character Classes
+
+| Pattern | Description |
+|---------|-------------|
+| `[abc]` | Any of a, b, or c |
+| `[^abc]` | Not a, b, or c |
+| `[a-z]` | Any lowercase letter |
+| `[0-9]` | Any digit |
+| `\d` | Digit [0-9] |
+| `\D` | Non-digit |
+| `\w` | Word character [0-9A-Za-z_] |
+| `\W` | Non-word character |
+| `\s` | Whitespace |
+| `\S` | Non-whitespace |
+
+### Regex Examples
+
+```vim
+" Find lines starting with number
+/^\d
+
+" Find email addresses
+/\w\+@\w\+\.\w\+
+
+" Find words
+/\<\w\+\>
+
+" Find trailing whitespace
+/\s\+$
+
+" Find C-style comments
+/\/\*.*\*\/ 
+```
+
+## Global Command
+
+### Global Syntax
+
+```vim
+:[range]g/{pattern}/{command}
+```
+
+### Global Examples
+
+```vim
+" Delete all lines containing 'DEBUG'
+:g/DEBUG/d
+
+" Delete all blank lines
+:g/^$/d
+
+" Yank all lines containing 'TODO' to register a
+:g/TODO/y A
+
+" Print all lines matching pattern
+:g/pattern/p
+
+" Move all lines containing 'function' to end of file
+:g/function/m$
+```
+
+### Inverse Global
+
+```vim
+" Delete lines NOT containing pattern
+:v/pattern/d
+" or
+:g!/pattern/d
+
+" Keep only lines with 'TODO'
+:v/TODO/d
+```
+
+## Search and Replace Patterns
+
+### Pattern 1: Multiple File Replace
+
+```vim
+" Open multiple files
+:args *.js
+
+" Replace in all files
+:argdo %s/old/new/ge | update
+```
+
+### Pattern 2: Conditional Replace
+
+```vim
+" Replace only in lines containing 'class'
+:g/class/s/foo/bar/g
+
+" Replace only in lines NOT containing 'test'
+:v/test/s/foo/bar/g
+```
+
+### Pattern 3: Column-based Replace
+
+```vim
+" Replace only in columns 10-20
+:%s/\%>9v.\{-}\%<21v/replacement/
+```
+
+### Pattern 4: Interactive Search and Replace
+
+```vim
+" Search for pattern
+/pattern
+
+" Change first occurrence
+cwreplacement<Esc>
+
+" Repeat on next matches
+n.
+n.
+```
+
+## Advanced Search Techniques
+
+### Search History
+
+```vim
+" Navigate search history
+/  (then press ↑ or ↓)
+
+" Recall last search
+/<CR>
+
+" Edit last search
+/CTRL-F
+```
+
+### Search Register
+
+```vim
+" Access last search pattern
+echo @/
+
+" Set search pattern programmatically
+:let @/ = 'pattern'
+
+" Clear search pattern
+:let @/ = ''
+```
+
+### Search in Range
+
+```vim
+" Search only in lines 10-50
+/\%>9l\%<51lpattern
+
+" Search in visual selection
+/\%Vpattern
+```
+
+## Practical Examples
+
+### Example 1: Remove Trailing Whitespace
+
+```vim
+" Remove trailing spaces from all lines
+:%s/\s\+$//e
+```
+
+### Example 2: Convert Tabs to Spaces
+
+```vim
+" Replace tabs with 4 spaces
+:%s/\t/    /g
+```
+
+### Example 3: Add Line Numbers
+
+```vim
+" Add line numbers (1.)
+:%s/^/\=line('.') . '. '/
+```
+
+### Example 4: Swap Function Arguments
+
+```vim
+" Swap two arguments: func(a, b) -> func(b, a)
+:%s/func(\(\w\+\), \(\w\+\))/func(\2, \1)/g
+```
+
+### Example 5: Comment Lines
+
+```vim
+" Add # comment to all non-empty lines
+:g/./s/^/# /
+
+" Remove # comments
+:%s/^# //
+```
+
+### Example 6: Extract URLs
+
+```vim
+" Delete all lines not containing URLs
+:v/https\?:\/\//d
+
+" Extract just the URLs
+:%s/.*\(https\?:\/\/\S\+\).*/\1/
+```
+
+### Example 7: Reformat Data
+
+```vim
+" Convert: lastname, firstname -> firstname lastname
+:%s/\(\w\+\), \(\w\+\)/\2 \1/
+```
+
+## Search and Replace Workflow
+
+### Workflow 1: Safe Replace
+
+```vim
+" 1. Test with count
+:%s/old/new/n
+
+" 2. Replace with confirmation
+:%s/old/new/gc
+
+" 3. If satisfied, replace all
+:%s/old/new/g
+```
+
+### Workflow 2: Iterative Replace
+
+```vim
+" 1. Search
+/pattern
+
+" 2. Change first match
+cwnew_text<Esc>
+
+" 3. Navigate and repeat
+n.  " next and repeat
+n.  " next and repeat
+```
+
+### Workflow 3: Multi-File Replace
+
+```vim
+" 1. Load files
+:args **/*.js
+
+" 2. Replace in all
+:argdo %s/old/new/ge
+
+" 3. Save all
+:argdo update
+```
+
+## Related Commands
+
+- [Movement Commands](/commands/motion) - Navigate search results
+- [Editing Commands](/commands/editing) - Edit found text
+- [Visual Mode](/commands/visual-mode) - Select search results
+
+## Tips
+
+<Tip>
+**Pro tip**: Use `*` to search for the word under the cursor, then use `:%s//replacement/g` (empty pattern uses last search) to replace all occurrences.
+</Tip>
+
+<Tip>
+Use the `c` flag to confirm each substitution:
+- `y` - substitute this match
+- `n` - skip this match
+- `a` - substitute this and all remaining
+- `q` - quit substituting
+- `l` - substitute this and quit
+</Tip>
+
+<Warning>
+Regular expressions in Vim use backslashes differently than other tools. Use `:help pattern` for details or consider using `\v` (very magic mode) for more familiar regex syntax: `/\vpattern`
+</Warning>
+
+<Info>
+The substitute command keeps the last used pattern. Use `&` or `:s` to repeat the last substitution, or `:&&` to repeat with the same flags.
+</Info>

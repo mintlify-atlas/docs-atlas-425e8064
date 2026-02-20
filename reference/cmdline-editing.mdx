@@ -1,0 +1,287 @@
+---
+title: Command-Line Editing Reference
+description: Comprehensive reference for editing on the Vim command line
+---
+
+Command-line mode is used to enter Ex commands (`:`), search patterns (`/` and `?`), and filter commands (`!`). This reference covers all editing commands available on the command line.
+
+## Entering Command-Line Mode
+
+- `:` - Ex command line
+- `/` - Forward search
+- `?` - Backward search
+- `!` - Filter command
+
+## Basic Editing
+
+| Command | Description |
+|---------|-------------|
+| `<Left>` | Move cursor left |
+| `<Right>` | Move cursor right |
+| `<Home>` or `CTRL-B` | Move cursor to beginning of line |
+| `<End>` or `CTRL-E` | Move cursor to end of line |
+| `<S-Left>` or `<C-Left>` | Move cursor one word left |
+| `<S-Right>` or `<C-Right>` | Move cursor one word right |
+
+## Deleting Text
+
+| Command | Description |
+|---------|-------------|
+| `<BS>` or `CTRL-H` | Delete character before cursor |
+| `<Del>` | Delete character under cursor |
+| `CTRL-W` | Delete word before cursor |
+| `CTRL-U` | Delete all characters from cursor to start of line |
+
+## Inserting Special Characters
+
+| Command | Description |
+|---------|-------------|
+| `CTRL-V {char}` | Insert next character literally |
+| `CTRL-V {number}` | Insert character by decimal value (up to 3 digits) |
+| `CTRL-Q` | Same as `CTRL-V` (if `CTRL-V` is used for paste) |
+| `CTRL-K {char1}{char2}` | Insert digraph |
+| `{char1}<BS>{char2}` | Insert digraph (when 'digraph' is set) |
+
+## History Navigation
+
+| Command | Description |
+|---------|-------------|
+| `<Up>` | Recall older command-line that matches current |
+| `<Down>` | Recall newer command-line that matches current |
+| `<S-Up>` or `<PageUp>` | Recall older command-line from history |
+| `<S-Down>` or `<PageDown>` | Recall newer command-line from history |
+| `CTRL-P` | After wildchar: go to previous match; otherwise: recall older command |
+| `CTRL-N` | After wildchar: go to next match; otherwise: recall newer command |
+
+## Completion
+
+| Command | Description |
+|---------|-------------|
+| `<Tab>` or 'wildchar' | Do completion on pattern before cursor |
+| `<S-Tab>` | Like wildchar, but start with last match |
+| `CTRL-D` | List all matches for pattern |
+| `CTRL-A` | Insert all matches for pattern |
+| `CTRL-L` | Insert longest common part of matches |
+| `CTRL-N` | Go to next match (after completion started) |
+| `CTRL-P` | Go to previous match (after completion started) |
+
+### Wildmenu Keys
+
+When 'wildmenu' is enabled:
+
+| Command | Description |
+|---------|-------------|
+| `<Left>` | Move to previous match |
+| `<Right>` | Move to next match |
+| `<Down>` | Move into subdirectory or select next match |
+| `<Up>` | Move to parent directory or select previous match |
+| `<CR>` | Accept current match |
+| `CTRL-E` | Cancel completion and return to original text |
+| `CTRL-Y` | Accept selected match and stop completion |
+
+## Register Access
+
+| Command | Description |
+|---------|-------------|
+| `CTRL-R {register}` | Insert contents of register as if typed |
+| `CTRL-R CTRL-R {register}` | Insert contents literally |
+| `CTRL-R CTRL-O {register}` | Insert contents literally |
+
+**Special registers:**
+- `CTRL-R "` - Last delete or yank
+- `CTRL-R %` - Current file name
+- `CTRL-R #` - Alternate file name
+- `CTRL-R *` - Clipboard (X11 primary)
+- `CTRL-R +` - Clipboard
+- `CTRL-R /` - Last search pattern
+- `CTRL-R :` - Last command-line
+- `CTRL-R -` - Small delete register
+- `CTRL-R .` - Last inserted text
+- `CTRL-R =` - Expression register (prompts for expression)
+
+## Inserting Context
+
+| Command | Description |
+|---------|-------------|
+| `CTRL-R CTRL-W` | Insert word under cursor |
+| `CTRL-R CTRL-A` | Insert WORD under cursor |
+| `CTRL-R CTRL-L` | Insert line under cursor |
+| `CTRL-R CTRL-F` | Insert file name under cursor |
+| `CTRL-R CTRL-P` | Insert file name under cursor (expanded with 'path') |
+
+## Expression Evaluation
+
+| Command | Description |
+|---------|-------------|
+| `CTRL-\ e {expr}` | Replace entire command line with result of expression |
+
+## Executing Commands
+
+| Command | Description |
+|---------|-------------|
+| `<CR>` or `CTRL-M` or `CTRL-J` | Execute entered command |
+| `<Esc>` or `CTRL-[` | Abandon command-line without executing |
+| `CTRL-C` | Quit command-line without executing |
+| `CTRL-\ CTRL-N` | Go to Normal mode, abandon command-line |
+| `CTRL-\ CTRL-G` | Go to mode specified with 'insertmode', abandon command-line |
+
+## Incremental Search
+
+When 'incsearch' is active:
+
+| Command | Description |
+|---------|-------------|
+| `CTRL-G` | Move to next match |
+| `CTRL-T` | Move to previous match |
+| `CTRL-L` | Add one character from current match |
+
+## Clipboard Operations
+
+| Command | Description |
+|---------|-------------|
+| `CTRL-Y` | Copy modeless selection to clipboard |
+| `<MiddleMouse>` | Paste clipboard contents (X11 primary) |
+
+## Abbreviations
+
+| Command | Description |
+|---------|-------------|
+| `CTRL-]` | Trigger abbreviation |
+
+## Language Mapping
+
+| Command | Description |
+|---------|-------------|
+| `CTRL-^` | Toggle use of `:lmap` mappings and Input Method |
+| `CTRL-_` | Switch between Hebrew/Farsi and English (when 'allowrevins' is set) |
+
+## Miscellaneous
+
+| Command | Description |
+|---------|-------------|
+| `<Insert>` | Toggle insert/overstrike mode |
+| `<LeftMouse>` | Move cursor to mouse click position |
+
+## Command-Line Window
+
+The command-line window allows editing the command line in a regular window:
+
+| Command | Description |
+|---------|-------------|
+| `q:` | Open command-line window for Ex commands |
+| `q/` | Open command-line window for forward search |
+| `q?` | Open command-line window for backward search |
+| `CTRL-F` | Open command-line window from command-line (if 'cedit' is set to `CTRL-F`) |
+
+In the command-line window:
+- Edit commands like regular text
+- `<CR>` executes the current line
+- `:q` closes the window without executing
+- Use all Normal mode commands
+
+## History
+
+Vim maintains separate history lists for:
+- Ex commands (`:` commands)
+- Search patterns (`/` and `?`)
+- Expressions
+- Input lines (for `input()` function)
+- Debug mode commands
+
+### History Commands
+
+- `:history` - Show command history
+- `:history :` - Show Ex command history
+- `:history /` or `:history ?` - Show search history
+- `:history =` - Show expression history
+- `:history @` - Show input line history
+- `:history >` - Show debug command history
+- `:history all` - Show all histories
+
+## Command-Line Ranges
+
+Many commands accept a range before the command:
+
+| Range | Description |
+|-------|-------------|
+| `.` | Current line |
+| `$` | Last line |
+| `%` | All lines (same as `1,$`) |
+| `'a` | Line with mark a |
+| `/{pattern}/` | Next line matching pattern |
+| `?{pattern}?` | Previous line matching pattern |
+| `+n` | N lines down |
+| `-n` | N lines up |
+
+Examples:
+- `:5,10d` - Delete lines 5-10
+- `:.,$d` - Delete from current line to end
+- `:%s/old/new/g` - Replace in all lines
+- `:g/pattern/d` - Delete all lines matching pattern
+
+## Special Characters
+
+On the command line:
+
+| Character | Expands to |
+|-----------|------------|
+| `%` | Current file name |
+| `#` | Alternate file name |
+| `#n` | File name of buffer n |
+| `<cword>` | Word under cursor |
+| `<cWORD>` | WORD under cursor |
+| `<cfile>` | File path under cursor |
+| `<afile>` | File name (in autocommands) |
+| `<sfile>` | Sourced file name |
+
+## Modifiers
+
+File name modifiers (use after `%`, `#`, `<cfile>`, etc.):
+
+| Modifier | Description |
+|----------|-------------|
+| `:p` | Full path |
+| `:h` | Head (directory) |
+| `:t` | Tail (file name) |
+| `:r` | Root (remove extension) |
+| `:e` | Extension |
+| `:s?pat?sub?` | Substitute |
+| `:gs?pat?sub?` | Substitute all occurrences |
+
+Examples:
+- `:e %:h` - Edit directory of current file
+- `:e %:r.txt` - Edit current file with .txt extension
+- `:!gcc %:p` - Compile current file with full path
+
+## Tips
+
+1. **Quick File Paths**: Use `%%` (or `%:h`) to insert the directory of the current file.
+
+2. **Command Repeat**: Use `@:` in Normal mode to repeat the last Ex command.
+
+3. **Search History**: Use `/` followed by `<Up>` to cycle through previous searches.
+
+4. **Completion**: Press `CTRL-D` to see all possible completions before choosing one.
+
+5. **Command-Line Window**: Use `q:` to edit complex commands with full Vim editing power.
+
+6. **Range Shortcuts**: Use `%` for "all lines" and `.,$` for "current line to end".
+
+## Configuration Options
+
+- `'history'` - Number of command lines to remember (default: 50)
+- `'wildchar'` - Character for command-line completion (default: `<Tab>`)
+- `'wildmode'` - Mode for command-line completion
+- `'wildmenu'` - Enhanced command-line completion
+- `'wildignore'` - Files to ignore for completion
+- `'wildignorecase'` - Ignore case in file name completion
+- `'cedit'` - Key to open command-line window (default: `CTRL-F`)
+- `'cmdwinheight'` - Height of command-line window
+
+## See Also
+
+- [Ex Commands](/reference/ex-commands)
+- [Normal Mode Commands](/reference/normal-commands)
+- [Command-Line Mode](/user-guide/cmdline)
+- [Completion](/user-guide/completion)
+- [Ranges](/user-guide/ranges)

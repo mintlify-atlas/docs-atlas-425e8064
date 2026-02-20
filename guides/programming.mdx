@@ -1,0 +1,436 @@
+---
+title: Using Vim for Programming
+description: Complete workflows and features for software development in Vim
+---
+
+Vim was created by a programmer, for programmers. This guide covers the complete workflow for using Vim as a powerful development environment.
+
+## Quick Start for Developers
+
+Set up Vim for programming in your `.vimrc`:
+
+```vim
+" Enable filetype detection and plugins
+filetype plugin indent on
+
+" Syntax highlighting
+syntax on
+
+" Programming-specific settings
+set number          " Show line numbers
+set autoindent      " Auto-indent new lines
+set smartindent     " Smart auto-indenting for C-like code
+set expandtab       " Use spaces instead of tabs
+set shiftwidth=4    " Indentation width
+set tabstop=4       " Tab display width
+
+" Show matching brackets
+set showmatch
+
+" Enable code folding
+set foldmethod=indent
+set foldlevelstart=99
+```
+
+## Navigation and Code Exploration
+
+### Using Tags for Code Navigation
+
+Generate a tags file for your project:
+
+```bash
+ctags -R .
+```
+
+Navigate through your code:
+
+- `CTRL-]` - Jump to definition of identifier under cursor
+- `CTRL-T` - Jump back to previous location
+- `:tag functionName` - Jump to specific tag
+- `:tags` - Show tag stack
+- `g]` - List all matching tags
+- `:tselect` - Select from multiple tag matches
+
+### Finding Identifiers
+
+Search for where identifiers are defined or used:
+
+- `gd` - Go to local declaration
+- `gD` - Go to global declaration
+- `[i` - Show first occurrence in current/included files
+- `[I` - List all occurrences in current/included files
+- `[CTRL-I` - Jump to match for `[i`
+- `[d` - Show first macro definition
+- `[D` - List all macro definitions
+
+### Code Structure Navigation
+
+Move through code blocks efficiently:
+
+- `%` - Jump between matching parentheses, brackets, or braces
+- `[(` - Go to previous unmatched `(`
+- `])` - Go to next unmatched `)`
+- `[{` - Go to previous unmatched `{`
+- `]}` - Go to next unmatched `}`
+- `[#` - Go to previous unmatched `#if` or `#ifdef`
+- `]#` - Go to next unmatched `#else` or `#endif`
+- `[/` - Go to previous start of comment
+- `]/` - Go to next end of comment
+
+## Compiling and Error Navigation
+
+### The Quickfix Workflow
+
+Compile your code and navigate errors without leaving Vim:
+
+```vim
+" Compile the project
+:make
+
+" Navigate through errors
+:cnext          " Next error
+:cprevious      " Previous error
+:cfirst         " First error
+:clast          " Last error
+:cc             " Show current error
+:clist          " List all errors
+:copen          " Open quickfix window
+:cclose         " Close quickfix window
+```
+
+### Custom Make Programs
+
+Configure Vim for different build systems:
+
+```vim
+" For Python
+set makeprg=python3\ %
+
+" For Node.js
+set makeprg=node\ %
+
+" For Go
+set makeprg=go\ build
+
+" For Rust
+set makeprg=cargo\ build
+
+" For custom build script
+set makeprg=./build.sh
+```
+
+## Code Editing Features
+
+### Automatic Indentation
+
+Vim provides powerful auto-indentation:
+
+```vim
+" Enable C-style indenting
+set cindent
+
+" Customize C indent options
+set cinoptions=>4,n-2,{2,^-2,:2,=2,g0,h2,p5,t0,+2,(0,u0,w1,m1
+
+" Re-indent code
+=               " Re-indent current line
+==              " Re-indent current line (same as above)
+=G              " Re-indent from cursor to end of file
+gg=G            " Re-indent entire file
+={motion}       " Re-indent text covered by motion
+```
+
+### Comment Formatting
+
+Format comments while staying in insert mode:
+
+```vim
+" In .vimrc - set comment formatting options
+set formatoptions+=r    " Auto-insert comment leader on Enter
+set formatoptions+=o    " Auto-insert comment leader with o/O
+set formatoptions+=q    " Allow formatting comments with gq
+set formatoptions+=j    " Remove comment leader when joining lines
+```
+
+Format comments:
+
+- `gq{motion}` - Format comments
+- `gqap` - Format comment paragraph
+- `gqq` - Format current line
+
+### Code Completion
+
+Use Vim's built-in completion:
+
+- `CTRL-N` - Next completion match (keyword)
+- `CTRL-P` - Previous completion match (keyword)
+- `CTRL-X CTRL-N` - Complete from current file
+- `CTRL-X CTRL-I` - Complete from current and included files
+- `CTRL-X CTRL-]` - Complete from tags
+- `CTRL-X CTRL-F` - Complete filename
+- `CTRL-X CTRL-L` - Complete whole line
+- `CTRL-X CTRL-O` - Omni completion (language-aware)
+
+## Working with Multiple Files
+
+### Buffer Management
+
+Efficiently work with multiple source files:
+
+```vim
+" Open files
+:e src/main.c
+:e src/utils.c
+
+" Navigate buffers
+:bnext          " Next buffer
+:bprevious      " Previous buffer
+:buffer 3       " Switch to buffer 3
+:buffers        " List all buffers
+CTRL-^          " Toggle between current and alternate buffer
+```
+
+### Split Windows
+
+View multiple files simultaneously:
+
+```vim
+" Split windows
+:split file.c   " Horizontal split
+:vsplit file.h  " Vertical split
+
+" Navigate splits
+CTRL-W h        " Move to left window
+CTRL-W j        " Move to bottom window
+CTRL-W k        " Move to top window
+CTRL-W l        " Move to right window
+CTRL-W w        " Cycle through windows
+
+" Resize splits
+CTRL-W =        " Make all windows equal size
+CTRL-W _        " Maximize height
+CTRL-W |        " Maximize width
+```
+
+### Argument List
+
+Work with a set of files:
+
+```vim
+" Set argument list
+:args src/*.c
+:args **/*.js   " Recursive
+
+" Navigate arguments
+:next           " Next file
+:previous       " Previous file
+:first          " First file
+:last           " Last file
+```
+
+## Advanced Programming Features
+
+### The Preview Window
+
+View function declarations without leaving your location:
+
+```vim
+" Open preview window
+:ptag functionName      " Preview tag
+CTRL-W }                " Preview tag under cursor
+
+" Navigate in preview
+:pnext                  " Next match in preview
+:pprevious              " Previous match in preview
+
+" Close preview
+:pclose                 " Close preview window
+CTRL-W z                " Close preview window
+```
+
+### Include File Searches
+
+Search through included files:
+
+```vim
+" Check include paths
+:checkpath
+
+" Search in includes
+:isearch pattern        " Search in current and included files
+:ijump pattern          " Jump to pattern in included files
+:ilist pattern          " List all occurrences
+```
+
+### Code Folding
+
+Hide and show code sections:
+
+```vim
+" Fold commands
+zf{motion}      " Create fold
+zc              " Close fold
+zo              " Open fold
+za              " Toggle fold
+zC              " Close all folds recursively
+zO              " Open all folds recursively
+zM              " Close all folds
+zR              " Open all folds
+zd              " Delete fold
+```
+
+### Debugging Integration
+
+While Vim has built-in debugging features, you can integrate with external debuggers:
+
+```vim
+" Set up makeprg for testing
+set makeprg=pytest\ %
+
+" Run tests and navigate failures
+:make
+:copen
+```
+
+## Language-Specific Features
+
+### C/C++ Development
+
+```vim
+" In .vimrc
+augroup c_programming
+    autocmd!
+    autocmd FileType c,cpp setlocal cindent
+    autocmd FileType c,cpp setlocal cinoptions=>4,n-2,{2
+    autocmd FileType c,cpp setlocal makeprg=gcc\ -Wall\ -g\ %
+augroup END
+```
+
+### Python Development
+
+```vim
+" In .vimrc
+augroup python_programming
+    autocmd!
+    autocmd FileType python setlocal expandtab
+    autocmd FileType python setlocal shiftwidth=4
+    autocmd FileType python setlocal softtabstop=4
+    autocmd FileType python setlocal makeprg=python3\ %
+    autocmd FileType python setlocal omnifunc=pythoncomplete#Complete
+augroup END
+```
+
+### JavaScript/TypeScript Development
+
+```vim
+" In .vimrc
+augroup javascript_programming
+    autocmd!
+    autocmd FileType javascript,typescript setlocal shiftwidth=2
+    autocmd FileType javascript,typescript setlocal softtabstop=2
+    autocmd FileType javascript,typescript setlocal makeprg=node\ %
+augroup END
+```
+
+## Practical Workflows
+
+### Refactoring: Rename Across Files
+
+Rename a function or variable across multiple files:
+
+```vim
+" Open all files that might contain the symbol
+:args src/**/*.c
+
+" Perform substitution across all files
+:argdo %s/oldFunction/newFunction/ge | update
+```
+
+### Finding and Fixing Bugs
+
+1. Use `:grep` to find relevant code:
+   ```vim
+   :grep -r "buggy_function" src/
+   ```
+
+2. Navigate results with quickfix:
+   ```vim
+   :copen
+   :cnext
+   ```
+
+3. Make fixes and compile:
+   ```vim
+   :make
+   ```
+
+### Code Review Workflow
+
+Review changes using diff mode:
+
+```vim
+" Open files in diff mode
+:vert diffsplit original.c
+
+" Navigate differences
+]c              " Next difference
+[c              " Previous difference
+
+" Merge changes
+do              " Obtain (get) difference from other file
+dp              " Put difference to other file
+```
+
+## Useful Mappings for Programming
+
+Add these to your `.vimrc` for faster programming:
+
+```vim
+" Quick compilation
+nnoremap <F5> :make<CR>
+nnoremap <F6> :make clean<CR>
+
+" Toggle between source and header
+nnoremap <F4> :e %:p:s,.h$,.X123X,:s,.c$,.h,:s,.X123X$,.c,<CR>
+
+" Quick tag navigation
+nnoremap <Leader>t :tag <C-R><C-W><CR>
+nnoremap <Leader>] <C-]>
+nnoremap <Leader>[ <C-T>
+
+" Format code
+nnoremap <Leader>f gg=G``
+
+" Quick comment toggle (requires commentary plugin or custom function)
+nnoremap <Leader>c gcc
+vnoremap <Leader>c gc
+```
+
+## Related Topics
+
+<CardGroup cols={2}>
+  <Card title="Syntax Highlighting" icon="palette" href="/language/syntax-highlighting">
+    Configure colors and highlighting for your code
+  </Card>
+  <Card title="Diff Mode" icon="code-compare" href="/tools/diff-mode">
+    Compare and merge code changes
+  </Card>
+  <Card title="External Commands" icon="terminal" href="/tools/external-commands">
+    Integrate build tools and utilities
+  </Card>
+  <Card title="Quickfix" icon="list-check" href="/advanced/quickfix">
+    Master the quickfix window for errors and searches
+  </Card>
+</CardGroup>
+
+## Tips for Productivity
+
+1. **Generate tags regularly**: Keep your tags file up to date with a Git hook or build script
+2. **Use sessions**: Save your workspace with `:mksession` and restore with `vim -S`
+3. **Learn text objects**: Master `ci{`, `da(`, `vit` for efficient code editing
+4. **Configure per-project**: Use `.vimrc` local or project-specific settings
+5. **Leverage quickfix**: Most programming tools can output to quickfix format
+
+<Note>
+For even more power, consider plugin managers like vim-plug or Vundle to install language servers, linters, and modern IDE-like features through plugins like coc.nvim or ALE.
+</Note>

@@ -1,0 +1,555 @@
+---
+title: File Operations
+description: Open, save, close, and manage files in Vim
+---
+
+## Overview
+
+Vim provides comprehensive commands for managing files and buffers. Learn how to efficiently work with single and multiple files.
+
+## Opening Files
+
+### Edit Command
+
+| Command | Description |
+|---------|-------------|
+| `:e {file}` | Edit file |
+| `:e!` | Reload current file (discard changes) |
+| `:e! {file}` | Edit file (discard current changes) |
+| `:e #` | Edit alternate file |
+| `:e .` | Open file explorer in current directory |
+| `:enew` | Edit new unnamed buffer |
+
+### Edit Examples
+
+```vim
+" Open file
+:e myfile.txt
+
+" Reload current file
+:e!
+
+" Edit new file
+:enew
+
+" Open file explorer
+:e .
+```
+
+### Find in Path
+
+| Command | Description |
+|---------|-------------|
+| `:find {file}` | Find and edit file in 'path' |
+| `:2find {file}` | Edit 2nd match in 'path' |
+| `:sfind {file}` | Split and find file |
+| `:tabfind {file}` | Open in new tab |
+
+### File Navigation
+
+| Command | Description |
+|---------|-------------|
+| `gf` | Go to file under cursor |
+| `gF` | Go to file:line under cursor |
+| `CTRL-W f` | Open file in new window |
+| `CTRL-W gf` | Open file in new tab |
+
+## Writing Files
+
+### Save Commands
+
+| Command | Description |
+|---------|-------------|
+| `:w` | Write (save) current file |
+| `:w!` | Force write (override readonly) |
+| `:w {file}` | Write to {file} |
+| `:w! {file}` | Overwrite {file} |
+| `:w >> {file}` | Append to {file} |
+| `:{range}w {file}` | Write {range} to {file} |
+
+### Save Examples
+
+```vim
+" Save current file
+:w
+
+" Save as new file
+:w newfile.txt
+
+" Force save readonly file
+:w!
+
+" Append to existing file
+:w >> log.txt
+
+" Save lines 10-20
+:10,20w partial.txt
+```
+
+### Update Command
+
+| Command | Description |
+|---------|-------------|
+| `:up` | Update (write only if modified) |
+| `:up {file}` | Update to {file} |
+
+### Save As
+
+| Command | Description |
+|---------|-------------|
+| `:saveas {file}` | Save as {file} and edit it |
+| `:saveas! {file}` | Force save as {file} |
+| `:f {file}` | Set filename (doesn't save) |
+
+## Closing Files
+
+### Quit Commands
+
+| Command | Description |
+|---------|-------------|
+| `:q` | Quit (fails if unsaved changes) |
+| `:q!` | Quit and discard changes |
+| `:qa` | Quit all windows |
+| `:qa!` | Quit all, discard all changes |
+| `ZQ` | Quit without saving |
+
+### Write and Quit
+
+| Command | Description |
+|---------|-------------|
+| `:wq` | Write and quit |
+| `:wq!` | Force write and quit |
+| `:x` | Write (if modified) and quit |
+| `ZZ` | Same as `:x` |
+| `:wqa` | Write all and quit all |
+| `:xa` | Write all (if modified) and quit all |
+
+### Close Examples
+
+```vim
+" Save and quit
+:wq
+" or
+ZZ
+
+" Quit without saving
+:q!
+" or  
+ZQ
+
+" Save all and quit
+:wqa
+
+" Quit all without saving
+:qa!
+```
+
+## File Information
+
+### Status Commands
+
+| Command | Description |
+|---------|-------------|
+| `CTRL-G` | Show file info and position |
+| `:f` | Show file name and status |
+| `:f!` | Show full file path |
+| `g CTRL-G` | Show detailed position info |
+| `:file` | Same as `:f` |
+
+### File Info Examples
+
+```vim
+" Show file info
+CTRL-G
+
+" Show full path
+:f!
+
+" Show word count and position
+g CTRL-G
+```
+
+## Buffer Management
+
+### Buffer Commands
+
+| Command | Description |
+|---------|-------------|
+| `:ls` | List all buffers |
+| `:buffers` | Same as `:ls` |
+| `:files` | Same as `:ls` |
+| `:b {buffer}` | Switch to buffer |
+| `:bn` | Next buffer |
+| `:bp` | Previous buffer |
+| `:bf` | First buffer |
+| `:bl` | Last buffer |
+| `:bd` | Delete buffer (close file) |
+| `:bd!` | Force delete buffer |
+| `CTRL-^` | Switch to alternate buffer |
+
+### Buffer Examples
+
+```vim
+" List buffers
+:ls
+
+" Switch to buffer 3
+:b 3
+" or
+:b filename
+
+" Next buffer
+:bn
+
+" Close current buffer
+:bd
+
+" Switch to previous file
+CTRL-^
+```
+
+## Argument List
+
+### Argument Commands
+
+| Command | Description |
+|---------|-------------|
+| `:args` | Show argument list |
+| `:args {files}` | Set argument list |
+| `:n` | Next file in argument list |
+| `:N` or `:prev` | Previous file in argument list |
+| `:first` | First file in argument list |
+| `:last` | Last file in argument list |
+| `:arga {file}` | Add to argument list |
+| `:argd {file}` | Delete from argument list |
+
+### Argument Examples
+
+```vim
+" Set argument list
+:args *.js
+
+" Show current files
+:args
+
+" Next file
+:n
+
+" Add file to list
+:arga newfile.js
+
+" Execute command on all files
+:argdo %s/old/new/ge | update
+```
+
+## Multiple File Operations
+
+### Write All
+
+| Command | Description |
+|---------|-------------|
+| `:wa` | Write all changed buffers |
+| `:wa!` | Force write all |
+| `:wall` | Same as `:wa` |
+
+### Buffer Operations
+
+| Command | Description |
+|---------|-------------|
+| `:bufdo {cmd}` | Execute {cmd} in all buffers |
+| `:argdo {cmd}` | Execute {cmd} in all args |
+| `:windo {cmd}` | Execute {cmd} in all windows |
+| `:tabdo {cmd}` | Execute {cmd} in all tabs |
+
+### Multi-File Examples
+
+```vim
+" Replace in all buffers
+:bufdo %s/old/new/ge | update
+
+" Save all files
+:wa
+
+" Close all buffers
+:bufdo bd
+
+" Set indent in all files
+:argdo set sw=2 | update
+```
+
+## File Encoding and Format
+
+### File Format
+
+| Command | Description |
+|---------|-------------|
+| `:set ff=unix` | Set Unix line endings (LF) |
+| `:set ff=dos` | Set DOS line endings (CRLF) |
+| `:set ff=mac` | Set Mac line endings (CR) |
+| `:set ff?` | Show current file format |
+
+### File Encoding
+
+| Command | Description |
+|---------|-------------|
+| `:set fenc=utf-8` | Set encoding to UTF-8 |
+| `:set fenc?` | Show current encoding |
+| `:e ++enc=latin1` | Reopen with encoding |
+| `:w ++enc=utf-8 {file}` | Save with encoding |
+
+### Format Examples
+
+```vim
+" Convert to Unix format
+:set ff=unix
+:w
+
+" Save as UTF-8
+:w ++enc=utf-8 output.txt
+
+" Reopen with different encoding
+:e ++enc=latin1
+```
+
+## File Paths and Directories
+
+### Path Commands
+
+| Command | Description |
+|---------|-------------|
+| `:pwd` | Print working directory |
+| `:cd {dir}` | Change directory |
+| `:cd -` | Change to previous directory |
+| `:lcd {dir}` | Change directory locally (window) |
+| `:tcd {dir}` | Change directory for tab |
+
+### Path Examples
+
+```vim
+" Show current directory
+:pwd
+
+" Change to home directory
+:cd ~
+
+" Change to file's directory
+:cd %:h
+
+" Go back to previous directory
+:cd -
+```
+
+### File Name Modifiers
+
+| Modifier | Description |
+|----------|-------------|
+| `%` | Current file name |
+| `%:p` | Full path |
+| `%:h` | Head (directory) |
+| `%:t` | Tail (filename) |
+| `%:r` | Root (without extension) |
+| `%:e` | Extension |
+| `#` | Alternate file name |
+
+### Modifier Examples
+
+```vim
+" Edit file in same directory
+:e %:h/newfile.txt
+
+" Save with .bak extension
+:w %:r.bak
+
+" Print full path
+:echo expand('%:p')
+```
+
+## Reading and Writing Parts
+
+### Read Command
+
+| Command | Description |
+|---------|-------------|
+| `:r {file}` | Read {file} below cursor |
+| `:0r {file}` | Read at top of file |
+| `:r !{cmd}` | Read output of command |
+| `:{line}r {file}` | Read at {line} |
+
+### Read Examples
+
+```vim
+" Insert file contents
+:r otherfile.txt
+
+" Insert at top
+:0r header.txt
+
+" Insert command output
+:r !ls
+:r !date
+```
+
+### Write Command
+
+| Command | Description |
+|---------|-------------|
+| `:{range}w {file}` | Write range to file |
+| `:{range}w >> {file}` | Append range to file |
+| `:{range}w !{cmd}` | Pipe range to command |
+
+### Partial Write Examples
+
+```vim
+" Save lines 10-20
+:10,20w section.txt
+
+" Append selection to file
+:'<,'>w >> collected.txt
+
+" Send to external command
+:1,10w !mail user@example.com
+```
+
+## Backup and Swap Files
+
+### Backup Options
+
+| Option | Description |
+|--------|-------------|
+| `set backup` | Keep backup file |
+| `set nobackup` | Don't keep backup |
+| `set writebackup` | Make backup before writing |
+| `set backupdir={dir}` | Backup directory |
+
+### Swap File Options
+
+| Option | Description |
+|--------|-------------|
+| `set swapfile` | Use swap file |
+| `set noswapfile` | Don't use swap file |
+| `set directory={dir}` | Swap file directory |
+| `set updatetime=4000` | Write swap after 4 seconds |
+
+### Recovery
+
+| Command | Description |
+|---------|-------------|
+| `:recover` | Recover from swap file |
+| `:recover {file}` | Recover specific file |
+| `vim -r` | List swap files |
+| `vim -r {file}` | Recover file |
+
+## Practical Workflows
+
+### Workflow 1: Edit Multiple Files
+
+```vim
+" Open multiple files
+:args *.txt
+
+" Make changes to each
+:argdo %s/old/new/ge | update
+
+" Close all
+:qa
+```
+
+### Workflow 2: Save Different Format
+
+```vim
+" Open Windows file
+:e dosfile.txt
+
+" Convert to Unix
+:set ff=unix
+
+" Save
+:w
+```
+
+### Workflow 3: Work on Different Sections
+
+```vim
+" Save intro section
+:1,50w intro.txt
+
+" Save conclusion
+:100,$w conclusion.txt
+
+" Keep working on main file
+:w
+```
+
+### Workflow 4: Emergency Save
+
+```vim
+" If :w fails (permission denied)
+:w !sudo tee %
+
+" Or save to temp location
+:w ~/tmp/emergency-backup.txt
+```
+
+## File Shortcuts
+
+### Common Patterns
+
+```vim
+" Edit file under cursor
+gf
+
+" Go back
+CTRL-O
+
+" Save and quit
+ZZ
+
+" Quit without save
+ZQ
+
+" Save all and quit
+:xa
+```
+
+### Navigation Shortcuts
+
+```vim
+" Toggle between files
+CTRL-^
+
+" Jump to alternate file
+:e #
+
+" Open in split
+CTRL-W s
+:e other.txt
+```
+
+## Related Commands
+
+- [Editing Commands](/commands/editing) - Modify file contents
+- [Search and Replace](/commands/search-replace) - Find and change text
+- [Visual Mode](/commands/visual-mode) - Select text to save
+
+## Tips
+
+<Tip>
+**Pro tip**: Use `:w !sudo tee %` to save a file that requires root permissions when you forgot to use sudo.
+</Tip>
+
+<Tip>
+Set up your `.vimrc` for better file handling:
+```vim
+set autowrite      " Auto-save before commands like :next
+set autoread       " Auto-reload if file changed outside Vim
+set hidden         " Keep buffers open in background
+```
+</Tip>
+
+<Warning>
+Be careful with `:q!` and `:qa!` - they discard all unsaved changes without confirmation.
+</Warning>
+
+<Info>
+The alternate file (`#`) is usually the previously edited file. Use `CTRL-^` to quickly switch between two files.
+</Info>

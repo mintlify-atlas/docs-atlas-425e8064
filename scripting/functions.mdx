@@ -1,0 +1,731 @@
+---
+title: 'Defining Functions'
+description: 'Create custom functions in Vim and Vim9 script'
+---
+
+## Function Basics
+
+Functions in Vim allow you to encapsulate reusable code. You can define functions in both legacy Vimscript and modern Vim9 script.
+
+<Tabs>
+  <Tab title="Vim9 Script">
+```vim
+vim9script
+
+# Define a function with :def
+def Greet(name: string): string
+  return $'Hello, {name}!'
+enddef
+
+# Call without :call
+echo Greet('World')  # "Hello, World!"
+```
+  </Tab>
+  <Tab title="Legacy Script">
+```vim
+" Define a function with :function
+function! Greet(name)
+  return 'Hello, ' . a:name . '!'
+endfunction
+
+" Call with :call or echo
+echo Greet('World')  " "Hello, World!"
+call Greet('World')
+```
+  </Tab>
+</Tabs>
+
+## Function Naming Rules
+
+### Legacy Script
+
+<Note>
+Function names must start with an **uppercase letter** or use a scope prefix like `s:`
+</Note>
+
+```vim
+" Valid function names
+function! MyFunction()  " uppercase
+function! s:helper()    " script-local with s:
+function! g:GlobalFunc() " global with g:
+
+" Invalid
+function! myfunction()  " Error: lowercase without prefix
+```
+
+### Vim9 Script
+
+```vim
+vim9script
+
+# Script-local by default (no prefix needed)
+def LocalFunction(): void
+enddef
+
+# Global requires g: prefix
+def g:GlobalFunction(): void
+enddef
+
+# Export for use in other scripts
+export def ExportedFunction(): void
+enddef
+```
+
+## Function Arguments
+
+### Basic Arguments
+
+<Tabs>
+  <Tab title="Vim9 Script">
+```vim
+vim9script
+
+# Arguments with types
+def Add(x: number, y: number): number
+  return x + y
+enddef
+
+# Multiple argument types
+def ProcessData(
+    filename: string,
+    lines: list<string>,
+    config: dict<any>
+  ): bool
+  # Implementation
+  return true
+enddef
+```
+  </Tab>
+  <Tab title="Legacy Script">
+```vim
+" Arguments accessed with a: prefix
+function! Add(x, y)
+  return a:x + a:y
+endfunction
+
+" Special variables
+" a:0 - number of optional arguments
+" a:1, a:2... - optional arguments
+" a:000 - list of all optional arguments
+```
+  </Tab>
+</Tabs>
+
+### Optional Arguments
+
+<Tabs>
+  <Tab title="Vim9 Script">
+```vim
+vim9script
+
+# Default values for optional arguments
+def Connect(
+    host: string,
+    port: number = 80,
+    ssl: bool = false,
+    timeout: number = 30
+  ): bool
+  echo $'Connecting to {host}:{port}'
+  echo $'SSL: {ssl}, Timeout: {timeout}s'
+  return true
+enddef
+
+# Call with different argument counts
+Connect('localhost')                    # Uses all defaults
+Connect('example.com', 443, true)       # ssl=true, uses timeout default
+Connect('example.com', 443, true, 60)   # All arguments
+
+# Use v:none to skip an optional argument
+Connect('example.com', v:none, true)    # port=80, ssl=true
+```
+  </Tab>
+  <Tab title="Legacy Script">
+```vim
+" Optional arguments with ...
+function! Connect(host, ...)
+  let port = a:0 >= 1 ? a:1 : 80
+  let ssl = a:0 >= 2 ? a:2 : 0
+  let timeout = a:0 >= 3 ? a:3 : 30
+  
+  echo 'Connecting to ' . a:host . ':' . port
+  echo 'SSL: ' . ssl . ', Timeout: ' . timeout . 's'
+  return 1
+endfunction
+
+" Call with different argument counts
+call Connect('localhost')
+call Connect('example.com', 443, 1)
+call Connect('example.com', 443, 1, 60)
+```
+  </Tab>
+</Tabs>
+
+### Variable Arguments (Varargs)
+
+<Tabs>
+  <Tab title="Vim9 Script">
+```vim
+vim9script
+
+# Variable number of arguments with ...
+def Sum(...numbers: list<number>): number
+  var total = 0
+  for num in numbers
+    total += num
+  endfor
+  return total
+enddef
+
+echo Sum(1, 2, 3, 4, 5)  # 15
+echo Sum()                # 0
+
+# Mix required and variable arguments
+def Format(template: string, ...args: list<any>): string
+  var result = template
+  for arg in args
+    result = substitute(result, '%s', string(arg), '')
+  endfor
+  return result
+enddef
+
+echo Format('Name: %s, Age: %s', 'Alice', 30)
+```
+  </Tab>
+  <Tab title="Legacy Script">
+```vim
+" Variable arguments with ...
+function! Sum(...)
+  let total = 0
+  for num in a:000
+    let total += num
+  endfor
+  return total
+endfunction
+
+echo Sum(1, 2, 3, 4, 5)  " 15
+
+" Mix required and variable arguments
+function! Format(template, ...)
+  let result = a:template
+  for arg in a:000
+    let result = substitute(result, '%s', string(arg), '')
+  endfor
+  return result
+endfunction
+```
+  </Tab>
+</Tabs>
+
+## Return Values
+
+### Single Return Value
+
+<Tabs>
+  <Tab title="Vim9 Script">
+```vim
+vim9script
+
+# Specify return type
+def GetVersion(): string
+  return '9.0'
+enddef
+
+# Void function (no return value)
+def LogMessage(msg: string): void
+  echo msg
+enddef
+
+# Early return
+def Divide(a: number, b: number): number
+  if b == 0
+    return 0  # Early return on error
+  endif
+  return a / b
+enddef
+```
+  </Tab>
+  <Tab title="Legacy Script">
+```vim
+" Return statement
+function! GetVersion()
+  return '9.0'
+endfunction
+
+" Function without explicit return returns 0
+function! LogMessage(msg)
+  echo a:msg
+endfunction
+
+" Early return
+function! Divide(a, b)
+  if a:b == 0
+    return 0
+  endif
+  return a:a / a:b
+endfunction
+```
+  </Tab>
+</Tabs>
+
+### Multiple Return Values
+
+Return multiple values using a list or dictionary:
+
+```vim
+vim9script
+
+# Return list for multiple values
+def ParseName(fullname: string): list<string>
+  var parts = split(fullname)
+  if len(parts) >= 2
+    return [parts[0], parts[-1]]  # [first, last]
+  endif
+  return [fullname, '']           # [first, '']
+enddef
+
+var [first, last] = ParseName('John Doe')
+echo $'First: {first}, Last: {last}'
+
+# Return dict for named values
+def GetStats(): dict<number>
+  return {
+    count: 42,
+    errors: 3,
+    warnings: 7
+  }
+enddef
+
+var stats = GetStats()
+echo $'Count: {stats.count}'
+```
+
+## Function Attributes
+
+### Legacy Script Attributes
+
+```vim
+" abort - stop execution on error
+function! MyFunc() abort
+  " Function stops on first error
+endfunction
+
+" range - handle line ranges
+function! ProcessRange() range
+  " a:firstline and a:lastline available
+  for line in range(a:firstline, a:lastline)
+    echo getline(line)
+  endfor
+endfunction
+
+" Can be called with :5,10call ProcessRange()
+
+" dict - dictionary function (method)
+function! dict.method() dict
+  " self refers to the dictionary
+  echo self.value
+endfunction
+
+" closure - access outer scope
+function! Outer()
+  let x = 10
+  function! Inner() closure
+    " Can access x from outer scope
+    echo x
+  endfunction
+  return funcref('Inner')
+endfunction
+```
+
+### Vim9 Script Behavior
+
+<Note>
+In Vim9 script, all `:def` functions:
+- Always abort on error (no `abort` needed)
+- Cannot be dict functions (use classes instead)
+- Can always be closures
+- Don't support `range` attribute
+</Note>
+
+## Local Variables
+
+<Tabs>
+  <Tab title="Vim9 Script">
+```vim
+vim9script
+
+def Calculate(x: number): number
+  # Local variables (no prefix needed)
+  var result = 0
+  var temp = x * 2
+  
+  # Block scope
+  if temp > 10
+    var message = 'large'  # Only visible in if block
+    echo message
+  endif
+  # echo message  # Error: message not in scope
+  
+  result = temp + 5
+  return result
+enddef
+```
+  </Tab>
+  <Tab title="Legacy Script">
+```vim
+function! Calculate(x)
+  " Local variables with let (l: prefix optional)
+  let result = 0
+  let l:temp = a:x * 2
+  
+  " No block scope - variables visible in entire function
+  if l:temp > 10
+    let message = 'large'
+  endif
+  echo message  " Still accessible
+  
+  let result = l:temp + 5
+  return result
+endfunction
+```
+  </Tab>
+</Tabs>
+
+## Function References (Funcref)
+
+### Creating Function References
+
+<Tabs>
+  <Tab title="Vim9 Script">
+```vim
+vim9script
+
+def Double(x: number): number
+  return x * 2
+enddef
+
+# Direct reference (no function() needed)
+var Fn = Double
+echo Fn(5)  # 10
+
+# Type annotation for funcref
+var Callback: func(number): number = Double
+
+# Lambda (anonymous function)
+var Triple = (x) => x * 3
+echo Triple(5)  # 15
+```
+  </Tab>
+  <Tab title="Legacy Script">
+```vim
+function! Double(x)
+  return a:x * 2
+endfunction
+
+" Create function reference
+let Fn = function('Double')
+echo Fn(5)  " 10
+
+" Lambda (anonymous function)
+let Triple = {x -> x * 3}
+echo Triple(5)  " 15
+```
+  </Tab>
+</Tabs>
+
+### Partial Application
+
+Create a function with some arguments pre-filled:
+
+```vim
+vim9script
+
+def Greet(greeting: string, name: string): string
+  return $'{greeting}, {name}!'
+enddef
+
+# Create partial with first argument bound
+var SayHello = function(Greet, ['Hello'])
+echo SayHello('Alice')  # "Hello, Alice!"
+
+var SayHi = function(Greet, ['Hi'])
+echo SayHi('Bob')      # "Hi, Bob!"
+```
+
+## Dictionary Functions (Methods)
+
+<Tabs>
+  <Tab title="Vim9 Script">
+```vim
+vim9script
+
+# Use a class instead (recommended)
+class Counter
+  var count: number = 0
+  
+  def Increment(): void
+    this.count += 1
+  enddef
+  
+  def GetCount(): number
+    return this.count
+  enddef
+endclass
+
+var c = Counter.new()
+c.Increment()
+echo c.GetCount()  # 1
+
+# Or use explicit dict argument
+def Increment(self: dict<any>): void
+  self.count += 1
+enddef
+
+var counter = {count: 0, inc: Increment}
+counter.inc(counter)
+echo counter.count  # 1
+```
+  </Tab>
+  <Tab title="Legacy Script">
+```vim
+" Dictionary function with 'dict' attribute
+let counter = {'count': 0}
+
+function! counter.increment() dict
+  " self refers to the dictionary
+  let self.count += 1
+endfunction
+
+function! counter.get_count() dict
+  return self.count
+endfunction
+
+call counter.increment()
+echo counter.get_count()  " 1
+```
+  </Tab>
+</Tabs>
+
+## Closures
+
+Functions that capture variables from outer scope:
+
+<Tabs>
+  <Tab title="Vim9 Script">
+```vim
+vim9script
+
+# Closures work automatically
+def MakeCounter(): func(): number
+  var count = 0
+  
+  return () => {
+    count += 1
+    return count
+  }
+enddef
+
+var counter1 = MakeCounter()
+echo counter1()  # 1
+echo counter1()  # 2
+echo counter1()  # 3
+
+var counter2 = MakeCounter()
+echo counter2()  # 1 (separate closure)
+```
+  </Tab>
+  <Tab title="Legacy Script">
+```vim
+" Need 'closure' attribute
+function! MakeCounter() closure
+  let count = 0
+  
+  function! Inner() closure
+    let count += 1
+    return count
+  endfunction
+  
+  return funcref('Inner')
+endfunction
+
+let counter1 = MakeCounter()
+echo counter1()  " 1
+echo counter1()  " 2
+```
+  </Tab>
+</Tabs>
+
+## Cleaning Up with :defer
+
+Schedule cleanup code to run when function exits:
+
+```vim
+vim9script
+
+def ProcessFile(filename: string): void
+  # Open file
+  var lines = readfile(filename)
+  
+  # Schedule cleanup (runs on function exit)
+  defer delete('tempfile')
+  defer delete('another_temp')
+  
+  # Do processing (if this fails, deferred calls still run)
+  writefile(lines, 'tempfile')
+  system('process < tempfile > another_temp')
+  
+  # Deferred functions called in reverse order here:
+  # 1. delete('another_temp')
+  # 2. delete('tempfile')
+enddef
+
+# Another example
+def SetupAndCleanup(): void
+  set lazyredraw
+  defer set nolazyredraw
+  
+  # Do work with lazyredraw set
+  # nolazyredraw restored on exit
+enddef
+```
+
+## Anonymous Functions (Lambdas)
+
+<Tabs>
+  <Tab title="Vim9 Script">
+```vim
+vim9script
+
+# Simple lambda
+var double = (x) => x * 2
+
+# Multi-line lambda
+var process = (items) => {
+  var result = []
+  for item in items
+    result->add(item * 2)
+  endfor
+  return result
+}
+
+# In map/filter/sort
+var numbers = [3, 1, 4, 1, 5]
+var doubled = numbers->map((i, v) => v * 2)
+var filtered = numbers->filter((i, v) => v > 2)
+var sorted = sort(numbers, (a, b) => a - b)
+
+# Ignore arguments with _
+map(dict, (_, v) => v * 2)  # Don't need the key
+```
+  </Tab>
+  <Tab title="Legacy Script">
+```vim
+" Simple lambda
+let double = {x -> x * 2}
+
+" In map/filter
+let numbers = [3, 1, 4, 1, 5]
+let doubled = map(copy(numbers), {i, v -> v * 2})
+let filtered = filter(copy(numbers), {i, v -> v > 2})
+```
+  </Tab>
+</Tabs>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use descriptive names">
+    Function names should clearly indicate what they do:
+    ```vim
+    # Good
+    def ParseConfigFile(path: string): dict<any>
+    def ValidateEmail(email: string): bool
+    
+    # Avoid
+    def PCF(p: string): dict<any>
+    def Check(e: string): bool
+    ```
+  </Accordion>
+
+  <Accordion title="Keep functions small and focused">
+    Each function should do one thing well:
+    ```vim
+    # Good - separate concerns
+    def ReadConfig(): dict<any>
+    def ValidateConfig(config: dict<any>): bool
+    def ApplyConfig(config: dict<any>): void
+    
+    # Avoid - doing too much
+    def DoEverything(): void
+      # 100 lines of mixed concerns
+    enddef
+    ```
+  </Accordion>
+
+  <Accordion title="Use type annotations">
+    Always specify types in Vim9 script for better error checking:
+    ```vim
+    # Good
+    def Process(data: list<string>, count: number): bool
+      return len(data) >= count
+    enddef
+    
+    # Avoid
+    def Process(data, count)
+      return len(data) >= count
+    enddef
+    ```
+  </Accordion>
+
+  <Accordion title="Prefer early returns">
+    Return early for error cases to reduce nesting:
+    ```vim
+    # Good
+    def Process(value: number): string
+      if value < 0
+        return 'invalid'
+      endif
+      if value == 0
+        return 'zero'
+      endif
+      return 'positive'
+    enddef
+    
+    # Avoid deep nesting
+    def Process(value: number): string
+      if value >= 0
+        if value == 0
+          return 'zero'
+        else
+          return 'positive'
+        endif
+      else
+        return 'invalid'
+      endif
+    enddef
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Vim9 Script" icon="bolt" href="/scripting/vim9script">
+    Learn about compiled Vim9 script
+  </Card>
+  <Card title="Expressions" icon="calculator" href="/scripting/expressions">
+    Master operators and expressions
+  </Card>
+  <Card title="Creating Plugins" icon="plug" href="/scripting/plugins">
+    Build complete plugins
+  </Card>
+  <Card title="Vimscript Basics" icon="book" href="/scripting/vimscript-basics">
+    Review Vimscript fundamentals
+  </Card>
+</CardGroup>
+
+## See Also
+
+- `:help userfunc.txt` - User-defined functions reference
+- `:help :def` - Vim9 def functions
+- `:help :function` - Legacy function syntax
+- `:help function()` - Creating function references

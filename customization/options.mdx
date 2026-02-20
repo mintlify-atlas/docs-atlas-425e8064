@@ -1,0 +1,480 @@
+---
+title: Setting Options
+description: Learn how to configure Vim's behavior using options, including boolean, number, and string options.
+---
+
+Vim options control the editor's behavior. Understanding how to set and query options is essential for customizing Vim to your preferences.
+
+## Understanding Options
+
+Vim has three types of options:
+
+- **Boolean**: Can only be on or off
+- **Number**: Has a numeric value  
+- **String**: Has a string value
+
+## Setting Options
+
+Use the `:set` command to modify options:
+
+```vim
+" Boolean options
+set number              " Turn on (set)
+set nonumber            " Turn off (reset with 'no' prefix)
+set number!             " Toggle (invert with '!')
+set invnumber           " Toggle (invert with 'inv' prefix)
+
+" Number options
+set tabstop=4           " Set to 4
+set tabstop=8           " Change to 8
+set tabstop+=2          " Add 2 (now 10)
+set tabstop-=2          " Subtract 2 (now 8)
+
+" String options
+set encoding=utf-8      " Set encoding
+set path+=/usr/include  " Append to path
+set path-=/usr/include  " Remove from path
+set path^=./include     " Prepend to path
+```
+
+## Querying Options
+
+Check the current value of options:
+
+```vim
+" Display option value
+set number?             " Shows: number or nonumber
+set tabstop?            " Shows: tabstop=8
+set path?               " Shows: path=.,/usr/include,,
+
+" Show all modified options
+set
+
+" Show all options (including defaults)
+set all
+
+" Show terminal options
+set termcap
+```
+
+### Verbose Option Info
+
+Use `:verbose` to see where an option was last set:
+
+```vim
+:verbose set tabstop?
+" Shows:
+"   tabstop=4
+"   Last set from ~/.vimrc line 15
+
+:verbose set shiftwidth? cindent?
+" Shows multiple options with their sources
+```
+
+## Resetting Options
+
+Reset options to their default values:
+
+```vim
+" Reset to default value
+set tabstop&            " Reset to default
+set tabstop&vim         " Reset to Vim default
+set tabstop&vi          " Reset to Vi default
+
+" Reset all options (use with caution)
+set all&
+```
+
+<Warning>
+`:set all&` resets ALL options to defaults. This can break plugins and syntax highlighting. Use with extreme caution.
+</Warning>
+
+## Boolean Options
+
+Common boolean options:
+
+```vim
+" Editor behavior
+set autoindent          " Copy indent from current line
+set expandtab           " Use spaces instead of tabs
+set wrap                " Wrap long lines
+set linebreak           " Break at word boundaries
+set hidden              " Allow hidden buffers with unsaved changes
+
+" Visual feedback
+set number              " Show line numbers
+set relativenumber      " Show relative line numbers
+set cursorline          " Highlight current line
+set showmatch           " Highlight matching brackets
+set hlsearch            " Highlight search results
+
+" File handling
+set backup              " Keep backup files
+set undofile            " Persistent undo
+set autoread            " Auto-read changed files
+set autowrite           " Auto-save before :make, :next, etc.
+```
+
+## Number Options
+
+Common number options:
+
+```vim
+" Indentation
+set tabstop=8           " Tab width in spaces
+set shiftwidth=4        " Indent width for << and >>
+set softtabstop=4       " Spaces for <Tab> in insert mode
+set shiftround          " Round indent to multiple of shiftwidth
+
+" Display
+set textwidth=78        " Maximum text width
+set colorcolumn=80      " Highlight column 80
+set scrolloff=5         " Keep 5 lines above/below cursor
+set sidescrolloff=8     " Keep 8 columns left/right of cursor
+
+" Timing
+set timeoutlen=1000     " Time to wait for mapped sequence (ms)
+set ttimeoutlen=10      " Time to wait for key code sequence (ms)
+set updatetime=4000     " Time before swap file is written (ms)
+
+" History
+set history=1000        " Command history size
+set undolevels=1000     " Maximum undo levels
+```
+
+### Numeric Formats
+
+Set number options in different formats:
+
+```vim
+set tabstop=16          " Decimal
+set tabstop=0x10        " Hexadecimal (16)
+set tabstop=020         " Octal (16)
+set tabstop=0o20        " Octal (16)
+```
+
+## String Options
+
+Common string options:
+
+```vim
+" Encoding
+set encoding=utf-8      " Internal encoding
+set fileencoding=utf-8  " File encoding for current buffer
+set fileformat=unix     " Line ending format (unix, dos, mac)
+
+" Paths
+set path=.,/usr/include,,       " File search path
+set tags=./tags,tags            " Tag file locations
+set backupdir=~/.vim/backup     " Backup directory
+set directory=~/.vim/swap       " Swap file directory
+set undodir=~/.vim/undo         " Undo file directory
+
+" Completion
+set complete=.,w,b,u,t          " Completion sources
+set completeopt=menu,preview    " Completion options
+
+" Display
+set fillchars=vert:│,fold:-     " Characters for UI elements
+set listchars=tab:→\ ,trail:·,nbsp:␣  " Whitespace characters
+set display=lastline            " Show as much as possible
+```
+
+### String Option Operators
+
+```vim
+" Append
+set path+=./include             " Add to end
+
+" Prepend
+set path^=./local/include       " Add to beginning
+
+" Remove
+set path-=/usr/include          " Remove value
+
+" Comma-separated lists
+set backupext=.bak              " Single value
+set path=.,/usr/include,,       " Comma-separated
+
+" For comma-separated lists, vim adds commas automatically
+set path=.
+set path+=./include             " Results in: ".,./include"
+```
+
+## Special Characters in Options
+
+Handle special characters properly:
+
+```vim
+" Spaces in values (use backslash)
+set makeprg=make\ -j4           " Results in: "make -j4"
+set tags=tags\ file             " Results in: "tags file"
+
+" Use <Space> notation
+set makeprg=make<Space>-j4
+
+" Escaping commas in comma-separated options
+set tags=tags\,file             " Single item: "tags,file"
+set tags=tags\\,file            " Still single item with backslash
+
+" Bar character (command separator)
+set titlestring=hi\|there       " Single value with |
+```
+
+## Local vs Global Options
+
+### Global Options
+
+Affect all buffers/windows:
+
+```vim
+set encoding=utf-8      " Always global
+set history=1000        " Always global
+set autowrite           " Always global
+```
+
+### Local to Window
+
+Each window has its own value:
+
+```vim
+setlocal number         " Set for current window only
+setlocal wrap
+setlocal cursorline
+```
+
+### Local to Buffer  
+
+Each buffer has its own value:
+
+```vim
+setlocal tabstop=4      " Set for current buffer only
+setlocal textwidth=78
+setlocal expandtab
+```
+
+### Global-Local Options
+
+Some options have both global and local values:
+
+```vim
+" Set both global and local
+set makeprg=gmake
+
+" Set only local (buffer/window uses this)
+setlocal makeprg=perlmake
+
+" Set only global (new buffers/windows use this)
+setglobal makeprg=gmake
+
+" Use global value (clear local)
+setlocal makeprg<
+```
+
+## Environment Variables
+
+Expand environment variables in options:
+
+```vim
+" Expand $HOME
+set backupdir=$HOME/.vim/backup
+
+" Expand multiple variables
+set path=$HOME/include,$INCLUDE,.
+
+" Tilde expansion
+set backupdir=~/.vim/backup     " Expands to home directory
+
+" Only at start or after space/comma
+set path=.,~/include            " ~ expands
+set path=.,foo~/include         " ~ doesn't expand
+```
+
+## Common Option Patterns
+
+### Essential Settings
+
+```vim
+" Basic editing
+set backspace=indent,eol,start  " Allow backspacing over everything
+set autoindent                   " Copy indent from current line
+set ruler                        " Show cursor position
+set showcmd                      " Show incomplete commands
+set wildmenu                     " Command-line completion menu
+set wildmode=longest:full,full   " Completion mode
+
+" Search
+set ignorecase          " Case-insensitive search
+set smartcase           " Case-sensitive if uppercase present
+set incsearch           " Incremental search
+set hlsearch            " Highlight matches
+```
+
+### Programming Settings
+
+```vim
+" Indentation
+set expandtab           " Use spaces instead of tabs
+set tabstop=4           " Tab displays as 4 spaces
+set shiftwidth=4        " Indent by 4 spaces
+set softtabstop=4       " <Tab> inserts 4 spaces
+set smartindent         " Smart auto-indenting
+
+" Code display
+set number              " Show line numbers
+set relativenumber      " Show relative numbers
+set colorcolumn=80      " Highlight column 80
+set signcolumn=yes      " Always show sign column
+```
+
+### File Type Specific
+
+Set options based on file type:
+
+```vim
+autocmd FileType python setlocal
+    \ tabstop=4
+    \ shiftwidth=4
+    \ softtabstop=4
+    \ expandtab
+    \ textwidth=79
+
+autocmd FileType go setlocal
+    \ tabstop=4
+    \ shiftwidth=4
+    \ softtabstop=4
+    \ noexpandtab
+
+autocmd FileType html,css,javascript setlocal
+    \ tabstop=2
+    \ shiftwidth=2
+    \ softtabstop=2
+    \ expandtab
+```
+
+## The Options Window
+
+Open an interactive options browser:
+
+```vim
+:options
+" or
+:bro[wse] set
+```
+
+This opens a window where you can:
+- View all options grouped by category
+- See help for each option
+- Modify values interactively
+- Set the value by pressing `<CR>` on the "set" line
+
+## Using let with Options
+
+Access options as variables using `&`:
+
+```vim
+" Read option value
+let value = &tabstop
+if &number
+  echo "Line numbers are on"
+endif
+
+" Set option value
+let &tabstop = 8
+let &path = '.,/usr/include'
+
+" Local vs global
+let &l:tabstop = 4      " Local value
+let &g:tabstop = 8      " Global value
+
+" Useful for temporary changes
+let save_option = &scrolloff
+set scrolloff=999       " Center cursor
+" ... do something ...
+let &scrolloff = save_option
+```
+
+## Modelines
+
+Set options per file using modelines:
+
+```vim
+" At the top or bottom of a file:
+" vim: set tabstop=4 shiftwidth=4 expandtab:
+" vim: ts=4 sw=4 et:
+
+" Or in comments:
+/* vim: set ts=4 sw=4 et: */
+// vim: set ts=4 sw=4 et:
+# vim: set ts=4 sw=4 et:
+```
+
+Enable modelines:
+
+```vim
+set modeline            " Enable modeline processing
+set modelines=5         " Check first/last 5 lines
+```
+
+<Warning>
+Modelines can be a security risk as they execute code from files you open. Consider using `set nomodeline` or the safer `set modelineexpr` (requires Vim 8.1.1366+).
+</Warning>
+
+## Common Option Mistakes
+
+### Wrong: Setting to Zero
+
+```vim
+" This doesn't disable the option!
+let c_comment_strings = 0
+
+" Use unlet instead
+unlet c_comment_strings
+```
+
+### Wrong: Quotes Around Values
+
+```vim
+" Wrong
+set tabstop="4"
+
+" Correct
+set tabstop=4
+```
+
+### Wrong: No Equals Sign
+
+```vim
+" Wrong
+set tabstop 4
+
+" Correct
+set tabstop=4
+```
+
+## Testing Options
+
+Check if an option exists:
+
+```vim
+" Check if option can be set
+if exists('&colorcolumn')
+  set colorcolumn=80
+endif
+
+" Check if feature is available
+if exists('+colorcolumn')
+  set colorcolumn=80
+endif
+
+" Check if option is supported
+if has('persistent_undo')
+  set undofile
+endif
+```
+
+## Related Topics
+
+- [Creating vimrc](/customization/vimrc) - Configure Vim startup
+- [Autocommands](/customization/autocommands) - Automate option changes
+- [Key Mappings](/customization/mappings) - Create custom bindings

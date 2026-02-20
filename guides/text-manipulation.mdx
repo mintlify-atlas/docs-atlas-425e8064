@@ -1,0 +1,970 @@
+---
+title: 'Advanced Text Manipulation'
+description: 'Master sophisticated text transformation techniques for complex editing tasks'
+---
+
+## Introduction
+
+Advanced text manipulation in Vim goes beyond basic editing to include search and replace, macros, global commands, and external tool integration. These techniques enable you to transform large amounts of text efficiently.
+
+<Info>
+This guide assumes familiarity with basic operators and motions. Review [Efficient Editing](/guides/efficient-editing) first if needed.
+</Info>
+
+## Search and Replace Mastery
+
+### The Substitute Command
+
+<Steps>
+  <Step title="Basic Substitution Syntax">
+    Format: `:range s/pattern/replacement/flags`
+    
+    **Common patterns:**
+    ```vim
+    :s/old/new/           " Replace first occurrence in line
+    :s/old/new/g          " Replace all in line (global)
+    :s/old/new/gc         " Replace all with confirmation
+    :s/old/new/i          " Case-insensitive
+    :s/old/new/gi         " Global + case-insensitive
+    ```
+    
+    <Tip>
+    The `g` flag means "global within the line" - replace all occurrences, not just the first.
+    </Tip>
+  </Step>
+  
+  <Step title="Range Specifications">
+    Control which lines are affected:
+    
+    | Range | Meaning | Example |
+    |-------|---------|----------|
+    | `:s/a/b/` | Current line only | Single line |
+    | `:%s/a/b/` | Entire file | All lines |
+    | `:1,10s/a/b/` | Lines 1-10 | Specific range |
+    | `:.,$s/a/b/` | Current to end | Current onwards |
+    | `:'<,'>s/a/b/` | Visual selection | Selected text |
+    | `:g/pattern/s/a/b/` | Lines matching pattern | Conditional |
+    
+    **Special markers:**
+    ```vim
+    :.     " Current line
+    :$     " Last line
+    :%     " All lines
+    :'<,'> " Visual selection (auto-inserted)
+    ```
+  </Step>
+  
+  <Step title="Replacement Patterns">
+    Use special characters in replacement:
+    
+    | Pattern | Meaning | Example |
+    |---------|---------|----------|
+    | `&` | Entire match | `:s/word/(&)/` → "(word)" |
+    | `\0` | Entire match | Same as `&` |
+    | `\1` | First capture group | `:s/\(\w\+\)/[\1]/` |
+    | `\2` | Second capture group | Multiple captures |
+    | `\u` | Uppercase next char | `:s/\w/\u&/` → "Word" |
+    | `\U` | Uppercase rest | `:s/.*/\U&/` → "WORD" |
+    | `\l` | Lowercase next char | `:s/\w/\l&/` → "wORD" |
+    | `\L` | Lowercase rest | `:s/.*/\L&/` → "word" |
+    | `\r` | Insert newline | Split lines |
+    | `\t` | Insert tab | Add indentation |
+    
+    **Examples:**
+    ```vim
+    :%s/\w\+/"&"/g        " Quote all words
+    :%s/\(\w\+\)/\U\1/g   " UPPERCASE all words
+    :%s/^/  /             " Indent all lines with 2 spaces
+    ```
+  </Step>
+  
+  <Step title="Capture Groups and Backreferences">
+    Extract and reuse parts of the match:
+    
+    **Swap first and last name:**
+    ```vim
+    :%s/\(\w\+\) \(\w\+\)/\2, \1/
+    ```
+    Result: "John Smith" → "Smith, John"
+    
+    **Extract version number:**
+    ```vim
+    :s/version \(\d\+\.\d\+\)/v\1/
+    ```
+    Result: "version 2.5" → "v2.5"
+    
+    **Reformat function calls:**
+    ```vim
+    :%s/\(\w\+\)(\(.*\))/\1[\2]/
+    ```
+    Result: "func(args)" → "func[args]"
+    
+    <Note>
+    Use `\(` and `\)` to create capture groups. Reference with `\1`, `\2`, etc.
+    </Note>
+  </Step>
+  
+  <Step title="Interactive Confirmation">
+    Review each replacement:
+    
+    ```vim
+    :%s/old/new/gc
+    ```
+    
+    **Confirmation prompts:**
+    - `y` - Yes, replace this match
+    - `n` - No, skip this match
+    - `a` - All, replace this and all remaining
+    - `q` - Quit, stop replacing
+    - `l` - Last, replace this and quit
+    - `CTRL-E` - Scroll up
+    - `CTRL-Y` - Scroll down
+    
+    <Tip>
+    Use `gc` when you're not 100% sure about replacing everything. You can always press `a` to accept the rest.
+    </Tip>
+  </Step>
+</Steps>
+
+### Advanced Search Patterns
+
+<Steps>
+  <Step title="Regex Patterns">
+    Vim's regex engine syntax:
+    
+    | Pattern | Matches | Example |
+    |---------|---------|----------|
+    | `.` | Any character | `c.t` matches "cat", "cot" |
+    | `*` | 0 or more | `ca*t` matches "ct", "cat", "caat" |
+    | `\+` | 1 or more | `ca\+t` matches "cat", "caat" |
+    | `\?` | 0 or 1 | `ca\?t` matches "ct", "cat" |
+    | `\{n,m\}` | n to m times | `a\{2,4\}` matches "aa", "aaa", "aaaa" |
+    | `^` | Start of line | `^The` matches "The" at line start |
+    | `$` | End of line | `end$` matches "end" at line end |
+    | `\<` | Word start | `\<vim` matches "vim" not "gvim" |
+    | `\>` | Word end | `vim\>` matches "vim" not "vimrc" |
+    | `\|` | Alternation (OR) | `cat\|dog` matches "cat" or "dog" |
+    | `[abc]` | Character class | `[aeiou]` matches any vowel |
+    | `[^abc]` | Negated class | `[^0-9]` matches non-digit |
+    | `\w` | Word character | `[a-zA-Z0-9_]` |
+    | `\W` | Non-word | `[^a-zA-Z0-9_]` |
+    | `\d` | Digit | `[0-9]` |
+    | `\D` | Non-digit | `[^0-9]` |
+    | `\s` | Whitespace | Space, tab, newline |
+    | `\S` | Non-whitespace | Any non-space |
+  </Step>
+  
+  <Step title="Common Pattern Examples">
+    **Match email addresses:**
+    ```vim
+    /\w\+@\w\+\.\w\+
+    ```
+    
+    **Match URLs:**
+    ```vim
+    /https\?:\/\/[^[:space:]]\+
+    ```
+    
+    **Match hex colors:**
+    ```vim
+    /#\x\{6\}
+    ```
+    
+    **Match IP addresses:**
+    ```vim
+    /\d\{1,3\}\.\d\{1,3\}\.\d\{1,3\}\.\d\{1,3\}
+    ```
+    
+    **Match function definitions (Python):**
+    ```vim
+    /^def \w\+(.*):$
+    ```
+    
+    **Match commented lines:**
+    ```vim
+    /^\s*#
+    /^\s*\/\/ 
+    ```
+  </Step>
+  
+  <Step title="Very Magic Mode">
+    Simplify regex with `\v` (very magic):
+    
+    ```vim
+    " Traditional Vim regex
+    /\(\d\+\)\.\(\d\+\)
+    
+    " Very magic mode
+    /\v(\d+)\.(\d+)
+    ```
+    
+    In very magic mode:
+    - No need to escape `()`, `+`, `|`, etc.
+    - More like Perl/Python regex
+    - Easier to read and write
+    
+    **Example transformations:**
+    ```vim
+    " Find function calls: func(arg1, arg2)
+    /\v\w+\(.*\)
+    
+    " Find URLs
+    /\vhttps?://\S+
+    
+    " Find phone numbers
+    /\v\d{3}-\d{3}-\d{4}
+    ```
+  </Step>
+  
+  <Step title="Case Sensitivity Control">
+    Control case matching:
+    
+    ```vim
+    /pattern      " Depends on 'ignorecase' setting
+    /pattern\c    " Force case-insensitive
+    /pattern\C    " Force case-sensitive
+    ```
+    
+    **Settings:**
+    ```vim
+    :set ignorecase   " Ignore case in searches
+    :set smartcase    " Case-sensitive if uppercase present
+    :set noignorecase " Case-sensitive always
+    ```
+    
+    With `smartcase` on:
+    - `/vim` matches "vim", "Vim", "VIM"
+    - `/Vim` matches "Vim" only
+  </Step>
+</Steps>
+
+## Global Commands
+
+### The :global Command
+
+<Steps>
+  <Step title="Basic Global Syntax">
+    Format: `:g/pattern/command`
+    
+    Execute command on lines matching pattern:
+    
+    ```vim
+    :g/TODO/d          " Delete all lines with TODO
+    :g/^$/d            " Delete all empty lines
+    :g/pattern/p       " Print matching lines
+    :g/debug/normal gcc  " Comment out debug lines
+    ```
+    
+    **Inverted (non-matching):**
+    ```vim
+    :g!/pattern/command  " Lines NOT matching
+    :v/pattern/command   " Same as g! (v for inVerse)
+    ```
+  </Step>
+  
+  <Step title="Global with Operations">
+    **Delete operations:**
+    ```vim
+    :g/^$/d                " Delete blank lines
+    :g/DEBUG/d             " Delete debug statements
+    :g/^#/d                " Delete comments
+    :v/TODO\|FIXME/d       " Keep only TODO/FIXME lines
+    ```
+    
+    **Yank operations:**
+    ```vim
+    :g/error/yank A        " Yank all error lines to register a
+    :g/function/t$         " Copy function lines to end
+    ```
+    
+    **Move operations:**
+    ```vim
+    :g/import/m 0          " Move all imports to top
+    :g/^$/m $              " Move blank lines to end
+    ```
+    
+    **Substitute on matching lines:**
+    ```vim
+    :g/TODO/s/TODO/DONE/   " Replace TODO with DONE on TODO lines
+    ```
+  </Step>
+  
+  <Step title="Complex Global Commands">
+    **Multi-line operations:**
+    ```vim
+    :g/^class/+1,/^}/d     " Delete class bodies
+    :g/function/.,/^}/s/^/  /  " Indent function bodies
+    ```
+    
+    **Nested commands:**
+    ```vim
+    :g/pattern/normal @a   " Run macro 'a' on matching lines
+    :g/TODO/normal A !     " Append ! to TODO lines
+    ```
+    
+    **Conditional operations:**
+    ```vim
+    :g/^def/if getline('.')[4:6] == 'old' | d | endif
+    ```
+  </Step>
+  
+  <Step title="Real-World Examples">
+    **Remove duplicate lines:**
+    ```vim
+    :sort u                " Sort and remove duplicates (simple)
+    :g/^\(.*\)$\n\1$/d    " Remove adjacent duplicates (complex)
+    ```
+    
+    **Extract function definitions:**
+    ```vim
+    :g/^def/yank A         " Collect all Python functions
+    :g/^function/yank A    " Collect all JS functions
+    ```
+    
+    **Format code blocks:**
+    ```vim
+    :g/^class/normal =i{   " Auto-indent class bodies
+    ```
+    
+    **Add line numbers to errors:**
+    ```vim
+    :let n=0 | g/ERROR/let n+=1 | s/^/[n] /
+    ```
+    
+    **Reverse lines matching pattern:**
+    ```vim
+    :g/pattern/m 0         " Move matching lines to top (reverses order)
+    ```
+  </Step>
+</Steps>
+
+## Macros: Record and Replay
+
+### Recording Macros
+
+<Steps>
+  <Step title="Basic Macro Recording">
+    Record a sequence of commands:
+    
+    ```vim
+    qa        " Start recording to register 'a'
+    "...commands..."
+    q         " Stop recording
+    
+    @a        " Execute macro once
+    @@        " Repeat last macro
+    10@a      " Execute 10 times
+    ```
+    
+    **Example: Format list items**
+    ```vim
+    qa        " Start recording
+    I- <ESC>  " Insert '- ' at line start
+    j         " Move to next line
+    q         " Stop recording
+    
+    10@a      " Apply to next 10 lines
+    ```
+  </Step>
+  
+  <Step title="Editing Macros">
+    Macros are just text in registers:
+    
+    **View macro contents:**
+    ```vim
+    :reg a    " Show register 'a' contents
+    ```
+    
+    **Edit macro:**
+    ```vim
+    "ap       " Paste macro to buffer
+    "...edit..."
+    "ayy      " Yank back to register
+    ```
+    
+    **Or edit in command line:**
+    ```vim
+    :let @a='I- ^[j'   " ^[ is ESC (type CTRL-V ESC)
+    ```
+  </Step>
+  
+  <Step title="Advanced Macro Techniques">
+    **Recursive macros:**
+    ```vim
+    qa        " Start recording
+    "...operations..."
+    @a        " Call macro recursively
+    q         " Stop recording
+    
+    @a        " Execute (runs until error)
+    ```
+    
+    **Example: Process entire file**
+    ```vim
+    qa        " Start recording
+    ^i" <ESC> " Quote first word
+    w         " Move to next word
+    @a        " Call self
+    q         " Stop recording
+    
+    @a        " Quotes all words until file end
+    ```
+    
+    <Warning>
+    Recursive macros stop when they encounter an error (e.g., end of file). Make sure this is desired behavior.
+    </Warning>
+  </Step>
+  
+  <Step title="Parallel Macros">
+    Run macro on multiple lines:
+    
+    **Method 1: Visual block**
+    ```vim
+    CTRL-V    " Select lines in visual block
+    :normal @a  " Execute macro on each line
+    ```
+    
+    **Method 2: Global command**
+    ```vim
+    :g/pattern/normal @a  " Execute on matching lines
+    ```
+    
+    **Method 3: Range**
+    ```vim
+    :1,10normal @a  " Execute on lines 1-10
+    ```
+  </Step>
+</Steps>
+
+### Macro Examples
+
+<Steps>
+  <Step title="Example 1: Add TODO Comments">
+    Transform:
+    ```python
+    implement_feature()
+    fix_bug()
+    refactor_code()
+    ```
+    
+    To:
+    ```python
+    # TODO: implement_feature()
+    # TODO: fix_bug()
+    # TODO: refactor_code()
+    ```
+    
+    Macro:
+    ```vim
+    qa
+    I# TODO: <ESC>
+    j
+    q
+    ```
+    
+    Then: `10@a`
+  </Step>
+  
+  <Step title="Example 2: Convert CSV to Markdown Table">
+    Transform:
+    ```
+    Name,Age,City
+    Alice,30,NYC
+    Bob,25,LA
+    ```
+    
+    To:
+    ```markdown
+    | Name | Age | City |
+    | Alice | 30 | NYC |
+    | Bob | 25 | LA |
+    ```
+    
+    Macro:
+    ```vim
+    qa
+    :s/,/ | /g<CR>
+    I| <ESC>
+    A |<ESC>
+    j
+    q
+    ```
+  </Step>
+  
+  <Step title="Example 3: Increment Numbers">
+    Transform:
+    ```
+    Step 1: First
+    Step 1: Second
+    Step 1: Third
+    ```
+    
+    To:
+    ```
+    Step 1: First
+    Step 2: Second
+    Step 3: Third
+    ```
+    
+    Macro:
+    ```vim
+    qa
+    /\d<CR>   " Find number
+    <CTRL-A>  " Increment
+    n         " Next match
+    q
+    ```
+    
+    Or use visual block with `g CTRL-A`.
+  </Step>
+</Steps>
+
+## External Commands
+
+### Shell Integration
+
+<Steps>
+  <Step title="Execute Shell Commands">
+    Run external commands:
+    
+    ```vim
+    :!command          " Execute command, show output
+    :r !command        " Read command output into buffer
+    :w !command        " Write buffer to command's stdin
+    :%!command         " Filter entire file through command
+    ```
+    
+    **Examples:**
+    ```vim
+    :!ls -la           " List directory
+    :r !date           " Insert current date
+    :w !python         " Execute buffer as Python
+    :%!sort            " Sort entire file
+    ```
+  </Step>
+  
+  <Step title="Filter Text Through Commands">
+    Use `!` operator with motions:
+    
+    ```vim
+    !motion command    " Filter motion text through command
+    
+    !ip sort           " Sort current paragraph
+    !G fmt             " Format from here to end
+    !} column -t       " Format paragraph as table
+    ```
+    
+    **With visual selection:**
+    ```vim
+    V      " Select lines
+    !sort  " Sort selection
+    ```
+  </Step>
+  
+  <Step title="Practical Examples">
+    **Sort lines:**
+    ```vim
+    :%!sort            " Sort entire file
+    :5,20!sort         " Sort lines 5-20
+    !ip sort           " Sort current paragraph
+    ```
+    
+    **Format JSON:**
+    ```vim
+    :%!jq .            " Pretty-print JSON
+    :%!python -m json.tool  " Alternative
+    ```
+    
+    **Format code:**
+    ```vim
+    :%!prettier --stdin-filepath %  " Format with Prettier
+    :%!black -                      " Format Python with Black
+    ```
+    
+    **Run through awk/sed:**
+    ```vim
+    :%!awk '{print $1}'             " Extract first field
+    :%!sed 's/old/new/g'            " Search and replace
+    ```
+    
+    **Calculate:**
+    ```vim
+    :r !bc <<<"2^10"                " Insert calculation result
+    ```
+  </Step>
+  
+  <Step title="Read Command Output">
+    Insert command output into buffer:
+    
+    ```vim
+    :r !date                  " Insert date
+    :r !ls                    " Insert file listing
+    :r !git log --oneline -5  " Insert recent commits
+    :0r !figlet "Title"       " Insert ASCII art at top
+    ```
+    
+    <Tip>
+    Use `:0r !command` to insert at file beginning, `:$r !command` at end.
+    </Tip>
+  </Step>
+</Steps>
+
+## Text Transformations
+
+### Case Conversion
+
+<Steps>
+  <Step title="Case Operators">
+    Change case with operators:
+    
+    | Command | Effect |
+    |---------|--------|
+    | `~` | Toggle case of character |
+    | `g~` | Toggle case with motion |
+    | `gU` | Uppercase with motion |
+    | `gu` | Lowercase with motion |
+    | `g~w` | Toggle word case |
+    | `gUw` | Uppercase word |
+    | `guw` | Lowercase word |
+    | `g~~` | Toggle line case |
+    | `gUU` | Uppercase line |
+    | `guu` | Lowercase line |
+    
+    **With text objects:**
+    ```vim
+    gUiw    " UPPERCASE inner word
+    guaw    " lowercase around word
+    gU$     " UPPERCASE to end of line
+    gu}     " lowercase to end of paragraph
+    ```
+  </Step>
+  
+  <Step title="Visual Mode Case">
+    Select then transform:
+    
+    ```vim
+    viw     " Select word
+    U       " Uppercase (or u for lowercase)
+    
+    V       " Select line
+    U       " Uppercase line
+    
+    CTRL-V  " Block select
+    U       " Uppercase block
+    ```
+  </Step>
+  
+  <Step title="Substitution Case">
+    Use case modifiers in replacement:
+    
+    ```vim
+    :%s/\w\+/\U&/g         " UPPERCASE ALL WORDS
+    :%s/\w\+/\L&/g         " lowercase all words
+    :%s/\w\+/\u&/g         " Capitalize All Words
+    :%s/\(\w\)\(\w*\)/\u\1\L\2/g  " Capitalize first letter only
+    ```
+  </Step>
+</Steps>
+
+### Sorting and Filtering
+
+<Steps>
+  <Step title="Sort Command">
+    Built-in sorting:
+    
+    ```vim
+    :sort            " Sort lines alphabetically
+    :sort!           " Reverse sort
+    :sort u          " Sort and remove duplicates
+    :sort n          " Numeric sort
+    :sort i          " Case-insensitive sort
+    ```
+    
+    **With range:**
+    ```vim
+    :10,20sort       " Sort lines 10-20
+    :g/^class/+1,/^}/-1sort  " Sort within each class
+    ```
+    
+    **Sort by pattern:**
+    ```vim
+    :sort /\d\+/     " Sort by first number in line
+    :sort /.*,/      " Sort by text after last comma
+    ```
+  </Step>
+  
+  <Step title="Unique Lines">
+    Remove duplicates:
+    
+    ```vim
+    :sort u          " Sort and remove duplicates
+    :g/^\(.*\)$\n\1$/d  " Remove adjacent duplicates
+    ```
+    
+    **Keep only unique lines:**
+    ```vim
+    :%!uniq          " Remove adjacent duplicates (Unix)
+    :%!sort | uniq   " Sort and remove all duplicates
+    ```
+  </Step>
+  
+  <Step title="Filter Lines">
+    Keep or remove lines:
+    
+    ```vim
+    :g/pattern/d          " Delete matching lines
+    :v/pattern/d          " Keep only matching lines
+    :g/^$/d               " Remove blank lines
+    :v/\S/d               " Remove lines without non-whitespace
+    ```
+  </Step>
+</Steps>
+
+### Indentation and Formatting
+
+<Steps>
+  <Step title="Indent Operations">
+    Adjust indentation:
+    
+    ```vim
+    >>      " Indent line
+    <<      " Unindent line
+    5>>     " Indent 5 lines
+    >ip     " Indent paragraph
+    >}      " Indent to end of paragraph
+    =%      " Auto-indent to matching bracket
+    =G      " Auto-indent to end of file
+    gg=G    " Auto-indent entire file
+    ```
+    
+    **Visual mode:**
+    ```vim
+    V       " Select lines
+    >       " Indent
+    >       " Indent again (stays selected)
+    ```
+  </Step>
+  
+  <Step title="Format Text">
+    Reformat paragraphs:
+    
+    ```vim
+    gq      " Format with motion
+    gqip    " Format paragraph
+    gqap    " Format paragraph (around)
+    gq}     " Format to paragraph end
+    gwip    " Format keeping cursor position
+    ```
+    
+    **Set text width:**
+    ```vim
+    :set textwidth=80
+    gqG     " Format to end with 80 char width
+    ```
+  </Step>
+  
+  <Step title="Join Lines">
+    Combine lines:
+    
+    ```vim
+    J       " Join with next line (add space)
+    gJ      " Join without space
+    3J      " Join 3 lines
+    :g/pattern/j  " Join all matching lines
+    ```
+    
+    **Example: Join continued lines**
+    ```vim
+    :g/\\$/normal J  " Join lines ending with backslash
+    ```
+  </Step>
+</Steps>
+
+## Advanced Techniques
+
+### Multi-File Operations
+
+<Steps>
+  <Step title="Argument List">
+    Operate on multiple files:
+    
+    ```vim
+    :args *.py           " Load all Python files
+    :args **/*.js        " Load all JS files recursively
+    :argdo %s/old/new/ge | update  " Replace in all files
+    ```
+    
+    **Navigate args:**
+    ```vim
+    :next       " Next file
+    :prev       " Previous file
+    :first      " First file
+    :last       " Last file
+    ```
+  </Step>
+  
+  <Step title="Buffer List">
+    Operate on open buffers:
+    
+    ```vim
+    :bufdo %s/old/new/ge | update  " Replace in all buffers
+    :bufdo normal @a               " Run macro in all buffers
+    ```
+  </Step>
+  
+  <Step title="Quickfix List">
+    Use with search results:
+    
+    ```vim
+    :vimgrep /pattern/ **/*.py  " Search all Python files
+    :cdo s/old/new/g | update   " Replace in all matches
+    :cfdo %s/old/new/ge | update  " Replace in each file
+    ```
+  </Step>
+</Steps>
+
+### Expression Register
+
+<Steps>
+  <Step title="Calculate in Buffer">
+    Insert calculations:
+    
+    In Insert mode:
+    ```vim
+    <CTRL-R>=2+2<CR>           " Inserts 4
+    <CTRL-R>=60*60*24<CR>      " Inserts 86400
+    <CTRL-R>=system('date')<CR> " Inserts date
+    ```
+    
+    In Normal mode:
+    ```vim
+    :put =range(1,10)          " Insert numbers 1-10
+    :put =map(range(1,5), 'v:val*2')  " Insert 2,4,6,8,10
+    ```
+  </Step>
+  
+  <Step title="Increment Numbers">
+    Modify numbers:
+    
+    ```vim
+    CTRL-A    " Increment number under cursor
+    CTRL-X    " Decrement number under cursor
+    5 CTRL-A  " Add 5 to number
+    ```
+    
+    **Visual block increment:**
+    ```vim
+    CTRL-V      " Select column of numbers
+    g CTRL-A    " Increment sequentially (1,2,3...)
+    ```
+  </Step>
+</Steps>
+
+## Practice Exercises
+
+<Steps>
+  <Step title="Exercise 1: Format Contact List">
+    Transform:
+    ```
+    john smith,john@example.com,555-1234
+    jane doe,jane@example.com,555-5678
+    ```
+    
+    To:
+    ```
+    Name: JOHN SMITH
+    Email: john@example.com
+    Phone: 555-1234
+    
+    Name: JANE DOE
+    Email: jane@example.com
+    Phone: 555-5678
+    ```
+    
+    Use substitution and macros.
+  </Step>
+  
+  <Step title="Exercise 2: Extract and Sort">
+    From a log file, extract all lines containing "ERROR", remove timestamps, sort, and remove duplicates.
+    
+    Use `:g/ERROR/` and `:sort u`.
+  </Step>
+  
+  <Step title="Exercise 3: Refactor Code">
+    Change all occurrences of `old_function_name` to `newFunctionName` (camelCase) across multiple files.
+    
+    Use `:args` and `:argdo` with substitution.
+  </Step>
+</Steps>
+
+## Quick Reference
+
+<AccordionGroup>
+  <Accordion title="Substitute">
+    ```vim
+    :s/old/new/       Replace first in line
+    :%s/old/new/g     Replace all in file
+    :%s/old/new/gc    Replace with confirmation
+    :'<,'>s/old/new/g Replace in visual selection
+    ```
+  </Accordion>
+  
+  <Accordion title="Global">
+    ```vim
+    :g/pattern/d      Delete matching lines
+    :g/pattern/normal @a  Run macro on matches
+    :g/TODO/yank A    Collect all TODOs
+    :v/pattern/d      Keep only matching lines
+    ```
+  </Accordion>
+  
+  <Accordion title="Macros">
+    ```vim
+    qa...q      Record macro to 'a'
+    @a          Execute macro
+    @@          Repeat last macro
+    10@a        Execute 10 times
+    :normal @a  Execute on range/pattern
+    ```
+  </Accordion>
+  
+  <Accordion title="External">
+    ```vim
+    :!command       Execute shell command
+    :r !command     Read command output
+    :%!command      Filter file through command
+    !motion command Filter text through command
+    ```
+  </Accordion>
+  
+  <Accordion title="Transform">
+    ```vim
+    gU gu g~    Case operators
+    :sort       Sort lines
+    >> <<       Indent/unindent
+    =           Auto-indent
+    gq          Format text
+    J gJ        Join lines
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Macros Deep Dive" href="/advanced/macros" icon="repeat">
+    Master complex macro patterns
+  </Card>
+  
+  <Card title="Registers" href="/concepts/registers" icon="database">
+    Complete register system guide
+  </Card>
+  
+  <Card title="Vimscript" href="/scripting/vimscript-basics" icon="code">
+    Automate with scripting
+  </Card>
+  
+  <Card title="External Tools" href="/tools/external-commands" icon="wrench">
+    Integrate with external programs
+  </Card>
+</CardGroup>

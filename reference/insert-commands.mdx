@@ -1,0 +1,258 @@
+---
+title: Insert Mode Command Reference
+description: Comprehensive reference for Vim Insert mode commands and key bindings
+---
+
+Insert mode is where you enter text into your document. While in Insert mode, most keys insert their character, but there are many special key combinations for efficient editing.
+
+## Entering Insert Mode
+
+From Normal mode:
+- `i` - Insert before cursor
+- `I` - Insert at beginning of line (first non-blank)
+- `a` - Append after cursor
+- `A` - Append at end of line
+- `o` - Open new line below
+- `O` - Open new line above
+- `gi` - Insert at last insert position
+- `gI` - Insert at column 1
+
+## Leaving Insert Mode
+
+| Command | Description |
+|---------|-------------|
+| `<Esc>` | End Insert mode |
+| `CTRL-[` | Same as `<Esc>` |
+| `CTRL-C` | Quit Insert mode (without checking for abbreviations) |
+| `CTRL-\ CTRL-N` | Go to Normal mode |
+
+## Moving Around
+
+| Command | Description |
+|---------|-------------|
+| `<Left>` | Move cursor one character left |
+| `<Right>` | Move cursor one character right |
+| `<Up>` | Move cursor one line up |
+| `<Down>` | Move cursor one line down |
+| `<S-Left>` or `<C-Left>` | Move cursor one word left |
+| `<S-Right>` or `<C-Right>` | Move cursor one word right |
+| `<Home>` | Move cursor to start of line |
+| `<End>` | Move cursor past end of line |
+| `<C-Home>` | Move cursor to start of file |
+| `<C-End>` | Move cursor past end of file |
+| `<PageUp>` | Move one screenful backward |
+| `<PageDown>` | Move one screenful forward |
+
+## Special Movement
+
+| Command | Description |
+|---------|-------------|
+| `CTRL-G j` | Move down to column where inserting started |
+| `CTRL-G k` | Move up to column where inserting started |
+| `CTRL-G CTRL-J` | Same as `CTRL-G j` |
+| `CTRL-G CTRL-K` | Same as `CTRL-G k` |
+| `CTRL-G <Down>` | Same as `CTRL-G j` |
+| `CTRL-G <Up>` | Same as `CTRL-G k` |
+
+## Deleting Text
+
+| Command | Description |
+|---------|-------------|
+| `<BS>` or `CTRL-H` | Delete character before cursor |
+| `<Del>` | Delete character under cursor |
+| `CTRL-W` | Delete word before cursor |
+| `CTRL-U` | Delete all text from cursor to start of line |
+
+## Inserting Special Characters
+
+| Command | Description |
+|---------|-------------|
+| `CTRL-V {char}` | Insert next character literally |
+| `CTRL-V {number}` | Insert character by decimal value (up to 3 digits) |
+| `CTRL-Q` | Same as `CTRL-V` (if `CTRL-V` is used for paste) |
+| `CTRL-K {char1}{char2}` | Insert digraph |
+| `{char1}<BS>{char2}` | Insert digraph (when 'digraph' is set) |
+| `CTRL-SHIFT-V` | Like `CTRL-V` unless modifyOtherKeys is active |
+| `CTRL-SHIFT-Q` | Like `CTRL-Q` unless modifyOtherKeys is active |
+
+## Indentation
+
+| Command | Description |
+|---------|-------------|
+| `CTRL-T` | Insert one shiftwidth of indent |
+| `CTRL-D` | Delete one shiftwidth of indent |
+| `0 CTRL-D` | Delete all indent in current line |
+| `^ CTRL-D` | Delete all indent, restore in next line |
+
+## Inserting from Registers
+
+| Command | Description |
+|---------|-------------|
+| `CTRL-R {register}` | Insert contents of register |
+| `CTRL-R CTRL-R {register}` | Insert contents literally |
+| `CTRL-R CTRL-O {register}` | Insert contents literally, no auto-indent |
+| `CTRL-R CTRL-P {register}` | Insert contents literally, fix indent |
+
+**Special registers:**
+- `CTRL-R "` - Last delete or yank
+- `CTRL-R %` - Current file name
+- `CTRL-R #` - Alternate file name
+- `CTRL-R *` - Clipboard contents (X11 primary)
+- `CTRL-R +` - Clipboard contents
+- `CTRL-R /` - Last search pattern
+- `CTRL-R :` - Last command-line
+- `CTRL-R .` - Last inserted text
+- `CTRL-R =` - Expression register (prompts for expression)
+
+## Inserting from Cursor Context
+
+| Command | Description |
+|---------|-------------|
+| `CTRL-R CTRL-W` | Insert word under cursor |
+| `CTRL-R CTRL-A` | Insert WORD under cursor |
+| `CTRL-R CTRL-L` | Insert line under cursor |
+| `CTRL-R CTRL-F` | Insert file name under cursor |
+| `CTRL-R CTRL-P` | Insert file name under cursor (expanded with 'path') |
+
+## Completion Commands (CTRL-X submodes)
+
+Enter `CTRL-X` followed by:
+
+| Command | Description |
+|---------|-------------|
+| `CTRL-X CTRL-L` | Complete whole lines |
+| `CTRL-X CTRL-N` | Complete keywords from current file |
+| `CTRL-X CTRL-K` | Complete keywords from 'dictionary' |
+| `CTRL-X CTRL-T` | Complete keywords from 'thesaurus' |
+| `CTRL-X CTRL-I` | Complete keywords from current and included files |
+| `CTRL-X CTRL-]` | Complete tags |
+| `CTRL-X CTRL-F` | Complete file names |
+| `CTRL-X CTRL-D` | Complete defined identifiers |
+| `CTRL-X CTRL-V` | Complete like in command-line |
+| `CTRL-X CTRL-U` | Complete with 'completefunc' |
+| `CTRL-X CTRL-O` | Omni completion |
+| `CTRL-X s` | Spelling suggestions |
+| `CTRL-X CTRL-S` | Spelling suggestions |
+
+## Completion Navigation
+
+When the completion popup is visible:
+
+| Command | Description |
+|---------|-------------|
+| `CTRL-N` | Select next match |
+| `CTRL-P` | Select previous match |
+| `<Down>` | Select next match |
+| `<Up>` | Select previous match |
+| `<PageDown>` | Select match several entries forward |
+| `<PageUp>` | Select match several entries back |
+| `CTRL-Y` | Accept selected match and stop completion |
+| `CTRL-E` | Stop completion and go back to original text |
+| `<CR>` | Accept currently selected match |
+| `<BS>` | Delete one character and redo search |
+
+## Simple Completion
+
+| Command | Description |
+|---------|-------------|
+| `CTRL-N` | Find next keyword completion |
+| `CTRL-P` | Find previous keyword completion |
+
+## Inserting Copied Text
+
+| Command | Description |
+|---------|-------------|
+| `CTRL-A` | Insert previously inserted text |
+| `CTRL-@` | Insert previously inserted text and stop Insert mode |
+| `CTRL-Y` | Insert character from line above cursor |
+| `CTRL-E` | Insert character from line below cursor |
+
+## Execute Commands
+
+| Command | Description |
+|---------|-------------|
+| `CTRL-O {command}` | Execute single Normal mode command and return to Insert mode |
+
+## Undo
+
+| Command | Description |
+|---------|-------------|
+| `CTRL-G u` | Start new undoable edit |
+| `CTRL-G U` | Don't break undo with next cursor movement |
+
+## Special Keys
+
+| Command | Description |
+|---------|-------------|
+| `<Tab>` or `CTRL-I` | Insert a tab character |
+| `<CR>` or `CTRL-M` | Begin new line |
+| `<NL>` or `CTRL-J` | Same as `<CR>` |
+| `<Insert>` | Toggle Insert/Replace mode |
+| `<LeftMouse>` | Move cursor to mouse click position |
+| `<ScrollWheelDown>` | Move window three lines down |
+| `<ScrollWheelUp>` | Move window three lines up |
+| `<S-ScrollWheelDown>` | Move window one page down |
+| `<S-ScrollWheelUp>` | Move window one page up |
+
+## Abbreviations
+
+| Command | Description |
+|---------|-------------|
+| `CTRL-]` | Trigger abbreviation |
+
+## Language Switching
+
+| Command | Description |
+|---------|-------------|
+| `CTRL-^` | Toggle use of `:lmap` mappings |
+| `CTRL-_` | Change language (Hebrew, Farsi) when 'allowrevins' is set |
+
+## Replace Mode
+
+Replace mode is entered with `R` from Normal mode or `<Insert>` from Insert mode.
+
+In Replace mode:
+- Most keys overwrite existing characters
+- `<BS>` restores the original character
+- All Insert mode special commands work the same way
+
+## Virtual Replace Mode
+
+Virtual Replace mode is entered with `gR` from Normal mode.
+
+In Virtual Replace mode:
+- Characters are replaced as if the screen is a single long line
+- Tabs and spaces are replaced equally
+- Useful for maintaining column alignment
+
+## Insert Mode Options
+
+Several options affect Insert mode behavior:
+
+- `'textwidth'` - Maximum line width (automatic line breaking)
+- `'autoindent'` - Copy indent from previous line
+- `'smartindent'` - Smart autoindenting for C-like languages
+- `'cindent'` - C-style indenting
+- `'expandtab'` - Use spaces instead of tabs
+- `'showmode'` - Display mode in status line
+- `'insertmode'` - Start Vim in Insert mode
+- `'paste'` - Paste mode (disables autoindent, etc.)
+
+## Tips
+
+1. **Quick Insert and Return**: Use `CTRL-O` to execute a single Normal mode command without leaving Insert mode.
+
+2. **Smart Undo**: Use `CTRL-G u` before major edits to create undo break points.
+
+3. **Completion**: Master `CTRL-N` and `CTRL-P` for quick word completion.
+
+4. **Paste Mode**: Use `:set paste` before pasting from clipboard to avoid auto-indent issues.
+
+5. **Expression Register**: Use `CTRL-R =` to insert results of calculations (e.g., `CTRL-R =2+2<CR>` inserts `4`).
+
+## See Also
+
+- [Normal Mode Commands](/reference/normal-commands)
+- [Command-Line Editing](/reference/cmdline-editing)
+- [Completion](/user-guide/completion)
+- [Abbreviations](/user-guide/abbreviations)

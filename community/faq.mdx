@@ -1,0 +1,325 @@
+---
+title: Frequently Asked Questions
+description: Common questions and answers about Vim
+---
+
+## General Questions
+
+<Accordion title="What is Vim?">
+Vim is a greatly improved version of the good old UNIX editor Vi. It includes many new features:
+
+- Multi-level undo
+- Syntax highlighting
+- Command line history
+- Online help
+- Spell checking
+- Filename completion
+- Block operations
+- Script language (Vimscript and Vim9script)
+- Graphical User Interface (GUI) available
+
+Vim maintains Vi compatibility, so users familiar with Vi will feel at home.
+</Accordion>
+
+<Accordion title="How do I exit Vim?">
+This is one of the most common questions! Here are several ways:
+
+- `:q` - Quit (fails if you have unsaved changes)
+- `:q!` - Quit without saving changes
+- `:wq` - Write (save) and quit
+- `:x` or `ZZ` - Save and quit (only writes if changes were made)
+- `:qa` - Quit all windows
+- `:qa!` - Quit all windows without saving
+</Accordion>
+
+<Accordion title="Is Vim free?">
+Yes! Vim is free and open source software. However, Vim is **Charityware** - you can use and copy it freely, but you are encouraged to make a donation to help orphans in Uganda through the ICCF Holland foundation.
+
+Read more with `:help uganda` inside Vim or see the `runtime/doc/uganda.txt` file.
+</Accordion>
+
+<Accordion title="What platforms does Vim run on?">
+Vim runs on many platforms:
+
+- **Modern**: Windows 7/8/10/11, macOS, Linux, BSD systems, Haiku
+- **Legacy** (no longer maintained): MS-DOS, Windows 95/98/Me/NT/2000/XP/Vista, Amiga DOS, Atari MiNT, BeOS, RISC OS, OS/2
+
+Porting to other systems is typically not difficult.
+</Accordion>
+
+## Getting Started
+
+<Accordion title="How do I learn Vim?">
+Start with these resources in order:
+
+1. **Vimtutor** - Run `vimtutor` from your terminal for a hands-on tutorial (about 30 minutes)
+2. **Built-in help** - Use `:help user-manual` for the complete user guide
+3. **Help topics** - Use `:help howto` for quick how-to guides
+4. **Practice** - Regular use is the best way to learn
+
+See the [Vim Tutor guide](/guides/vim-tutor) for more details.
+</Accordion>
+
+<Accordion title="Do I need to know Vi to use Vim?">
+No, you don't need to know Vi first. While Vim maintains Vi compatibility, it includes extensive documentation and tutorials for beginners. The Vimtutor provides a gentle introduction without assuming any Vi knowledge.
+</Accordion>
+
+<Accordion title="Why does Vim start in Normal mode instead of Insert mode?">
+Vim is designed to optimize the editing workflow. You spend most of your time reading, navigating, and manipulating text rather than inserting new text. Normal mode provides quick access to movement and editing commands.
+
+If you prefer to start in Insert mode, you can set:
+
+```vim
+set insertmode
+```
+
+However, this is not recommended as it goes against Vim's design philosophy.
+</Accordion>
+
+## Configuration
+
+<Accordion title="Where is my vimrc file?">
+The location depends on your operating system:
+
+- **Unix/Linux/macOS**: `~/.vimrc` or `~/.vim/vimrc`
+- **Windows**: `$HOME/_vimrc` or `$HOME/vimfiles/vimrc`
+
+To find the exact location Vim is looking for, run:
+
+```vim
+:echo $MYVIMRC
+```
+
+If the file doesn't exist, create it. See the [vimrc guide](/customization/vimrc) for more information.
+</Accordion>
+
+<Accordion title="How do I enable syntax highlighting?">
+Add these lines to your vimrc:
+
+```vim
+syntax on
+filetype plugin indent on
+```
+
+Syntax highlighting is automatically enabled for recognized file types.
+</Accordion>
+
+<Accordion title="How do I set up line numbers?">
+Add one of these to your vimrc:
+
+```vim
+set number          " Absolute line numbers
+set relativenumber  " Relative line numbers
+set number relativenumber  " Both (hybrid mode)
+```
+
+Toggle line numbers with `:set number!` or `:set nu!`.
+</Accordion>
+
+## Editing
+
+<Accordion title="How do I undo and redo?">
+- **Undo**: Press `u` in Normal mode
+- **Redo**: Press `Ctrl-R` in Normal mode
+- **Undo tree**: Vim has multi-level undo, see `:help undo-tree`
+
+You can undo multiple times by pressing `u` repeatedly or using a count like `5u` to undo 5 changes.
+</Accordion>
+
+<Accordion title="How do I copy and paste?">
+Vim uses the term "yank" for copy:
+
+- **Yank (copy)**: `y` followed by a motion (e.g., `yy` for line, `yw` for word)
+- **Delete (cut)**: `d` followed by a motion (e.g., `dd` for line)
+- **Put (paste)**: `p` to paste after cursor, `P` to paste before
+
+**System clipboard**:
+- `"+y` - Copy to system clipboard
+- `"+p` - Paste from system clipboard
+
+See `:help clipboard` for more information.
+</Accordion>
+
+<Accordion title="How do I search and replace?">
+**Search**:
+```vim
+/pattern    " Search forward
+?pattern    " Search backward
+n           " Next match
+N           " Previous match
+```
+
+**Replace**:
+```vim
+:s/old/new/        " Replace first occurrence on current line
+:s/old/new/g       " Replace all occurrences on current line
+:%s/old/new/g      " Replace all occurrences in file
+:%s/old/new/gc     " Replace with confirmation
+```
+
+See the [search and replace guide](/commands/search-replace) for more patterns.
+</Accordion>
+
+<Accordion title="How do I work with multiple files?">
+**Opening files**:
+```vim
+:e filename       " Edit a file
+:split filename   " Open in horizontal split
+:vsplit filename  " Open in vertical split
+```
+
+**Switching between files**:
+```vim
+:bnext or :bn     " Next buffer
+:bprev or :bp     " Previous buffer
+:ls               " List all buffers
+:b <number>       " Switch to buffer number
+```
+
+See the [multiple files guide](/advanced/multiple-files) for more details.
+</Accordion>
+
+## Plugins
+
+<Accordion title="How do I install plugins?">
+Vim 8+ includes a built-in plugin manager using packages. Create this directory structure:
+
+```bash
+~/.vim/pack/plugins/start/
+```
+
+Clone plugins into the `start` directory:
+
+```bash
+cd ~/.vim/pack/plugins/start/
+git clone https://github.com/user/plugin.git
+```
+
+Alternatively, use a plugin manager like:
+- vim-plug
+- Vundle
+- Pathogen
+
+See the [plugin management guide](/community/plugins-ecosystem) for more options.
+</Accordion>
+
+<Accordion title="What are the most essential plugins?">
+While Vim is powerful without plugins, these are commonly recommended:
+
+- **fzf.vim** - Fuzzy file finder
+- **vim-surround** - Manipulate surrounding characters
+- **vim-commentary** - Easy commenting
+- **vim-fugitive** - Git integration
+- **ale or coc.nvim** - Linting and LSP support
+
+See the [plugin ecosystem](/community/plugins-ecosystem) page for a curated list.
+</Accordion>
+
+## Troubleshooting
+
+<Accordion title="Why is Vim slow?">
+Common causes and solutions:
+
+1. **Syntax highlighting**: Disable with `:syntax off` to test
+2. **Plugins**: Start with `vim --noplugin` to check if a plugin is causing issues
+3. **Large files**: Disable syntax for large files with `:syntax clear`
+4. **Regex patterns**: Complex patterns in syntax files or plugins can be slow
+5. **Cursorline/Cursorcolumn**: These can be slow, disable with `:set nocursorline nocursorcolumn`
+
+Profile Vim startup with:
+```bash
+vim --startuptime startup.log
+```
+</Accordion>
+
+<Accordion title="How do I fix terminal color issues?">
+If colors look wrong:
+
+1. **Check terminal support**:
+   ```vim
+   :echo $TERM
+   ```
+   Should be something like `xterm-256color`
+
+2. **Enable 256 colors**:
+   ```vim
+   set t_Co=256
+   ```
+
+3. **Use true color** (if terminal supports it):
+   ```vim
+   set termguicolors
+   ```
+
+4. **Test with a different colorscheme**:
+   ```vim
+   :colorscheme desert
+   ```
+</Accordion>
+
+<Accordion title="How do I recover from a crash?">
+Vim automatically saves swap files during editing. After a crash:
+
+1. Start Vim with the file: `vim filename`
+2. Vim will detect the swap file and offer recovery options
+3. Press `R` to recover the changes
+4. Save the file with `:w`
+5. Delete the swap file with `:e` (Vim will prompt you)
+
+See `:help recovery` and `:help usr_11.txt` for more information.
+</Accordion>
+
+## Advanced
+
+<Accordion title="What's the difference between Vimscript and Vim9script?">
+- **Vimscript** (legacy): The original scripting language, more like a shell script
+- **Vim9script**: New scripting language introduced in Vim 9, much faster and more like modern programming languages
+
+Vim9script features:
+- Type checking
+- Improved performance (10-100x faster)
+- Better error messages
+- Modern syntax
+
+Both are supported. See `:help vim9-script` for more information.
+</Accordion>
+
+<Accordion title="How do I use Vim as an IDE?">
+Vim can be configured as a powerful IDE:
+
+1. **LSP support**: Use coc.nvim or built-in LSP (Vim 9.0+)
+2. **File navigation**: Use fzf.vim or NERDTree
+3. **Git integration**: vim-fugitive
+4. **Linting**: ALE (Asynchronous Lint Engine)
+5. **Auto-completion**: Built-in or via plugins
+6. **Tags**: Use ctags for code navigation
+
+See the [programming guide](/guides/programming) for detailed setup.
+</Accordion>
+
+<Accordion title="Should I switch to Neovim?">
+Neovim is a fork of Vim with some differences:
+
+**Neovim advantages**:
+- Built-in LSP client
+- Lua scripting support
+- Better default settings
+- Async everything
+
+**Vim advantages**:
+- More stable and conservative
+- Official releases by Bram Moolenaar
+- Vim9script performance improvements
+- Wider platform support
+
+Both are excellent choices. Most Vim knowledge transfers to Neovim and vice versa.
+</Accordion>
+
+## Getting More Help
+
+If your question isn't answered here:
+
+- Use `:help <topic>` in Vim
+- Check the [Tips and Tricks](/community/tips-tricks) page
+- Visit the [Support](/community/support) page for community channels
+- Search the [Vim Tips Wiki](https://vim.fandom.com/wiki/Vim_Tips_Wiki)

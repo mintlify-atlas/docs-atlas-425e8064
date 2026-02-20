@@ -1,0 +1,430 @@
+---
+title: Installation
+description: Install Vim on Windows, macOS, Linux, or compile from source. Get started with the world's most powerful text editor.
+---
+
+# Installation
+
+You can often use your favorite package manager to install Vim. On macOS and Linux, a small version of Vim is pre-installed, but you'll want to install the full version for more features.
+
+<Note>
+  If you already have an executable version of Vim, you don't need to compile it yourself. Jump to [Verification](#verification) to confirm your installation.
+</Note>
+
+## Quick install
+
+<Tabs>
+  <Tab title="macOS">
+    ### Using Homebrew
+    
+    The recommended way to install Vim on macOS:
+    
+    ```bash
+    # Install Homebrew if you haven't already
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    
+    # Install Vim
+    brew install vim
+    ```
+    
+    ### Using MacVim
+    
+    For a native macOS GUI experience, use [MacVim](https://macvim.org):
+    
+    ```bash
+    brew install --cask macvim
+    ```
+    
+    MacVim includes both the GUI application and terminal Vim with full feature support.
+  </Tab>
+  
+  <Tab title="Linux">
+    ### Ubuntu/Debian
+    
+    ```bash
+    sudo apt update
+    sudo apt install vim
+    ```
+    
+    For the GUI version:
+    
+    ```bash
+    sudo apt install vim-gtk3
+    ```
+    
+    ### Fedora/RHEL/CentOS
+    
+    ```bash
+    sudo dnf install vim
+    ```
+    
+    ### Arch Linux
+    
+    ```bash
+    sudo pacman -S vim
+    ```
+    
+    ### From source
+    
+    See [Building from source](#building-from-source-unix) for detailed instructions.
+  </Tab>
+  
+  <Tab title="Windows">
+    ### Using the installer (Recommended)
+    
+    Download the latest installer from the [vim-win32-installer](https://github.com/vim/vim-win32-installer/releases) repository.
+    
+    <Steps>
+      <Step title="Download the installer">
+        Get the latest `gvim_X.X.XXXX.exe` file from the releases page.
+      </Step>
+      
+      <Step title="Run the installer">
+        Double-click the downloaded file and follow the prompts. The installer is mostly self-explanatory.
+      </Step>
+      
+      <Step title="Choose installation directory">
+        Use the same location as other versions if you're upgrading. For example: `C:\Program Files\vim` or `D:\vim`. A name ending in "vim" is preferred.
+      </Step>
+      
+      <Step title="Complete installation">
+        Click "Next" to start the installation. The installer will set up Vim and optionally add it to your PATH.
+      </Step>
+    </Steps>
+    
+    <Warning>
+      When an existing installation is detected, you'll be offered to remove it first. Complete the uninstall before continuing. Watch the taskbar for uninstall windows that may appear behind the installer.
+    </Warning>
+    
+    ### Using zip archives
+    
+    If you prefer manual installation:
+    
+    <Steps>
+      <Step title="Navigate to installation directory">
+        ```cmd
+        cd C:\
+        ```
+        
+        Or if you already have a vim directory:
+        ```cmd
+        cd C:\vim
+        ```
+      </Step>
+      
+      <Step title="Extract archives">
+        ```cmd
+        # This creates vim\vim92 directory
+        unzip vim92w32.zip
+        ```
+        
+        Extract both the runtime archive and at least one binary archive to the same location.
+      </Step>
+      
+      <Step title="Run install program">
+        ```cmd
+        cd vim\vim92
+        install.exe
+        ```
+        
+        The installer will ask about your preferences:
+        - Create `_vimrc` with your settings
+        - Add "Edit with Vim" to Windows Explorer context menu
+        - Create batch files for command line use
+        - Add desktop and Start menu shortcuts
+      </Step>
+    </Steps>
+  </Tab>
+</Tabs>
+
+## Building from source (Unix)
+
+Building Vim from source gives you full control over features and ensures you have the latest version.
+
+### Prerequisites
+
+<Tabs>
+  <Tab title="Ubuntu/Debian">
+    ```bash
+    # Basic build tools
+    sudo apt install git make clang libtool-bin
+    
+    # For X11 clipboard support (recommended)
+    sudo apt install libxt-dev
+    
+    # For GUI support (optional)
+    sudo apt install libgtk-3-dev
+    
+    # For Python 3 support (optional)
+    sudo apt install libpython3-dev
+    ```
+  </Tab>
+  
+  <Tab title="Fedora/RHEL">
+    ```bash
+    # Basic build tools
+    sudo dnf groupinstall "Development Tools"
+    sudo dnf install git gcc make ncurses-devel
+    
+    # For GUI support (optional)
+    sudo dnf install gtk3-devel
+    ```
+  </Tab>
+  
+  <Tab title="macOS">
+    ```bash
+    # Install Xcode Command Line Tools
+    xcode-select --install
+    ```
+  </Tab>
+</Tabs>
+
+### Build steps
+
+<Steps>
+  <Step title="Clone the repository">
+    ```bash
+    git clone https://github.com/vim/vim.git
+    cd vim/src
+    ```
+  </Step>
+  
+  <Step title="Build with default features">
+    ```bash
+    make
+    ```
+    
+    This will automatically include GUI and X11 libraries if you have them. For a minimal build, see the Makefile for options to disable features.
+  </Step>
+  
+  <Step title="Run tests (optional)">
+    ```bash
+    make test
+    ```
+    
+    This ensures your build has no problems before installation.
+  </Step>
+  
+  <Step title="Install">
+    ```bash
+    sudo make install
+    ```
+    
+    This installs Vim in `/usr/local` by default.
+  </Step>
+</Steps>
+
+### Build configuration
+
+To customize your build, you can pass options to configure:
+
+<CodeGroup>
+```bash GUI options
+# Enable specific GUI
+./configure --enable-gui=gtk3    # GTK 3
+./configure --enable-gui=motif   # Motif
+./configure --enable-gui=auto    # Auto-detect (default)
+
+# Disable GUI entirely
+./configure --disable-gui
+```
+
+```bash Python support
+# Enable Python 3 (uncomment CONF_OPT_PYTHON3 in Makefile)
+./configure --enable-python3interp
+make reconfig
+```
+
+```bash Custom paths
+# Use custom prefix
+./configure --prefix=/usr
+
+# Custom runtime location
+make VIMRUNTIMEDIR=/usr/share/vim
+
+# Custom vimrc location
+make VIMRCLOC=/etc
+```
+
+```bash Extra compiler flags
+# Add custom CFLAGS or LIBS
+env CFLAGS=-I/usr/local/include LIBS=-lm make
+```
+</CodeGroup>
+
+<Tip>
+  On Linux, you usually need GUI "-devel" packages. Having GTK libraries installed isn't enough - you also need the header files to compile Vim with GUI support.
+</Tip>
+
+## Building on Windows
+
+For Windows builds, you can use several toolchains:
+
+### Visual Studio (Recommended)
+
+<Steps>
+  <Step title="Install Visual Studio">
+    Download "Visual Studio 2022 Community Edition" (free) or "Build Tools for Visual Studio 2022". During installation, select "Desktop development with C++" workload.
+  </Step>
+  
+  <Step title="Open Developer Command Prompt">
+    Launch "x64 Native Tools Command Prompt for VS 2022" from the Start menu.
+  </Step>
+  
+  <Step title="Navigate to source">
+    ```cmd
+    cd path\to\vim\src
+    ```
+  </Step>
+  
+  <Step title="Build Vim">
+    ```cmd
+    # Console version
+    nmake -f Make_mvc.mak
+    
+    # GUI version
+    nmake -f Make_mvc.mak GUI=yes
+    
+    # With additional features
+    nmake -f Make_mvc.mak GUI=yes OLE=yes PYTHON3=C:\Python311
+    ```
+  </Step>
+</Steps>
+
+<Note>
+  Vim versions built with VS2019 or VS2022 are systematically tested and work on Windows 7, 8, 8.1, 10, 11 and all respective server variants.
+</Note>
+
+### MSYS2 with MinGW
+
+```bash
+# Install MSYS2 from https://www.msys2.org
+# Then in MSYS2 terminal:
+pacman -S base-devel mingw-w64-x86_64-toolchain
+
+cd vim/src
+make -f Make_ming.mak
+```
+
+## Verification
+
+Verify your installation by checking the version:
+
+```bash
+vim --version
+```
+
+You should see output like:
+
+```
+VIM - Vi IMproved 9.2 (2026 Jan 14, compiled Jan 15 2026 12:00:00)
+Included patches: 1-500
+Compiled by user@hostname
+...
+```
+
+<Tip>
+  Look for the features you need in the output. Lines starting with `+` indicate enabled features, while `-` means disabled. Common features to check: `+python3`, `+clipboard`, `+terminal`.
+</Tip>
+
+## Post-installation
+
+### Set as default editor
+
+<CodeGroup>
+```bash Bash
+echo 'export VISUAL=vim' >> ~/.bashrc
+echo 'export EDITOR=vim' >> ~/.bashrc
+source ~/.bashrc
+```
+
+```zsh Zsh
+echo 'export VISUAL=vim' >> ~/.zshrc
+echo 'export EDITOR=vim' >> ~/.zshrc
+source ~/.zshrc
+```
+
+```fish Fish
+set -Ux VISUAL vim
+set -Ux EDITOR vim
+```
+</CodeGroup>
+
+### Configuration file
+
+Vim looks for your configuration file in these locations:
+
+- **Unix/Linux/macOS**: `~/.vimrc`
+- **Windows**: `$VIM/_vimrc`
+- **Haiku**: `~/config/settings/vim/vimrc`
+
+Create a basic configuration:
+
+```vim ~/.vimrc
+" Get the defaults that most users want
+source $VIMRUNTIME/defaults.vim
+
+" Enable line numbers
+set number
+
+" Enable syntax highlighting
+syntax on
+
+" Set tabs to 4 spaces
+set tabstop=4
+set shiftwidth=4
+set expandtab
+
+" Enable mouse support
+set mouse=a
+
+" Show matching brackets
+set showmatch
+
+" Incremental search
+set incsearch
+
+" Highlight search results
+set hlsearch
+```
+
+<Note>
+  You can find an example configuration at `$VIMRUNTIME/vimrc_example.vim`. Copy it to your vimrc location to get started with sensible defaults.
+</Note>
+
+## Troubleshooting
+
+### Vim can't find runtime files
+
+If `:help` doesn't work or the GUI has no menubar, set the `$VIM` environment variable:
+
+```bash
+# Add to your shell rc file
+export VIM=/usr/share/vim
+```
+
+On Windows:
+
+```cmd
+set VIM=C:\vim
+```
+
+### Missing features
+
+If features are missing, rebuild Vim with the necessary libraries installed. Use `vim --version` to see which features are enabled.
+
+### GUI not available
+
+Ensure you have GUI libraries and development headers installed before compiling. On Linux, install `libgtk-3-dev` or similar packages for your distribution.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Start editing your first file in 5 minutes
+  </Card>
+  
+  <Card title="First steps" icon="map" href="/first-steps">
+    Learn essential Vim commands
+  </Card>
+</CardGroup>

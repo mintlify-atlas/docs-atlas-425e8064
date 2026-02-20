@@ -1,0 +1,532 @@
+---
+title: Documentation Contributions
+description: Learn how to write and contribute to Vim's documentation
+---
+
+Good documentation is essential to Vim's success. This guide covers the principles and practices for contributing to Vim's documentation.
+
+## Documentation Philosophy
+
+<Warning>
+A feature that isn't documented is a useless feature. A patch for a new feature must include the documentation.
+</Warning>
+
+Key principles:
+
+- **Comprehensive and understandable**: Cover all aspects clearly
+- **Use examples**: Show practical usage
+- **Be concise**: Less documentation means items are easier to find
+- **Maintain consistency**: Follow established patterns and style
+
+## Documentation Structure
+
+Vim's documentation is located in `runtime/doc/` and consists of:
+
+- **Help files** (`*.txt`): Core documentation with special formatting
+- **Man pages** (`*.1`): Unix manual pages
+- **README files**: Supplementary information for various features
+
+## Help File Format
+
+Vim help files use a special format that makes them easy to navigate and search.
+
+### File Header
+
+Every help file should start with a standard header:
+
+```vim
+*filename.txt*  For Vim version 9.2.  Last change: 2026 Feb 20
+
+
+                  VIM REFERENCE MANUAL    by Author Name
+
+
+Title of the help file                                  *feature-name*
+```
+
+### Tags and Cross-References
+
+Tags allow users to jump to specific topics:
+
+```vim
+*tag-name*
+```
+
+Rules for tags:
+- Placed between asterisks: `*tag-name*`
+- Should be unique across all help files
+- Use lowercase with hyphens (e.g., `*word-motions*`)
+- Command tags include the colon (e.g., `*:help*`)
+- Option tags include quotes (e.g., `*'number'*`)
+
+### Section Structure
+
+Organize content into clear sections:
+
+```vim
+==============================================================================
+1. Introduction                                         *feature-intro*
+
+Introductory text about the feature...
+
+==============================================================================
+2. Usage                                                *feature-usage*
+
+How to use the feature...
+
+==============================================================================
+3. Options                                              *feature-options*
+
+Available options...
+```
+
+### Text Formatting
+
+#### Emphasis and Special Text
+
+- Commands: Indent and use syntax highlighting via tags
+- Options: Reference with single quotes: `'number'`
+- Commands: Reference with colon: `:help`
+- Keys: Use angle brackets: `<Esc>`, `<C-W>`, `<CR>`
+- Examples: Indent with 8 spaces or a tab
+- Notes: Use `Note:` at the start of a line
+
+#### Example Code Blocks
+
+```vim
+Example: >
+    " This is example code
+    set number
+    set relativenumber
+<
+```
+
+The `>` starts an example block, and `<` ends it.
+
+#### Inline Code
+
+Inline code doesn't need special markers but should be indented:
+
+```vim
+Use the following command:
+        :set number
+```
+
+### Column Alignment
+
+Help files use fixed-width alignment:
+
+```vim
+OPTION          DESCRIPTION                             DEFAULT
+'number'        Show line numbers                       off
+'relativenumber' Show relative line numbers             off
+'wrap'          Wrap long lines                         on
+```
+
+### Lists
+
+Use consistent list formatting:
+
+```vim
+Options:
+- First option: description
+- Second option: description
+- Third option: description
+```
+
+Or numbered:
+
+```vim
+Steps:
+1. First step
+2. Second step  
+3. Third step
+```
+
+### Warning and Note Boxes
+
+```vim
+                                                        *E123*
+Note: This is an important note about the feature.
+
+Warning: This operation cannot be undone.
+```
+
+Error messages get their own tag (e.g., `*E123*`).
+
+## Writing Style Guidelines
+
+### Be Clear and Concise
+
+<Tip>
+Get to the point quickly. Users want information, not prose.
+</Tip>
+
+**Good:**
+```vim
+The 'number' option displays line numbers in the left margin.
+```
+
+**Not as good:**
+```vim
+When you enable the 'number' option, Vim will display line numbers
+in a margin area on the left side of the window, which can be very
+helpful when you need to reference specific lines.
+```
+
+### Use Active Voice
+
+**Good:** "Use `:help` to open the help system"
+
+**Not as good:** "The help system can be opened with `:help`"
+
+### Provide Examples
+
+Examples clarify complex concepts:
+
+```vim
+To delete from the cursor to the end of the line: >
+    d$
+<
+To delete the entire line: >
+    dd
+<
+To delete 5 lines: >
+    5dd
+<
+```
+
+### Document All Parameters
+
+For functions and commands:
+
+```vim
+                                                *function_name()*
+function_name({arg1}, {arg2} [, {arg3}])
+        Description of what the function does.
+        
+        {arg1}  Description of first argument
+        {arg2}  Description of second argument
+        {arg3}  Optional third argument
+        
+        Return value: What the function returns
+        
+        Example: >
+            let result = function_name('foo', 42)
+<
+```
+
+### Cross-Reference Related Topics
+
+Help users discover related information:
+
+```vim
+See also:
+        |related-topic-1|
+        |related-topic-2|
+        |:command-name|
+```
+
+## Documenting New Features
+
+When adding a new feature, follow this checklist:
+
+<Steps>
+  <Step title="Choose the Right File">
+    Add documentation to the appropriate help file:
+    
+    - **Commands**: `various.txt` or feature-specific file
+    - **Options**: `options.txt`
+    - **Functions**: `eval.txt` or feature-specific file
+    - **New subsystem**: Create a new `feature.txt` file
+  </Step>
+  
+  <Step title="Add Tags">
+    Create unique tags for:
+    - The feature itself
+    - Each command
+    - Each option
+    - Each function
+    - Each error message
+  </Step>
+  
+  <Step title="Write Overview">
+    Start with a brief overview explaining:
+    - What the feature does
+    - Why it's useful
+    - Basic usage
+  </Step>
+  
+  <Step title="Document Details">
+    Provide complete information:
+    - All commands and their arguments
+    - All options and their values
+    - All functions and their parameters
+    - Examples of common use cases
+    - Edge cases and limitations
+  </Step>
+  
+  <Step title="Add Examples">
+    Include practical examples showing:
+    - Basic usage
+    - Common scenarios
+    - Advanced usage
+  </Step>
+  
+  <Step title="Cross-Reference">
+    Link to related topics and acknowledge dependencies:
+    - Required features
+    - Related commands
+    - See also sections
+  </Step>
+  
+  <Step title="Update Indexes">
+    Add entries to:
+    - `index.txt` - For commands
+    - `quickref.txt` - For quick reference
+    - Table of contents in the feature file
+  </Step>
+</Steps>
+
+## Documentation Standards
+
+### Line Length
+
+Keep lines to 78 characters or less. This ensures readability in standard terminal windows.
+
+### Whitespace
+
+- Use tabs for indentation (following Vim's default)
+- Don't leave trailing whitespace
+- End files with a single newline
+
+### Tags Placement
+
+Tags should be right-aligned at column 78:
+
+```vim
+Section Title                                           *section-tag*
+```
+
+### Section Separators
+
+Use 78 equal signs for major section breaks:
+
+```vim
+==============================================================================
+```
+
+## Documenting Commands
+
+Standard format for commands:
+
+```vim
+                                                *:CommandName*
+:CommandName[!] [args]  Description of what the command does.
+                        Second line of description.
+                        
+                        [!] is optional, explanation of what it does
+                        [args] explanation of arguments
+                        
+                        Example: >
+                            :CommandName foo bar
+<
+```
+
+## Documenting Options
+
+Standard format for options:
+
+```vim
+                                        *'optionname'* *'opt'*
+'optionname' 'opt'  {type}  (default {value})
+                    global or local to {scope} |global-local|
+                    {only available with |+feature|}
+    Description of what the option does and how it affects Vim.
+    
+    Example: >
+        set optionname=value
+<
+```
+
+## Documenting Functions
+
+Standard format for functions:
+
+```vim
+                                                *function_name()*
+function_name({arg1}, {arg2} [, {arg3}])
+        Brief description of what the function does.
+        
+        Arguments:
+            {arg1}  Description of arg1 (type)
+            {arg2}  Description of arg2 (type)
+            {arg3}  Optional description (type, default: value)
+        
+        Returns: Description of return value (type)
+        
+        Can also be used as a |method|: >
+            GetValue()->function_name(arg2)
+<
+        Return type: |Type|
+        
+        Example: >
+            let result = function_name('foo', 42)
+            echo result
+<
+```
+
+## Error Messages
+
+Document all error messages:
+
+```vim
+                                                        *E123*
+E123: Error message text
+        Explanation of what causes this error and how to fix it.
+        
+        Example of code that triggers this error: >
+            :command that fails
+<
+```
+
+## Feature Dependencies
+
+Clearly mark features that require compilation options:
+
+```vim
+{only available when compiled with the |+feature| feature}
+```
+
+or
+
+```vim
+{not available when compiled with |+feature|}
+```
+
+## Platform-Specific Documentation
+
+Mark platform-specific features:
+
+```vim
+{only available on Unix}
+{only available on MS-Windows}
+{not available on Amiga}
+```
+
+## Testing Documentation
+
+After writing documentation:
+
+### Check Syntax
+
+```bash
+# Check for common documentation errors
+vim -u NONE -c 'helptags runtime/doc' -c quit
+```
+
+### Verify Tags
+
+Ensure all tags are unique and properly formatted:
+
+```bash
+cd runtime/doc
+vim tags
+```
+
+### Check References
+
+Verify all cross-references work:
+
+```vim
+:help your-new-tag
+:help related-tag
+```
+
+### Test Examples
+
+Run all code examples to ensure they work as documented.
+
+## Translations
+
+Help files can be translated:
+
+- Translations live in `runtime/doc/{language}/`
+- Maintain the same structure as English files
+- Keep tags in English for consistency
+- See `runtime/doc/translate.txt` for details
+
+## Documentation Style Examples
+
+### Good Documentation
+
+```vim
+*feature.txt*   For Vim version 9.2.  Last change: 2026 Feb 20
+
+                  VIM REFERENCE MANUAL    by Author Name
+
+Awesome Feature                                         *awesome-feature*
+
+1. Introduction                 |awesome-intro|
+2. Usage                        |awesome-usage|
+3. Commands                     |awesome-commands|
+4. Options                      |awesome-options|
+
+==============================================================================
+1. Introduction                                         *awesome-intro*
+
+The awesome feature adds powerful new capabilities to Vim.
+{only available with the |+awesome| feature}
+
+To enable: >
+    set awesome=on
+<
+==============================================================================
+2. Usage                                                *awesome-usage*
+
+Use |:Awesome| to activate the feature: >
+    :Awesome foo bar
+<
+```
+
+## Common Documentation Mistakes
+
+❌ **Don't:**
+- Use personal pronouns (I, we, you)
+- Include version-specific information without dates
+- Leave TODO comments in committed docs
+- Use abbreviations without defining them
+- Forget to update the "Last change" date
+
+✅ **Do:**
+- Use imperative mood ("Use this command")
+- Include the date with version info
+- Complete all documentation before committing
+- Define abbreviations on first use
+- Update dates when modifying files
+
+## Documentation Checklist
+
+Before submitting documentation:
+
+- [ ] All new features documented
+- [ ] All commands documented with examples
+- [ ] All options documented with defaults
+- [ ] All functions documented with parameters and return values
+- [ ] All error messages documented
+- [ ] Tags are unique and properly formatted
+- [ ] Cross-references are valid
+- [ ] Examples tested and working
+- [ ] Line length ≤ 78 characters
+- [ ] No trailing whitespace
+- [ ] "Last change" date updated
+- [ ] Help tags generated successfully
+
+## Related Resources
+
+- [Contributing Guide](/community/contributing)
+- [Development Setup](/community/development)
+- [Testing Guidelines](/community/testing)
+- `:help helphelp` - Complete help system reference
+- `:help help-writing` - Official documentation writing guide
+- `runtime/doc/helphelp.txt` - Help on help files

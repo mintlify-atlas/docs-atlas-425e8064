@@ -1,0 +1,631 @@
+---
+title: 'Vim9 Script'
+description: 'Modern, compiled Vim script with 10-100x performance improvements'
+---
+
+## What is Vim9 Script?
+
+Vim9 script is a new, compiled syntax for Vim script introduced with Vim 9.0. It provides dramatically faster execution (10-100x) while making scripts easier to write and maintain by following modern programming language conventions.
+
+<Note>
+Vim9 script is **compiled** into instructions, unlike legacy Vimscript which is interpreted line by line. This compilation enables type checking and significant performance gains.
+</Note>
+
+## Performance Comparison
+
+Real-world benchmarks from the Vim9 development:
+
+### Loop Performance
+
+<Tabs>
+  <Tab title="Benchmark Results">
+| Implementation | Time (seconds) | Relative Speed |
+|----------------|----------------|----------------|
+| Vim old | 5.018541 | 1x (baseline) |
+| Python | 0.369598 | 13.6x faster |
+| Lua | 0.078817 | 63.7x faster |
+| **Vim9** | **0.073595** | **68.2x faster** |
+| LuaJit | 0.004245 | 1182x faster |
+  </Tab>
+  <Tab title="Test Code">
+```vim
+" Legacy function
+func VimOld()
+  let sum = 0
+  for i in range(1, 2999999)
+    let sum += i
+  endfor
+  return sum
+endfunc
+
+" Vim9 function
+def VimNew(): number
+  var sum = 0
+  for i in range(1, 2999999)
+    sum += i
+  endfor
+  return sum
+enddef
+```
+  </Tab>
+</Tabs>
+
+### Text Processing Performance
+
+When performing actual Vim operations (not just computation):
+
+| Implementation | Time (seconds) | Relative Speed |
+|----------------|----------------|----------------|
+| Vim old | 0.578598 | 1x (baseline) |
+| Python | 0.152040 | 3.8x faster |
+| Lua | 0.164917 | 3.5x faster |
+| **Vim9** | **0.079692** | **7.3x faster** |
+| LuaJit | 0.128400 | 4.5x faster |
+
+<Info>
+Vim9 script is the **fastest option** for Vim-specific operations, outperforming even LuaJIT because it doesn't require callbacks to Vim's API.
+</Info>
+
+## Enabling Vim9 Script
+
+Add `vim9script` as the **first command** in your script file:
+
+```vim
+vim9script
+
+# This file now uses Vim9 script syntax
+var count = 0
+```
+
+<Warning>
+You cannot convert to Vim9 script partway through a file. `vim9script` must be the first command.
+</Warning>
+
+## Key Differences from Legacy Script
+
+### Comments Use # Instead of "
+
+<Tabs>
+  <Tab title="Vim9 Script">
+```vim
+vim9script
+
+# This is a comment
+var count = 0  # Inline comment
+```
+  </Tab>
+  <Tab title="Legacy Script">
+```vim
+" This is a comment
+let count = 0  " inline comment
+```
+  </Tab>
+</Tabs>
+
+### Variables: var, final, and const
+
+<Tabs>
+  <Tab title="Vim9 Script">
+```vim
+vim9script
+
+# No :let needed!
+var mutable = 42
+mutable = 50  # Can be changed
+
+# final: variable reference is constant, value can change
+final myList = [1, 2]
+# myList = [3, 4]   # Error!
+myList[0] = 9       # OK
+myList->add(3)      # OK
+
+# const: both variable and value are constant
+const NAMES = ['Alice', 'Bob']
+# NAMES = ['Carol']  # Error!
+# NAMES[0] = 'Dave'  # Error!
+```
+  </Tab>
+  <Tab title="Legacy Script">
+```vim
+" Must use :let
+let mutable = 42
+let mutable = 50  " Can be changed
+
+" No true constants - use convention
+let g:MY_CONSTANT = 42
+lockvar g:MY_CONSTANT
+```
+  </Tab>
+</Tabs>
+
+### Type Declarations
+
+Vim9 script supports optional type annotations:
+
+```vim
+vim9script
+
+# Type inference
+var name = 'Vim'        # Inferred as string
+var count = 0           # Inferred as number
+
+# Explicit types
+var age: number = 25
+var items: list<string> = ['one', 'two']
+var config: dict<any> = {}
+
+# Uninitialized variables default to type's zero value
+var myNumber: number     # 0
+var myString: string     # ''
+var myList: list<number> # []
+var myBool: bool         # false
+```
+
+### Functions Are Script-Local by Default
+
+<Tabs>
+  <Tab title="Vim9 Script">
+```vim
+vim9script
+
+# Script-local by default (no s: needed)
+def LocalFunc(): string
+  return 'local'
+enddef
+
+# Global function needs g: prefix
+def g:GlobalFunc(): string
+  return 'global'
+enddef
+
+# Exported for import
+export def ExportedFunc(): string
+  return 'exported'
+enddef
+```
+  </Tab>
+  <Tab title="Legacy Script">
+```vim
+" Global by default
+function GlobalFunc()
+  return 'global'
+endfunction
+
+" Script-local needs s: prefix
+function s:LocalFunc()
+  return 'local'
+endfunction
+```
+  </Tab>
+</Tabs>
+
+### No :call Needed
+
+<Tabs>
+  <Tab title="Vim9 Script">
+```vim
+vim9script
+
+# Call functions directly
+writefile(['line1', 'line2'], 'file.txt')
+MyFunction(arg1, arg2)
+
+# Method chaining
+GetList()
+  ->filter((i, v) => v > 0)
+  ->map((i, v) => v * 2)
+```
+  </Tab>
+  <Tab title="Legacy Script">
+```vim
+" Must use :call
+call writefile(['line1', 'line2'], 'file.txt')
+call MyFunction(arg1, arg2)
+```
+  </Tab>
+</Tabs>
+
+### Automatic Line Continuation
+
+<Tabs>
+  <Tab title="Vim9 Script">
+```vim
+vim9script
+
+# No backslash needed in obvious cases
+var mylist = [
+  'one',
+  'two',
+  'three',
+]
+
+var result = start
+  + middle
+  + end
+
+var text = 'long string '
+  .. 'continued '
+  .. 'on multiple lines'
+```
+  </Tab>
+  <Tab title="Legacy Script">
+```vim
+" Backslash required for line continuation
+let mylist = [
+  \ 'one',
+  \ 'two',
+  \ 'three',
+  \ ]
+
+let result = start
+  \ + middle
+  \ + end
+```
+  </Tab>
+</Tabs>
+
+### Lambda Syntax: => Instead of ->
+
+<Tabs>
+  <Tab title="Vim9 Script">
+```vim
+vim9script
+
+# Arrow function syntax (like JavaScript)
+var Double = (x) => x * 2
+var Add = (x, y) => x + y
+
+# Multi-line lambda
+var Process = (items) => {
+  var result = []
+  for item in items
+    result->add(item * 2)
+  endfor
+  return result
+}
+
+# Use in map/filter
+var doubled = [1, 2, 3]->map((i, v) => v * 2)
+var filtered = [1, 2, 3]->filter((i, v) => v > 1)
+```
+  </Tab>
+  <Tab title="Legacy Script">
+```vim
+" Lambda with -> can be confusing
+let Double = {x -> x * 2}
+let Add = {x, y -> x + y}
+
+" Use in map/filter
+let doubled = map([1, 2, 3], {i, v -> v * 2})
+let filtered = filter([1, 2, 3], {i, v -> v > 1})
+```
+  </Tab>
+</Tabs>
+
+## Boolean Types
+
+Vim9 script uses proper boolean values:
+
+```vim
+vim9script
+
+# Use boolean constants (no v: prefix needed)
+var isActive = true
+var isDisabled = false
+
+# Boolean operators require boolean operands
+if isActive && !isDisabled
+  echo 'Ready'
+endif
+
+# Convert any value to boolean with !!
+var hasItems = !![1, 2, 3]  # true
+var isEmpty = !![]          # false
+var isZero = !!0            # false
+var isOne = !!1             # true
+```
+
+<Warning>
+In Vim9 script, non-boolean values in conditions cause errors:
+```vim
+if 'yes' && true  # Error! 'yes' is not boolean
+if 1 || false     # Error! 1 is not boolean  
+if !!99 && true   # OK! !!99 converts to boolean
+```
+</Warning>
+
+## Dictionary Literals
+
+Simplified dictionary syntax:
+
+<Tabs>
+  <Tab title="Vim9 Script">
+```vim
+vim9script
+
+# Keys are literal (no quotes needed for simple keys)
+var person = {
+  name: 'Vim',
+  version: 9,
+  year: 2022
+}
+
+# Quotes for special characters in keys
+var special = {
+  'key with spaces': 1,
+  'key-with-dashes': 2
+}
+
+# Expression keys with []
+var dynamic = {
+  ['key' .. nr]: value
+}
+```
+  </Tab>
+  <Tab title="Legacy Script">
+```vim
+" Always need quotes or #{} literal syntax
+let person = {
+  \ 'name': 'Vim',
+  \ 'version': 9,
+  \ 'year': 2022
+  \ }
+
+" Or literal dict syntax
+let person = #{
+  \ name: 'Vim',
+  \ version: 9,
+  \ year: 2022
+  \ }
+```
+  </Tab>
+</Tabs>
+
+## String Indexing
+
+Vim9 script uses **character** indexing instead of byte indexing:
+
+<Tabs>
+  <Tab title="Vim9 Script">
+```vim
+vim9script
+
+var text = 'bár'  # String with accented character
+
+echo text[1]      # 'á' (character index)
+echo text[-1]     # 'r' (last character)
+echo text[0 : 1]  # 'bá' (character slice)
+```
+  </Tab>
+  <Tab title="Legacy Script">
+```vim
+let text = 'bár'  " String with accented character
+
+echo text[1]      " 0xc3 (byte index - partial UTF-8!)
+echo text[-1]     " 'r' (last byte)
+```
+  </Tab>
+</Tabs>
+
+## Import and Export
+
+Modern module system like JavaScript:
+
+<Tabs>
+  <Tab title="module.vim (export)">
+```vim
+vim9script
+
+# Private (not exported)
+var localVar = 'private'
+
+# Private function
+def LocalHelper(): string
+  return localVar
+enddef
+
+# Exported for use in other scripts
+export var configValue = 42
+
+export def PublicFunc(): string
+  return 'accessible from other scripts'
+enddef
+
+export const VERSION = '1.0.0'
+```
+  </Tab>
+  <Tab title="main.vim (import)">
+```vim
+vim9script
+
+import './module.vim'
+
+# Access exported items
+echo module.configValue
+echo module.PublicFunc()
+echo module.VERSION
+
+# Import specific items
+import {PublicFunc, VERSION} from './module.vim'
+echo PublicFunc()
+echo VERSION
+```
+  </Tab>
+</Tabs>
+
+## Def Functions
+
+Compiled functions with `:def`:
+
+```vim
+vim9script
+
+# Basic def function with types
+def Greet(name: string, age: number): string
+  return $'Hello {name}, you are {age} years old'
+enddef
+
+# Optional arguments with defaults
+def Connect(host: string, port: number = 80, ssl: bool = false): bool
+  # Implementation
+  return true
+enddef
+
+# Variable arguments (varargs)
+def Sum(...numbers: list<number>): number
+  var total = 0
+  for num in numbers
+    total += num
+  endfor
+  return total
+enddef
+
+echo Sum(1, 2, 3, 4)  # 10
+
+# No arguments need () too
+def GetTimestamp(): number
+  return localtime()
+enddef
+```
+
+## Type System
+
+Vim9 script includes a rich type system:
+
+```vim
+vim9script
+
+# Basic types
+var n: number = 42
+var f: float = 3.14
+var s: string = 'text'
+var b: bool = true
+
+# Collection types
+var nums: list<number> = [1, 2, 3]
+var strs: list<string> = ['a', 'b']
+var nested: list<list<number>> = [[1, 2], [3, 4]]
+
+var person: dict<any> = {name: 'Vim', age: 30}
+var config: dict<string> = {key1: 'val1', key2: 'val2'}
+
+# Function types
+var Callback: func(number): string
+var Mapper: func(number): number = (x) => x * 2
+
+# Special types
+var ch: channel
+var job: job
+var blob: blob = 0zFFEE00
+
+# any type (no type checking)
+var anything: any = 'can be anything'
+anything = 42
+anything = [1, 2, 3]
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use type annotations for function signatures">
+    Always specify types for function parameters and return values:
+    ```vim
+    # Good
+    def Calculate(x: number, y: number): number
+      return x + y
+    enddef
+    
+    # Avoid (though it works)
+    def Calculate(x, y)
+      return x + y
+    enddef
+    ```
+  </Accordion>
+
+  <Accordion title="Prefer const and final over var">
+    Use the most restrictive declaration possible:
+    ```vim
+    const MAX_SIZE = 100        # Never changes
+    final config = {port: 80}   # Reference fixed, content mutable
+    var counter = 0             # Fully mutable
+    ```
+  </Accordion>
+
+  <Accordion title="Use export for public API">
+    Make your module's public interface explicit:
+    ```vim
+    # Clearly marks what's public
+    export def PublicAPI(): void
+    enddef
+    
+    # Private by default
+    def InternalHelper(): void
+    enddef
+    ```
+  </Accordion>
+
+  <Accordion title="Enable early compilation">
+    Use `:defcompile` to catch errors without calling functions:
+    ```vim
+    vim9script
+    
+    def MyFunc(): string
+      # Function body
+    enddef
+    
+    defcompile  # Compile immediately to catch errors
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Migration from Legacy Script
+
+<Steps>
+  <Step title="Start with vim9script">
+    Add `vim9script` at the top of your file
+  </Step>
+  <Step title="Replace let with var">
+    Change `let` to `var` for variable declarations
+  </Step>
+  <Step title="Update comments">
+    Replace `"` comments with `#`
+  </Step>
+  <Step title="Remove :call">
+    Remove `:call` keyword before function calls
+  </Step>
+  <Step title="Add types to functions">
+    Add parameter types and return types to `:def` functions
+  </Step>
+  <Step title="Update lambda syntax">
+    Change `{x -> x * 2}` to `(x) => x * 2`
+  </Step>
+  <Step title="Fix string indexing">
+    Review any byte-level string operations
+  </Step>
+  <Step title="Test thoroughly">
+    Run `:defcompile` and test all code paths
+  </Step>
+</Steps>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Functions" icon="function" href="/scripting/functions">
+    Learn advanced function techniques
+  </Card>
+  <Card title="Expressions" icon="calculator" href="/scripting/expressions">
+    Master operators and expressions
+  </Card>
+  <Card title="Creating Plugins" icon="plug" href="/scripting/plugins">
+    Build plugins with Vim9 script
+  </Card>
+  <Card title="Vimscript Basics" icon="book" href="/scripting/vimscript-basics">
+    Legacy Vimscript reference
+  </Card>
+</CardGroup>
+
+## See Also
+
+- `:help vim9.txt` - Complete Vim9 script reference
+- `:help vim9-differences` - All differences from legacy script
+- `:help :def` - Compiled function syntax

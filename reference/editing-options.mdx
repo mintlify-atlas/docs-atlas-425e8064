@@ -1,0 +1,337 @@
+---
+title: Editing Options
+description: Options that control editing behavior and text manipulation
+---
+
+These options control how Vim behaves when you edit text, including indentation, completion, searching, and text formatting.
+
+## Indentation Options
+
+### autoindent
+
+```vim
+:set autoindent       " ai - Copy indent from current line
+:set noautoindent
+```
+
+When starting a new line, copy the indent from the current line. Useful for structured text like code.
+
+### smartindent
+
+```vim
+:set smartindent      " si - Smart autoindenting for C-like files
+:set nosmartindent
+```
+
+Smart autoindenting for C-like programs. Adds extra indent after `{`, before `}`, and after lines with cinwords.
+
+### cindent
+
+```vim
+:set cindent          " cin - Automatic C program indenting
+:set nocindent
+```
+
+Enables automatic C program indenting. More sophisticated than smartindent.
+
+Related options:
+- `cinkeys` - Keys that trigger reindenting in insert mode
+- `cinoptions` - Fine-tune cindent behavior
+- `cinwords` - Words that start an extra indent (if,else,while,do,for,switch)
+
+### indentexpr
+
+```vim
+:set indentexpr=GetMyIndent()  " Expression for custom indenting
+```
+
+Expression evaluated to obtain indent for a line. If non-empty, overrides cindent and smartindent.
+
+### Tab Settings
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `tabstop` (ts) | 8 | Number of spaces a tab character counts for |
+| `shiftwidth` (sw) | 8 | Number of spaces for each indent step |
+| `softtabstop` (sts) | 0 | Number of spaces a Tab feels like in insert mode |
+| `expandtab` (et) | off | Use spaces instead of tabs |
+| `smarttab` (sta) | off | Smart handling of tabs |
+| `shiftround` (sr) | off | Round indent to multiple of shiftwidth |
+
+```vim
+" Common 4-space indent setup
+:set tabstop=4 shiftwidth=4 expandtab
+
+" Tab characters with 4-space width
+:set tabstop=4 shiftwidth=4 noexpandtab
+
+" Softtab for mixed tab/space
+:set tabstop=8 shiftwidth=4 softtabstop=4 expandtab
+```
+
+## Completion Options
+
+### complete
+
+```vim
+:set complete=.,w,b,u,t,i  " Default completion sources
+```
+
+Controls where to look for completions when using CTRL-P/CTRL-N:
+
+- `.` - Current buffer
+- `w` - Buffers in other windows
+- `b` - Other loaded buffers
+- `u` - Unloaded buffers in buffer list
+- `t` - Tags
+- `i` - Included files
+- `k` - Dictionary files
+- `s` - Thesaurus files
+- `F` - completefunc
+- `o` - omnifunc
+
+```vim
+" Add spell checking to completion
+:set complete+=kspell
+
+" Use only current buffer and tags
+:set complete=.,t
+```
+
+### completefunc and omnifunc
+
+```vim
+:set completefunc=MyComplete     " User-defined completion (CTRL-X CTRL-U)
+:set omnifunc=LanguageComplete   " Omni completion (CTRL-X CTRL-O)
+```
+
+### completeopt
+
+```vim
+:set completeopt=menu,preview,longest
+```
+
+Controls completion popup behavior:
+- `menu` - Show popup menu
+- `menuone` - Show menu even for one match
+- `longest` - Only insert longest common text
+- `preview` - Show extra info in preview window
+- `popup` - Show extra info in popup window
+- `noinsert` - Don't insert text until selection
+- `noselect` - Don't select a match automatically
+
+### Autocompletion (Vim 9.2+)
+
+```vim
+:set autocomplete              " Enable automatic completion
+:set autocompletedelay=200     " Delay before popup appears (ms)
+:set autocompletetimeout=80    " Timeout for slow sources (ms)
+```
+
+## Backspace Behavior
+
+```vim
+:set backspace=indent,eol,start  " Allow backspacing over everything
+```
+
+Controls what backspace can delete in insert mode:
+- `indent` - Allow backspacing over autoindent
+- `eol` - Allow backspacing over line breaks (join lines)
+- `start` - Allow backspacing over start of insert
+- `nostop` - CTRL-W and CTRL-U don't stop at start of insert
+
+```vim
+:set backspace=     " Vi-compatible (very limited)
+:set backspace=2    " Same as indent,eol,start
+```
+
+## Search Options
+
+### ignorecase and smartcase
+
+```vim
+:set ignorecase       " ic - Ignore case in search patterns
+:set smartcase        " scs - Override ignorecase if pattern has uppercase
+```
+
+```vim
+" With ignorecase and smartcase:
+/foo        " Matches foo, Foo, FOO
+/Foo        " Matches only Foo
+/FOO        " Matches only FOO
+```
+
+### incsearch and hlsearch
+
+```vim
+:set incsearch        " is - Show match while typing search pattern
+:set hlsearch         " hls - Highlight all search matches
+```
+
+### wrapscan
+
+```vim
+:set wrapscan         " ws - Searches wrap around end of file
+:set nowrapscan
+```
+
+## Text Formatting
+
+### textwidth
+
+```vim
+:set textwidth=78     " tw - Maximum line width for automatic wrapping
+:set textwidth=0      " Disable automatic wrapping
+```
+
+### formatoptions
+
+```vim
+:set formatoptions=tcroql
+```
+
+Controls automatic formatting:
+
+- `t` - Auto-wrap text using textwidth
+- `c` - Auto-wrap comments using textwidth
+- `r` - Insert comment leader after Enter in insert mode
+- `o` - Insert comment leader after 'o' or 'O'
+- `q` - Allow formatting comments with "gq"
+- `l` - Don't break long lines in insert mode
+- `n` - Recognize numbered lists
+- `j` - Remove comment leader when joining lines
+- `a` - Automatic formatting of paragraphs
+
+```vim
+" Programming style
+:set formatoptions=croql
+
+" Prose writing
+:set formatoptions=tcqn
+```
+
+### wrapmargin
+
+```vim
+:set wrapmargin=5     " wm - Wrap N characters from right margin
+```
+
+### joinspaces
+
+```vim
+:set nojoinspaces     " Don't insert two spaces after '.?!' when joining
+:set joinspaces       " Insert two spaces (Vi default)
+```
+
+## Undo and History
+
+### undolevels
+
+```vim
+:set undolevels=1000  " ul - Maximum number of changes that can be undone
+```
+
+### undofile
+
+```vim
+:set undofile         " udf - Automatically save undo history to file
+:set undodir=~/.vim/undo  " Directory for undo files
+```
+
+### history
+
+```vim
+:set history=1000     " hi - Number of command lines to remember
+```
+
+## Clipboard
+
+### clipboard
+
+```vim
+:set clipboard=unnamed           " Use * register for all operations
+:set clipboard=unnamedplus       " Use + register (system clipboard)
+:set clipboard=unnamed,unnamedplus  " Use both
+```
+
+## Word and Line Handling
+
+### iskeyword
+
+```vim
+:set iskeyword=@,48-57,_,192-255  " Characters included in keywords
+:set iskeyword+=- " Add hyphen to keywords
+```
+
+### virtualedit
+
+```vim
+:set virtualedit=all      " Allow cursor anywhere in block mode
+:set virtualedit=block    " Allow in visual block mode only
+:set virtualedit=insert   " Allow in insert mode
+:set virtualedit=onemore  " Allow one char beyond end of line
+```
+
+### whichwrap
+
+```vim
+:set whichwrap=b,s,<,>,[,]  " Which keys wrap to next/prev line
+```
+
+- `b` - Backspace
+- `s` - Space
+- `<` - Left arrow (normal and visual)
+- `>` - Right arrow (normal and visual)
+- `[` - Left arrow (insert and replace)
+- `]` - Right arrow (insert and replace)
+
+## Paste Mode
+
+```vim
+:set paste        " Disable autoindent, etc. for pasting
+:set nopaste      " Re-enable editing features
+```
+
+When pasting from external sources, use paste mode to avoid cascading indentation.
+
+## Mouse Support
+
+```vim
+:set mouse=a      " Enable mouse in all modes
+:set mouse=n      " Enable mouse in normal mode only
+:set mouse=       " Disable mouse
+```
+
+Modes:
+- `n` - Normal mode
+- `v` - Visual mode
+- `i` - Insert mode
+- `c` - Command-line mode
+- `a` - All modes
+
+## Quick Reference
+
+### Common Editing Setups
+
+```vim
+" Programming with spaces
+set autoindent expandtab tabstop=4 shiftwidth=4
+set backspace=indent,eol,start
+set incsearch hlsearch ignorecase smartcase
+
+" Programming with tabs
+set autoindent noexpandtab tabstop=4 shiftwidth=4
+set cindent cinoptions=:0,l1,g0,t0
+
+" Text editing
+set textwidth=78 formatoptions=tcqn
+set wrap linebreak nolist
+```
+
+## See Also
+
+- [Options Overview](/reference/options-overview) - Understanding the option system
+- [Display Options](/reference/display-options) - Visual appearance settings
+- [File Options](/reference/file-options) - File handling options
+- `:help editing` - Full editing documentation
+- `:help insert` - Insert mode options

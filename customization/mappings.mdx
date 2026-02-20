@@ -1,0 +1,464 @@
+---
+title: Key Mappings and Remapping
+description: Master Vim's key mapping system to create custom key bindings and improve your workflow.
+---
+
+Key mapping allows you to define custom key sequences that execute commands or insert text. This powerful feature enables you to tailor Vim to your specific workflow.
+
+## Understanding Mappings
+
+A mapping defines what happens when you press a key or key sequence:
+
+```vim
+" Map F2 to insert the current date and time
+:map <F2> a<C-R>=strftime("%c")<CR><Esc>
+```
+
+This appends the current date and time after the cursor.
+
+## Mapping Modes
+
+Vim has different mapping commands for different modes:
+
+| Command | Modes | Description |
+|---------|-------|-------------|
+| `:map` | Normal, Visual, Select, Operator-pending | Map for multiple modes |
+| `:nmap` | Normal | Map for Normal mode only |
+| `:vmap` | Visual and Select | Map for Visual/Select modes |
+| `:xmap` | Visual | Map for Visual mode only |
+| `:smap` | Select | Map for Select mode only |
+| `:omap` | Operator-pending | Map for Operator-pending mode |
+| `:imap` | Insert | Map for Insert mode |
+| `:cmap` | Command-line | Map for Command-line mode |
+| `:tmap` | Terminal | Map for Terminal mode |
+
+### Mode Examples
+
+```vim
+" Normal mode: Save file with <Leader>w
+nnoremap <Leader>w :write<CR>
+
+" Insert mode: Type current date
+inoremap <C-d> <C-R>=strftime('%Y-%m-%d')<CR>
+
+" Visual mode: Surround selection with quotes
+xnoremap <Leader>" c"<C-R>\""<Esc>
+
+" Command-line mode: Expand %% to current file's directory
+cnoremap %% <C-R>=expand('%:h').'/'<CR>
+```
+
+## Recursive vs Non-Recursive Mappings
+
+### Recursive Mappings (`:map`)
+
+Recursive mappings allow the right-hand side to be remapped:
+
+```vim
+:map j gg
+:map Q j
+```
+
+Typing `Q` executes `j`, which then executes `gg` (go to top).
+
+### Non-Recursive Mappings (`:noremap`)
+
+Non-recursive mappings prevent further remapping:
+
+```vim
+:nnoremap j gj      " j moves down screen line
+:nnoremap k gk      " k moves up screen line
+:nnoremap gj j      " gj moves down file line
+:nnoremap gk k      " gk moves up file line
+```
+
+<Warning>
+Always prefer `:noremap` variants (`:nnoremap`, `:inoremap`, etc.) unless you specifically need recursive behavior. This prevents unexpected interactions with other mappings.
+</Warning>
+
+## Special Arguments
+
+Mappings support special arguments that modify their behavior:
+
+### `<buffer>` - Buffer-Local Mappings
+
+Create mappings that only apply to the current buffer:
+
+```vim
+" Only works in the current buffer
+:nnoremap <buffer> <Leader>r :!python %<CR>
+
+" Create buffer-local mappings in autocommands
+autocmd FileType python nnoremap <buffer> <F5> :!python %<CR>
+autocmd FileType ruby nnoremap <buffer> <F5> :!ruby %<CR>
+```
+
+### `<silent>` - Silent Execution
+
+Prevent commands from being echoed:
+
+```vim
+" Don't show the search command
+nnoremap <silent> <Leader>h :nohlsearch<CR>
+
+" Don't show the file save message
+nnoremap <silent> <Leader>w :write<CR>
+```
+
+### `<expr>` - Expression Mappings
+
+Evaluate an expression to determine the mapping result:
+
+```vim
+" Smart tab completion
+inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
+
+" Context-aware Enter key
+inoremap <expr> <CR> pumvisible() ? "\<C-y>" : "\<CR>"
+
+" Insert list item
+let counter = 0
+inoremap <expr> <C-L> ListItem()
+
+function ListItem()
+  let g:counter += 1
+  return g:counter .. '. '
+endfunction
+```
+
+### `<unique>` - Prevent Overwriting
+
+Fail if a mapping already exists:
+
+```vim
+" Only create if <Leader>x is not already mapped
+nnoremap <unique> <Leader>x :execute "!./script.sh"<CR>
+```
+
+### `<script>` - Script-Local Remapping
+
+Only remap using script-local mappings:
+
+```vim
+:nnoremap <script> <SID>DoIt :call <SID>Function()<CR>
+```
+
+### `<nowait>` - Don't Wait for More Characters
+
+Execute immediately without waiting for additional keys:
+
+```vim
+" Execute "," immediately even if ",w" is mapped
+nnoremap <buffer> <nowait> , :echo "Comma pressed"<CR>
+```
+
+## Special Keys
+
+Use angle bracket notation for special keys:
+
+```vim
+" Function keys
+nnoremap <F1> :help<CR>
+nnoremap <F2> :write<CR>
+nnoremap <F3> :set number!<CR>
+
+" Modified keys
+nnoremap <C-s> :write<CR>
+inoremap <C-s> <Esc>:write<CR>
+nnoremap <C-q> :quit<CR>
+
+" Arrow keys
+nnoremap <Up> gk
+nnoremap <Down> gj
+
+" Special keys
+nnoremap <Space> za
+nnoremap <CR> o<Esc>
+nnoremap <BS> X
+nnoremap <Tab> %
+```
+
+### Modifier Keys
+
+```vim
+" Control (C)
+nnoremap <C-j> :cnext<CR>
+nnoremap <C-k> :cprevious<CR>
+
+" Alt/Meta (M or A)
+nnoremap <M-h> :bprevious<CR>
+nnoremap <A-l> :bnext<CR>
+
+" Shift (S)
+nnoremap <S-Tab> <<
+inoremap <S-Tab> <C-d>
+
+" Super/Command (D) - GUI only
+nnoremap <D-s> :write<CR>
+```
+
+<Warning>
+Alt/Meta key mappings may not work in all terminals. In many terminals, Alt sends an Escape sequence, which can conflict with Vim's use of Escape.
+</Warning>
+
+## The Leader Key
+
+The leader key is a prefix for custom mappings:
+
+```vim
+" Set leader to comma (default is backslash)
+let mapleader = ","
+
+" Use leader in mappings
+nnoremap <Leader>w :write<CR>
+nnoremap <Leader>q :quit<CR>
+nnoremap <Leader>x :wq<CR>
+
+" File operations
+nnoremap <Leader>e :edit<Space>
+nnoremap <Leader>v :vsplit<Space>
+nnoremap <Leader>s :split<Space>
+
+" Search operations
+nnoremap <Leader>/ :nohlsearch<CR>
+nnoremap <Leader>* :grep <C-R><C-W><CR>
+```
+
+### Local Leader
+
+Use `<LocalLeader>` for buffer-specific mappings:
+
+```vim
+" Set local leader
+let maplocalleader = "\\"
+
+" Use in filetype plugins
+autocmd FileType python nnoremap <buffer> <LocalLeader>r :!python %<CR>
+autocmd FileType javascript nnoremap <buffer> <LocalLeader>r :!node %<CR>
+```
+
+## Command Mappings with `<Cmd>`
+
+Execute commands without changing modes:
+
+```vim
+" Standard mapping (switches to command-line mode)
+nnoremap x :echo mode(1)<CR>
+
+" <Cmd> mapping (stays in current mode)
+nnoremap x <Cmd>echo mode(1)<CR>
+
+" Useful for preserving visual selection
+xnoremap <Leader>c <Cmd>call MyFunction()<CR>
+
+" Works in Insert mode without leaving it
+inoremap <F3> <Cmd>echo "Still in Insert mode"<CR>
+```
+
+## Practical Mapping Examples
+
+### Window Navigation
+
+```vim
+" Navigate windows with Ctrl+hjkl
+nnoremap <C-h> <C-w>h
+nnoremap <C-j> <C-w>j
+nnoremap <C-k> <C-w>k
+nnoremap <C-l> <C-w>l
+```
+
+### Buffer Management
+
+```vim
+" Buffer navigation
+nnoremap <Leader>bn :bnext<CR>
+nnoremap <Leader>bp :bprevious<CR>
+nnoremap <Leader>bd :bdelete<CR>
+nnoremap <Leader>bl :buffers<CR>
+```
+
+### Quick Edit and Source
+
+```vim
+" Edit vimrc
+nnoremap <Leader>ev :edit $MYVIMRC<CR>
+
+" Source vimrc
+nnoremap <Leader>sv :source $MYVIMRC<CR>
+```
+
+### Text Manipulation
+
+```vim
+" Move lines up and down
+nnoremap <A-j> :move .+1<CR>==
+nnoremap <A-k> :move .-2<CR>==
+inoremap <A-j> <Esc>:move .+1<CR>==gi
+inoremap <A-k> <Esc>:move .-2<CR>==gi
+vnoremap <A-j> :move '>+1<CR>gv=gv
+vnoremap <A-k> :move '<-2<CR>gv=gv
+```
+
+### Search and Replace
+
+```vim
+" Search for word under cursor
+nnoremap <Leader>* *N
+
+" Replace word under cursor
+nnoremap <Leader>r :%s/\<<C-r><C-w>\>//g<Left><Left>
+
+" Clear search highlighting
+nnoremap <silent> <Leader><Space> :nohlsearch<CR>
+```
+
+### Toggle Options
+
+```vim
+" Toggle common options
+nnoremap <Leader>tn :set number!<CR>
+nnoremap <Leader>tr :set relativenumber!<CR>
+nnoremap <Leader>tw :set wrap!<CR>
+nnoremap <Leader>ts :set spell!<CR>
+nnoremap <Leader>tp :set paste!<CR>
+```
+
+## Listing and Removing Mappings
+
+### List Mappings
+
+```vim
+" List all mappings
+:map
+
+" List normal mode mappings
+:nmap
+
+" List mappings starting with <Leader>
+:nmap <Leader>
+
+" Verbose mapping info (shows where defined)
+:verbose nmap <Leader>w
+```
+
+### Remove Mappings
+
+```vim
+" Remove a normal mode mapping
+:nunmap <Leader>w
+
+" Remove an insert mode mapping
+:iunmap <C-d>
+
+" Remove all normal mode mappings
+:nmapclear
+
+" Remove buffer-local mapping
+:nunmap <buffer> <Leader>r
+```
+
+<Warning>
+Be careful with `:mapclear` and similar commands - they remove ALL mappings, including default Vim mappings and those from plugins.
+</Warning>
+
+## Mapping Best Practices
+
+### 1. Use Non-Recursive Mappings
+
+```vim
+" Preferred
+nnoremap j gj
+nnoremap k gk
+
+" Avoid unless necessary
+nmap j gj
+```
+
+### 2. Make Mappings Silent
+
+```vim
+" Show command (distracting)
+nnoremap <Leader>w :write<CR>
+
+" Silent (better)
+nnoremap <silent> <Leader>w :write<CR>
+```
+
+### 3. Document Your Mappings
+
+```vim
+" Save file
+nnoremap <Leader>w :write<CR>
+
+" Or group related mappings
+" ===== File Operations =====
+nnoremap <Leader>w :write<CR>      " Save
+nnoremap <Leader>q :quit<CR>       " Quit
+nnoremap <Leader>x :wq<CR>         " Save and quit
+```
+
+### 4. Use Leader for Custom Mappings
+
+```vim
+" Good: Uses leader prefix
+let mapleader = ","
+nnoremap <Leader>r :!ruby %<CR>
+
+" Bad: Shadows useful Vim command
+nnoremap r :!ruby %<CR>
+```
+
+### 5. Check Before Creating
+
+Verify a key isn't used:
+
+```vim
+" Check if key is used
+:help <key>
+:verbose map <key>
+```
+
+## Troubleshooting Mappings
+
+### Mapping Not Working
+
+1. Check mode-specific mapping:
+   ```vim
+   :nmap <key>  " Check Normal mode
+   :imap <key>  " Check Insert mode
+   ```
+
+2. Look for conflicts:
+   ```vim
+   :verbose map <key>
+   ```
+
+3. Test in clean environment:
+   ```bash
+   vim -u NONE -N
+   ```
+
+### Mapping Triggers Wrong Action
+
+Check for ambiguous mappings:
+
+```vim
+" These create ambiguity
+nnoremap <Leader>a :echo "A"<CR>
+nnoremap <Leader>ab :echo "AB"<CR>
+
+" Vim waits after typing <Leader>a to see if 'b' follows
+```
+
+Use `<nowait>` to resolve:
+
+```vim
+nnoremap <nowait> <Leader>a :echo "A"<CR>
+nnoremap <Leader>ab :echo "AB"<CR>
+```
+
+## Related Topics
+
+- [Setting Options](/customization/options) - Configure Vim behavior
+- [Autocommands](/customization/autocommands) - Automate actions
+- [Creating vimrc](/customization/vimrc) - Configure Vim startup

@@ -1,0 +1,699 @@
+---
+title: Data Editing and Manipulation
+description: Process CSV, JSON, logs, and structured data efficiently in Vim
+---
+
+Vim excels at manipulating structured and unstructured data. This guide covers techniques for processing CSV files, JSON data, logs, and other data formats.
+
+## Why Use Vim for Data Editing
+
+- **Handle large files**: Process files too big for spreadsheet applications
+- **Pattern-based editing**: Powerful regex for complex transformations
+- **Scripting**: Automate repetitive data tasks
+- **No data corruption**: Plain text editing preserves data integrity
+- **Batch operations**: Process multiple files simultaneously
+- **Filtering**: Extract exactly what you need
+
+## Working with CSV Files
+
+### Viewing CSV Data
+
+Improve CSV readability:
+
+```vim
+" Enable syntax highlighting
+:set filetype=csv
+
+" Align columns for viewing
+:%!column -t -s,
+
+" Or preserve original and view aligned
+:set nowrap
+:set virtualedit=all
+```
+
+Navigate CSV structure:
+
+```vim
+" Jump to specific column
+f,          " Find next comma (column separator)
+F,          " Find previous comma
+3f,         " Jump to 3rd comma
+t,          " Move to just before comma
+T,          " Move backward to just after comma
+```
+
+### Editing CSV Data
+
+Common CSV operations:
+
+```vim
+" Add new column at end
+:%s/$/,NewValue/
+
+" Add column at beginning
+:%s/^/NewValue,/
+
+" Remove specific column (e.g., 3rd column)
+:%s/^\([^,]*,[^,]*,\)[^,]*,/\1/
+
+" Swap columns (swap 1st and 2nd)
+:%s/^\([^,]*\),\([^,]*\),/\2,\1,/
+
+" Quote all fields
+:%s/\([^,]*\)/"\1"/g
+
+" Remove quotes
+:%s/"//g
+```
+
+### Extract and Filter Columns
+
+Work with specific data columns:
+
+```vim
+" Extract single column (e.g., 3rd)
+:%!cut -d, -f3
+
+" Extract multiple columns (1st and 3rd)
+:%!cut -d, -f1,3
+
+" Extract range of columns (2nd to 4th)
+:%!cut -d, -f2-4
+
+" Keep only columns 1,2,5
+:%s/^\([^,]*,[^,]*\),[^,]*,[^,]*,\([^,]*\).*/\1,\2/
+```
+
+### Sort and Deduplicate
+
+Organize CSV data:
+
+```vim
+" Sort entire file
+:%!sort
+
+" Sort by specific column (2nd column)
+:%!sort -t, -k2
+
+" Numeric sort by column
+:%!sort -t, -k3n
+
+" Reverse sort
+:%!sort -r
+
+" Remove duplicate rows
+:sort u
+
+" Remove duplicates (using external tool)
+:%!uniq
+
+" Keep header row and sort data
+:2,$!sort -t, -k2
+```
+
+### CSV Transformations
+
+Complex data transformations:
+
+```vim
+" Convert CSV to TSV (tab-separated)
+:%s/,/\t/g
+
+" Convert TSV to CSV
+:%s/\t/,/g
+
+" Add row numbers
+:%s/^/\=printf('%d,', line('.'))/
+
+" Calculate sum of column (using external tool)
+:!awk -F, '{sum+=$3} END {print sum}' %
+
+" Find rows with specific value in column
+:g/,value,/
+
+" Delete rows with specific value
+:g/,pattern,/d
+```
+
+## JSON Data Processing
+
+### Format and Pretty Print
+
+Make JSON readable:
+
+```vim
+" Pretty print JSON (requires jq)
+:%!jq .
+
+" Or using Python
+:%!python -m json.tool
+
+" Or using Node.js
+:%!js-beautify --type json
+
+" Minify JSON
+:%!jq -c .
+```
+
+### Navigate JSON Structure
+
+Move through nested JSON:
+
+```vim
+" Jump between brackets
+%               " Jump to matching bracket
+
+" Fold JSON sections
+set foldmethod=syntax
+set foldlevelstart=1
+zc              " Close fold
+zo              " Open fold
+zM              " Close all
+zR              " Open all
+```
+
+### Extract JSON Values
+
+Query JSON data:
+
+```vim
+" Extract specific field (requires jq)
+:%!jq '.users[].name'
+
+" Filter by condition
+:%!jq '.users[] | select(.age > 25)'
+
+" Get keys
+:%!jq 'keys'
+
+" Flatten nested structure
+:%!jq '.[] | {name: .user.name, email: .user.contact.email}'
+```
+
+### Modify JSON Data
+
+Edit JSON structures:
+
+```vim
+" Add new field
+:%!jq '. + {"newField": "value"}'
+
+" Remove field
+:%!jq 'del(.fieldToRemove)'
+
+" Update field value
+:%!jq '.status = "active"'
+
+" Merge JSON files
+:r !jq -s '.[0] * .[1]' file1.json file2.json
+```
+
+### Validate JSON
+
+Check JSON syntax:
+
+```vim
+" Validate with jq
+:!jq . % > /dev/null && echo "Valid JSON" || echo "Invalid JSON"
+
+" Validate with Python
+:!python -m json.tool % > /dev/null && echo "Valid" || echo "Invalid"
+
+" Show validation errors
+:!jq . %
+```
+
+## Log File Analysis
+
+### Navigate Log Files
+
+Move efficiently through logs:
+
+```vim
+" Jump to end (most recent entries)
+G
+
+" Jump to beginning
+gg
+
+" Jump to specific date/time
+/2024-02-20
+/10:30:00
+
+" Jump to next/previous error
+/ERROR
+n               " Next match
+N               " Previous match
+
+" Jump between log levels
+/\(ERROR\|WARN\|FATAL\)
+```
+
+### Filter and Extract
+
+Isolate relevant log entries:
+
+```vim
+" Copy all error lines to end
+:g/ERROR/t$
+
+" Delete all non-error lines
+:v/ERROR/d
+
+" Extract specific time range
+:g!/^2024-02-20 1[0-5]:/d
+
+" Extract logs for specific component
+:g/service=auth/t$
+
+" Remove timestamp column
+:%s/^[^ ]* [^ ]* //
+
+" Extract only the message
+:%s/.*MSG: //
+```
+
+### Count and Aggregate
+
+Analyze log patterns:
+
+```vim
+" Count occurrences of pattern
+:%s/ERROR//gn
+:%s/pattern//n
+
+" Count by log level
+:g/ERROR/
+:g/WARN/
+:g/INFO/
+
+" Group by status code (using external tool)
+:%!awk '{print $9}' | sort | uniq -c | sort -rn
+
+" Find most common errors
+:g/ERROR/y A | %d | put a | %!sort | uniq -c | sort -rn
+```
+
+### Pattern Extraction
+
+Extract specific data patterns:
+
+```vim
+" Extract IP addresses
+:%s/.*\(\d\+\.\d\+\.\d\+\.\d\+\).*/\1/
+
+" Extract URLs
+:g/http/
+
+" Extract email addresses
+:%s/.*\([a-zA-Z0-9._%+-]\+@[a-zA-Z0-9.-]\+\.[a-zA-Z]\{2,\}\).*/\1/
+
+" Extract UUIDs
+:%s/.*\([0-9a-f]\{8\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{12\}\).*/\1/
+```
+
+## Working with Structured Text
+
+### Column-Based Editing
+
+Use visual block mode for column operations:
+
+```vim
+" Enter visual block mode
+CTRL-V
+
+" Select column
+CTRL-V j j j l l l
+
+" Insert in column
+CTRL-V (select) I text ESC
+
+" Append to column
+CTRL-V (select) A text ESC
+
+" Delete column
+CTRL-V (select) d
+
+" Change column
+CTRL-V (select) c
+
+" Replace column
+CTRL-V (select) r<char>
+```
+
+### Align Text Columns
+
+Create aligned data:
+
+```vim
+" Align on specific character (e.g., =)
+:%s/=/\=printf('%*s=', 40-len(matchstr(getline('.'), '^[^=]*')), '')/
+
+" Align using external tool
+:%!column -t
+
+" Manual alignment with visual block
+CTRL-V (select column) I    (add spaces) ESC
+```
+
+### Table Manipulation
+
+Work with ASCII tables:
+
+```vim
+" Create table border
+:s/.*/| & |/
+
+" Add row separators
+:s/.*/+-&-+/
+
+" Fill cells with specific width
+:%s/[^|]\+/\=printf('%-20s', submatch(0))/g
+```
+
+## Data Transformation Techniques
+
+### Search and Replace Patterns
+
+Powerful regex transformations:
+
+```vim
+" Swap words
+:%s/\(\w\+\)\s\+\(\w\+\)/\2 \1/
+
+" Remove duplicate words
+:%s/\(\w\+\)\s\+\1/\1/g
+
+" Extract numbers
+:%s/[^0-9]//g
+
+" Format phone numbers
+:%s/\(\d\{3\}\)\(\d\{3\}\)\(\d\{4\}\)/(\1) \2-\3/
+
+" Add quotes around words
+:%s/\w\+/"&"/g
+
+" Convert snake_case to camelCase
+:%s/_\(\w\)/\u\1/g
+```
+
+### Case Transformations
+
+Change text case:
+
+```vim
+" Lowercase line
+:s/.*/\L&/
+Vu
+
+" Uppercase line
+:s/.*/\U&/
+VU
+
+" Title case (capitalize first letter)
+:%s/\<\(\w\)\(\w*\)\>/\u\1\L\2/g
+
+" Toggle case
+g~w             " Toggle word
+g~~             " Toggle line
+```
+
+### Arithmetic Operations
+
+Perform calculations on data:
+
+```vim
+" Increment numbers
+:s/\d\+/\=submatch(0)+1/g
+
+" Multiply values
+:%s/\d\+/\=submatch(0)*2/g
+
+" Add prefix number
+:%s/^/\=line('.'). '. '/
+
+" Calculate column sum (with external tool)
+:!awk '{sum+=$1} END {print sum}' %
+```
+
+### Multi-Line Operations
+
+Work across lines:
+
+```vim
+" Join all lines
+:%j
+
+" Join lines with separator
+:%s/\n/,/
+
+" Split on separator
+:%s/,/\r/g
+
+" Combine every N lines
+:%s/\n\(.*\n\)\{2\}/&\r/
+
+" Transpose rows and columns (simple case)
+:%!awk '{for(i=1;i<=NF;i++)a[NR,i]=$i}END{for(j=1;j<=NF;j++){for(i=1;i<=NR;i++)printf"%s",a[i,j](i==NR?"\n":" ")}}'
+```
+
+## Advanced Data Processing
+
+### Using External Commands
+
+Integrate shell tools:
+
+```vim
+" Filter through awk
+:%!awk '{print $1, $3}'
+
+" Filter through sed
+:%!sed 's/pattern/replacement/g'
+
+" Filter through grep
+:g/pattern/!grep other_pattern
+
+" Sort with shell sort
+:%!sort -t, -k2 -n
+
+" Count with uniq
+:%!sort | uniq -c
+
+" Statistical analysis
+:%!awk '{sum+=$1; sumsq+=$1*$1} END {print "Avg:",sum/NR,"StdDev:",sqrt(sumsq/NR-(sum/NR)^2)}'
+```
+
+### Macro-Based Processing
+
+Automate repetitive edits:
+
+```vim
+" Record macro to register a
+qa
+" ... perform operations ...
+q
+
+" Execute macro on all matching lines
+:g/pattern/normal @a
+
+" Execute macro N times
+100@a
+
+" Example: Format each CSV row
+qa              " Start recording
+^               " Go to start of line
+f,              " Find comma
+a<Space>        " Add space after comma
+j               " Next line
+q               " Stop recording
+
+" Apply to all lines
+:1,$normal @a
+```
+
+### Batch File Processing
+
+Process multiple data files:
+
+```vim
+" Open all CSV files
+:args data/*.csv
+
+" Apply transformation to all
+:argdo %s/old/new/ge | update
+
+" Concatenate all files
+:args data/*.log | argdo r % | w! combined.log
+
+" Process and save with new names
+:argdo %!sort | saveas %:r_sorted.%:e
+```
+
+## Practical Workflows
+
+### Data Cleaning Pipeline
+
+```vim
+" 1. Remove blank lines
+:g/^$/d
+
+" 2. Trim whitespace
+:%s/\s\+$//
+:%s/^\s\+//
+
+" 3. Remove duplicate lines
+:sort u
+
+" 4. Standardize format
+:%s/\t/,/g
+
+" 5. Validate and save
+:w cleaned_data.csv
+```
+
+### Log Analysis Workflow
+
+```vim
+" 1. Open log file
+:e /var/log/app.log
+
+" 2. Extract errors
+:g/ERROR/t$
+
+" 3. Remove timestamp for grouping
+:%s/^[^ ]* [^ ]* //
+
+" 4. Sort and count
+:%!sort | uniq -c | sort -rn
+
+" 5. Save analysis
+:w error_summary.txt
+```
+
+### Data Conversion
+
+Convert between formats:
+
+```vim
+" CSV to JSON (simple)
+:%s/^\([^,]*\),\([^,]*\),\([^,]*\)$/{"id":\1,"name":"\2","value":\3},/
+" Add [ at top and ] at bottom
+
+" JSON to CSV
+:%!jq -r '.[] | [.id, .name, .value] | @csv'
+
+" TSV to CSV
+:%s/\t/,/g
+
+" Fixed-width to CSV
+:%s/^\(.\{10\}\)\(.\{20\}\)\(.\{15\}\)/\1,\2,\3/
+:%s/ \+,/,/g
+```
+
+## Useful Mappings for Data Editing
+
+Add to `.vimrc`:
+
+```vim
+" Align CSV columns
+nnoremap <Leader>a :%!column -t -s,<CR>
+
+" Pretty print JSON
+nnoremap <Leader>j :%!jq .<CR>
+
+" Sort data
+nnoremap <Leader>s :%!sort<CR>
+vnoremap <Leader>s :!sort<CR>
+
+" Remove duplicates
+nnoremap <Leader>u :sort u<CR>
+
+" Count pattern
+nnoremap <Leader>c :%s///gn<CR>
+
+" Trim whitespace
+nnoremap <Leader>w :%s/\s\+$//<CR>
+
+" Convert to uppercase
+vnoremap <Leader>U U
+
+" Convert to lowercase
+vnoremap <Leader>L u
+```
+
+## Data Validation
+
+### Check Data Integrity
+
+```vim
+" Find lines with wrong number of columns
+:g!/^\([^,]*,\)\{4\}[^,]*$/
+
+" Find non-numeric values in numeric column
+:g/^[^,]*,[^0-9]/
+
+" Find invalid email addresses
+:v/@.*\./
+
+" Check for null values
+:g/,,/
+:g/^,/
+:g/,$/
+```
+
+### Generate Statistics
+
+```vim
+" Count total rows
+:echo line('$')
+
+" Count non-empty rows
+:g/./
+
+" Find min/max values (using external tool)
+:!awk -F, '{print $2}' % | sort -n | head -1  " Min
+:!awk -F, '{print $2}' % | sort -n | tail -1  " Max
+
+" Calculate average
+:!awk -F, '{sum+=$2} END {print sum/NR}' %
+```
+
+## Related Topics
+
+<CardGroup cols={2}>
+  <Card title="Search and Replace" icon="magnifying-glass" href="/commands/search-replace">
+    Master pattern matching and substitution
+  </Card>
+  <Card title="Visual Mode" icon="highlighter" href="/commands/visual-mode">
+    Learn visual block mode for column editing
+  </Card>
+  <Card title="External Commands" icon="terminal" href="/tools/external-commands">
+    Integrate shell tools with Vim
+  </Card>
+  <Card title="Macros" icon="repeat" href="/advanced/macros">
+    Automate repetitive data operations
+  </Card>
+</CardGroup>
+
+## Performance Tips
+
+1. **For large files**: Disable swap and undo
+   ```vim
+   :set noswapfile noundofile
+   ```
+
+2. **Use external tools**: For very large datasets, prefer `awk`, `sed`, or specialized tools
+
+3. **Process in chunks**: Split large files before editing
+
+4. **Stream processing**: Use `:%!command` to process without loading entire file
+
+5. **Disable syntax**: For huge files
+   ```vim
+   :syntax off
+   ```
+
+<Note>
+For production data pipelines, consider specialized tools like `awk`, `sed`, or Python/Pandas. Vim excels at interactive data exploration and one-off transformations.
+</Note>

@@ -1,0 +1,427 @@
+---
+title: Tips and Tricks
+description: Practical tips and tricks for more efficient Vim usage
+---
+
+These are practical tips that will help you work more efficiently in Vim. For more tips, visit the [Vim Tips Wiki](https://vim.fandom.com/wiki/Vim_Tips_Wiki).
+
+## Editing C Programs
+
+Vim has excellent support for C programming. Here's an overview of useful features:
+
+### Navigation
+
+- `gd` - Go to local variable declaration
+- `gD` - Go to global variable declaration
+- `Ctrl-]` - Jump to tag (function definition)
+- `Ctrl-T` - Jump back from tag
+- `%` - Jump between matching parentheses, braces, or brackets
+
+### Code Search
+
+```vim
+[i          " Search for identifier under cursor in current and included files
+[I          " List all lines where identifier appears
+[d          " Search for define under cursor
+[/          " Go to previous start of comment
+]/          " Go to next end of comment
+```
+
+### Block Navigation
+
+```vim
+[{          " Jump to previous unmatched {
+]}          " Jump to next unmatched }
+[(          " Jump to previous unmatched (
+])          " Jump to next unmatched )
+[#          " Jump to previous unmatched #if or #else
+]#          " Jump to next unmatched #else or #endif
+```
+
+### Code Formatting
+
+```vim
+=           " Re-indent selection or motion
+==          " Re-indent current line
+=}          " Re-indent until end of block
+```
+
+See `:help C-editing` and `:help usr_29.txt` for more details.
+
+## Finding Where Identifiers Are Used
+
+There are two main approaches:
+
+### Using :grep
+
+Quick and simple for searching in one directory:
+
+```vim
+:grep "function_name" *.c
+:copen          " Open quickfix window with results
+:cnext          " Jump to next match
+:cprev          " Jump to previous match
+```
+
+### Using ID Utils
+
+Fast searching across multiple directories using a database:
+
+```vim
+" First, create ID database in your project root
+" $ mkid *.c *.h
+
+" Add to your vimrc:
+map _u :call ID_search()<Bar>execute "/\\<" .. g:word .. "\\>"<CR>
+map _n :n<Bar>execute "/\\<" .. g:word .. "\\>"<CR>
+
+function! ID_search()
+  let g:word = expand("<cword>")
+  let x = system("lid --key=none " .. g:word)
+  let x = substitute(x, "\n", " ", "g")
+  execute "next " .. x
+endfunction
+```
+
+Place cursor on a word and press `_u` to search.
+
+## Scrolling Tips
+
+### Insert Mode Scrolling
+
+Scroll without leaving Insert mode:
+
+```vim
+inoremap <C-E> <C-X><C-E>
+inoremap <C-Y> <C-X><C-Y>
+```
+
+Or use the built-in:
+- `Ctrl-X Ctrl-E` - Scroll down
+- `Ctrl-X Ctrl-Y` - Scroll up
+
+### Smooth Scrolling
+
+For smoother scrolling experience:
+
+```vim
+map <C-U> <C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y>
+map <C-D> <C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E>
+```
+
+### Context Lines
+
+Keep context visible when scrolling:
+
+```vim
+set scrolloff=5        " Keep 5 lines above/below cursor
+set sidescrolloff=5    " Keep 5 columns left/right of cursor
+```
+
+## Text Manipulation
+
+### Correcting Typing Mistakes
+
+Use abbreviations to auto-correct common typos:
+
+```vim
+abbreviate teh the
+abbreviate fro for
+abbreviate seperate separate
+abbreviate recieve receive
+```
+
+### Counting Items
+
+Count occurrences without making changes:
+
+```vim
+:%s/./&/gn              " Count characters
+:%s/\i\+/&/gn           " Count words
+:%s/^//n                " Count lines
+:%s/the/&/gn            " Count "the" anywhere
+:%s/\<the\>/&/gn        " Count "the" as a word
+```
+
+Alternatively, use `g Ctrl-G` in Visual mode to see statistics.
+
+### Restoring Cursor Position
+
+Create a mapping that saves and restores cursor position:
+
+```vim
+" Example: Update date mark
+map <F2> msHmtgg/Last [cC]hange:\s*/e+1<CR>"_D"=strftime("%Y %b %d")<CR>p'tzt`s
+```
+
+Breakdown:
+- `ms` - Save cursor position in mark 's'
+- `H` - Go to top of window
+- `mt` - Save window position in mark 't'
+- ... do work ...
+- `'t` - Return to saved window position
+- `zt` - Scroll to top
+- `` `s `` - Return to original cursor position
+
+For more advanced use, see `winsaveview()` and `winrestview()`.
+
+## Batch Operations
+
+### Renaming Files
+
+Rename multiple files using Vim:
+
+```vim
+" From command line: vim
+:r !ls *.txt
+:%s/\(.*\)\.txt/mv & \1.md/
+:w !sh
+:q!
+```
+
+This creates and executes shell commands to rename files.
+
+### Changing Text in Multiple Files
+
+Create a script file `subs.vim`:
+
+```vim
+:%s/OldName/NewName/g
+:%s/old_function/new_function/g
+:update
+```
+
+Then apply to multiple files:
+
+```bash
+vim *.c
+:argdo source subs.vim
+```
+
+Or use a one-liner:
+
+```vim
+:argdo %s/old/new/ge | update
+```
+
+## Useful Mappings
+
+### Backtick to Single Quote
+
+```vim
+map ' `
+```
+
+Makes single quote jump to the exact column of a mark (like backtick does).
+
+### Emacs-Style Command Line
+
+```vim
+cnoremap <C-A> <Home>
+cnoremap <C-B> <Left>
+cnoremap <C-D> <Del>
+cnoremap <C-E> <End>
+cnoremap <C-F> <Right>
+cnoremap <C-N> <Down>
+cnoremap <C-P> <Up>
+```
+
+### Format Bullet Lists
+
+Format a bullet list entry:
+
+```vim
+let m = ":map _f :set ai<CR>"
+let m ..= "{O<Esc>"
+let m ..= "}{)^W"
+let m ..= "i     <CR>     <Esc>"
+let m ..= "gq}"
+let m ..= "{dd"
+let m ..= "5lDJ"
+execute m
+```
+
+Requires `textwidth` to be set:
+
+```vim
+set textwidth=70
+```
+
+### Collapse Empty Lines
+
+Reduce multiple empty lines to one:
+
+```vim
+map ;b GoZ<Esc>:g/^$/.,/./-j<CR>Gdd       " Empty lines
+map ;n GoZ<Esc>:g/^[ \t]*$/.,/[^ \t]/-j<CR>Gdd   " Blank lines
+```
+
+## Terminal Integration
+
+### Screen Switching in Xterm
+
+Vim can switch between xterm's alternate and main screen buffer. This is controlled by the `t_ti` (terminal initialization) and `t_te` (terminal exit) options.
+
+To disable screen switching:
+
+```vim
+set t_ti= t_te=
+```
+
+### Execute Shell Commands in Window
+
+Use Vim's built-in terminal:
+
+```vim
+:terminal
+:terminal bash
+```
+
+See `:help terminal` for more options.
+
+## Advanced Editing
+
+### Hex Editing
+
+Edit binary files using xxd:
+
+```vim
+" Convert to hex
+:%!xxd
+
+" Edit the hex values
+
+" Convert back to binary
+:%!xxd -r
+```
+
+Automate it with autocmds:
+
+```vim
+augroup Binary
+  autocmd!
+  autocmd BufReadPre  *.bin set binary
+  autocmd BufReadPost *.bin
+    \ if &binary
+    \ |   execute "silent %!xxd -c 32"
+    \ |   set filetype=xxd
+    \ |   redraw
+    \ | endif
+  autocmd BufWritePre *.bin
+    \ if &binary
+    \ |   let s:view = winsaveview()
+    \ |   execute "silent %!xxd -r -c 32"
+    \ | endif
+  autocmd BufWritePost *.bin
+    \ if &binary
+    \ |   execute "silent %!xxd -c 32"
+    \ |   set nomodified
+    \ |   call winrestview(s:view)
+    \ |   redraw
+    \ | endif
+augroup END
+```
+
+See `:help hex-editing` for more details.
+
+### Matching Parentheses Highlighting
+
+Highlight matching parentheses automatically:
+
+```vim
+let s:paren_hl_on = 0
+function s:Highlight_Matching_Paren()
+  if s:paren_hl_on
+    match none
+    let s:paren_hl_on = 0
+  endif
+  
+  let c_lnum = line('.')
+  let c_col = col('.')
+  let c = getline(c_lnum)[c_col - 1]
+  let plist = split(&matchpairs, ':\|,')
+  let i = index(plist, c)
+  
+  if i < 0
+    return
+  endif
+  
+  if i % 2 == 0
+    let s_flags = 'nW'
+    let c2 = plist[i + 1]
+  else
+    let s_flags = 'nbW'
+    let c2 = c
+    let c = plist[i - 1]
+  endif
+  
+  let [m_lnum, m_col] = searchpairpos(c, '', c2, s_flags)
+  
+  if m_lnum > 0
+    exe 'match Search /\(\%' .. c_lnum .. 'l\%' .. c_col ..
+      \ 'c\)\|\(\%' .. m_lnum .. 'l\%' .. m_col .. 'c\)/'
+    let s:paren_hl_on = 1
+  endif
+endfunction
+
+autocmd CursorMoved,CursorMovedI * call s:Highlight_Matching_Paren()
+autocmd InsertEnter * match none
+```
+
+Or simply use the built-in `matchparen` plugin (loaded by default).
+
+## Performance Tips
+
+### Speed Up External Commands
+
+If external commands are slow, optimize your shell configuration:
+
+```bash
+# In .cshrc or .bashrc
+if [ -z "$PS1" ]; then
+    # Non-interactive shell, skip expensive setup
+    return
+fi
+```
+
+Or use a faster shell for Vim:
+
+```vim
+set shell=sh
+" or
+set shell=csh\ -f
+```
+
+### Compress Help Files
+
+Save disk space by compressing help files:
+
+```bash
+# Compress help files
+gzip doc/*.txt
+
+# Edit doc/tags
+vim doc/tags
+:%s=\(\t.*\.txt\)\t=\1.gz\t=
+:wq
+```
+
+Then add to vimrc:
+
+```vim
+set helpfile=~/.vim/doc/help.txt.gz
+```
+
+The gzip plugin will handle decompression automatically.
+
+## More Tips
+
+For hundreds more tips, visit:
+
+- Built-in tips: `:help tips`
+- User manual: `:help user-manual`
+- How-to guide: `:help howto`
+- [Vim Tips Wiki](https://vim.fandom.com/wiki/Vim_Tips_Wiki)
+- [r/vim subreddit](https://reddit.com/r/vim)
+
+Browse the user manual for more in-depth explanations and use cases.

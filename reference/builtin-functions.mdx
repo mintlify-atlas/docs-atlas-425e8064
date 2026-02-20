@@ -1,0 +1,594 @@
+---
+title: Built-in Functions
+description: Complete reference for Vim's built-in functions
+---
+
+Vim provides over 300 built-in functions for scripting and automation. This reference documents the most commonly used functions, organized by category.
+
+## String Functions
+
+### String Manipulation
+
+#### `strlen({expr})`
+
+Returns the length of the String `{expr}` in bytes.
+
+```vim
+echo strlen("hello")  " Returns: 5
+```
+
+**Return type:** `Number`
+
+#### `strcharlen({expr})`
+
+Returns the character length of the String `{expr}`, counting multi-byte characters as single units.
+
+```vim
+echo strcharlen("café")  " Returns: 4
+```
+
+**Return type:** `Number`
+
+#### `substitute({expr}, {pat}, {sub}, {flags})`
+
+Replaces all `{pat}` in `{expr}` with `{sub}`. The `{flags}` parameter controls behavior:
+- `"g"` - Replace all occurrences
+- `"i"` - Ignore case
+- `"I"` - Match case
+
+```vim
+echo substitute("hello world", "world", "vim", "")
+" Returns: "hello vim"
+```
+
+**Return type:** `String`
+
+#### `split({expr} [, {pat} [, {keepempty}]])`
+
+Creates a List by splitting `{expr}` on pattern `{pat}`. If `{keepempty}` is true, empty items are kept.
+
+```vim
+let words = split("a b c")
+" Returns: ['a', 'b', 'c']
+```
+
+**Return type:** `List`
+
+#### `join({list} [, {sep}])`
+
+Joins items in `{list}` into a String, separated by `{sep}` (default: space).
+
+```vim
+echo join(['a', 'b', 'c'], ', ')
+" Returns: "a, b, c"
+```
+
+**Return type:** `String`
+
+#### `trim({text} [, {mask} [, {dir}]])`
+
+Removes characters in `{mask}` from `{text}`. Direction:
+- `0` - Both sides (default)
+- `1` - Only beginning
+- `2` - Only end
+
+```vim
+echo trim("  hello  ")
+" Returns: "hello"
+```
+
+**Return type:** `String`
+
+### String Searching
+
+#### `stridx({haystack}, {needle} [, {start}])`
+
+Returns the byte index of the first occurrence of `{needle}` in `{haystack}`, or -1 if not found.
+
+```vim
+echo stridx("hello world", "world")
+" Returns: 6
+```
+
+**Return type:** `Number`
+
+#### `match({expr}, {pat} [, {start} [, {count}]])`
+
+Returns the position where `{pat}` matches in `{expr}`, or -1 if no match.
+
+```vim
+echo match("hello123", '\d\+')
+" Returns: 5
+```
+
+**Return type:** `Number`
+
+#### `matchstr({expr}, {pat} [, {start} [, {count}]])`
+
+Returns the `{count}`'th match of `{pat}` in `{expr}`.
+
+```vim
+echo matchstr("hello123world", '\d\+')
+" Returns: "123"
+```
+
+**Return type:** `String`
+
+## List Functions
+
+### List Creation and Manipulation
+
+#### `add({list}, {item})`
+
+Appends `{item}` to `{list}` and returns the resulting List.
+
+```vim
+let mylist = [1, 2, 3]
+call add(mylist, 4)
+" mylist is now [1, 2, 3, 4]
+```
+
+**Return type:** `List`
+
+#### `insert({list}, {item} [, {idx}])`
+
+Inserts `{item}` at position `{idx}` in `{list}` (default: before first item).
+
+```vim
+let mylist = [1, 2, 3]
+call insert(mylist, 0)
+" mylist is now [0, 1, 2, 3]
+```
+
+**Return type:** `List`
+
+#### `remove({list}, {idx} [, {end}])`
+
+Removes item(s) at index `{idx}` (or range `{idx}` to `{end}`) from `{list}`.
+
+```vim
+let mylist = [1, 2, 3, 4]
+let removed = remove(mylist, 1)
+" mylist is now [1, 3, 4], removed is 2
+```
+
+**Return type:** `any` or `List`
+
+#### `extend({expr1}, {expr2} [, {expr3}])`
+
+Inserts items of `{expr2}` into `{expr1}`. Works with Lists and Dictionaries.
+
+```vim
+let list1 = [1, 2]
+call extend(list1, [3, 4])
+" list1 is now [1, 2, 3, 4]
+```
+
+**Return type:** `List` or `Dict`
+
+### List Searching and Filtering
+
+#### `index({list}, {expr} [, {start} [, {ic}]])`
+
+Returns the index where `{expr}` appears in `{list}`, or -1 if not found.
+
+```vim
+echo index([1, 2, 3, 4], 3)
+" Returns: 2
+```
+
+**Return type:** `Number`
+
+#### `count({list}, {expr} [, {ic} [, {start}]])`
+
+Counts how many times `{expr}` appears in `{list}`.
+
+```vim
+echo count([1, 2, 1, 3, 1], 1)
+" Returns: 3
+```
+
+**Return type:** `Number`
+
+#### `filter({expr1}, {expr2})`
+
+Removes items from `{expr1}` where `{expr2}` evaluates to false.
+
+```vim
+let numbers = [1, 2, 3, 4, 5]
+call filter(numbers, 'v:val > 2')
+" numbers is now [3, 4, 5]
+```
+
+**Return type:** `List`, `Dict`, `Blob`, or `String`
+
+#### `map({expr1}, {expr2})`
+
+Changes each item in `{expr1}` to `{expr2}`.
+
+```vim
+let numbers = [1, 2, 3]
+call map(numbers, 'v:val * 2')
+" numbers is now [2, 4, 6]
+```
+
+**Return type:** `List`, `Dict`, `Blob`, or `String`
+
+### List Operations
+
+#### `sort({list} [, {how} [, {dict}]])`
+
+Sorts `{list}` in place. `{how}` can be a function or:
+- `"n"` - Sort numerically
+- `"N"` - Sort numerically, case-insensitive
+- `"i"` - Ignore case
+
+```vim
+let words = ['banana', 'apple', 'cherry']
+call sort(words)
+" words is now ['apple', 'banana', 'cherry']
+```
+
+**Return type:** `List`
+
+#### `reverse({list})`
+
+Reverses the order of items in `{list}`.
+
+```vim
+let numbers = [1, 2, 3]
+call reverse(numbers)
+" numbers is now [3, 2, 1]
+```
+
+**Return type:** `List`, `Tuple`, `Blob`, or `String`
+
+#### `uniq({list} [, {func} [, {dict}]])`
+
+Removes adjacent duplicate items from `{list}`.
+
+```vim
+let numbers = [1, 1, 2, 2, 3]
+call uniq(numbers)
+" numbers is now [1, 2, 3]
+```
+
+**Return type:** `List`
+
+## Dictionary Functions
+
+#### `keys({dict})`
+
+Returns a List of all keys in `{dict}`.
+
+```vim
+let mydict = {'a': 1, 'b': 2}
+echo keys(mydict)
+" Returns: ['a', 'b']
+```
+
+**Return type:** `List`
+
+#### `values({dict})`
+
+Returns a List of all values in `{dict}`.
+
+```vim
+let mydict = {'a': 1, 'b': 2}
+echo values(mydict)
+" Returns: [1, 2]
+```
+
+**Return type:** `List`
+
+#### `items({dict})`
+
+Returns a List of key-value pairs from `{dict}`.
+
+```vim
+let mydict = {'a': 1, 'b': 2}
+for [key, value] in items(mydict)
+  echo key . ': ' . value
+endfor
+```
+
+**Return type:** `List`
+
+#### `has_key({dict}, {key})`
+
+Returns true if `{dict}` has an entry with key `{key}`.
+
+```vim
+let mydict = {'a': 1}
+echo has_key(mydict, 'a')  " Returns: 1
+echo has_key(mydict, 'b')  " Returns: 0
+```
+
+**Return type:** `Number`
+
+## File Functions
+
+#### `readfile({fname} [, {type} [, {max}]])`
+
+Returns a List of lines from file `{fname}`.
+
+```vim
+let lines = readfile('config.txt')
+```
+
+**Return type:** `List`
+
+#### `writefile({list}, {fname} [, {flags}])`
+
+Writes `{list}` (List of lines or Blob) to file `{fname}`. Flags:
+- `"a"` - Append
+- `"b"` - Binary mode
+
+```vim
+call writefile(['line1', 'line2'], 'output.txt')
+```
+
+**Return type:** `Number` (0 on success)
+
+#### `filereadable({file})`
+
+Returns true if file `{file}` exists and is readable.
+
+```vim
+if filereadable('config.vim')
+  source config.vim
+endif
+```
+
+**Return type:** `Number`
+
+#### `glob({expr} [, {nosuf} [, {list} [, {alllinks}]]])`
+
+Expands wildcards in `{expr}` and returns matching files.
+
+```vim
+let vimfiles = glob('*.vim', 0, 1)
+```
+
+**Return type:** `String` or `List`
+
+## Buffer Functions
+
+#### `getline({lnum} [, {end}])`
+
+Returns line `{lnum}` from the current buffer, or a List of lines from `{lnum}` to `{end}`.
+
+```vim
+echo getline(1)        " First line
+let lines = getline(1, 10)  " Lines 1-10
+```
+
+**Return type:** `String` or `List`
+
+#### `setline({lnum}, {text})`
+
+Sets line `{lnum}` to `{text}`. If `{text}` is a List, sets multiple lines.
+
+```vim
+call setline(1, 'New first line')
+call setline(5, ['line 5', 'line 6'])
+```
+
+**Return type:** `Number`
+
+#### `append({lnum}, {text})`
+
+Appends `{text}` below line `{lnum}`. If `{text}` is a List, appends multiple lines.
+
+```vim
+call append(line('$'), 'New last line')
+```
+
+**Return type:** `Number`
+
+#### `bufname([{buf}])`
+
+Returns the name of buffer `{buf}` (default: current buffer).
+
+```vim
+echo bufname('%')  " Current buffer name
+```
+
+**Return type:** `String`
+
+#### `bufnr([{buf} [, {create}]])`
+
+Returns the number of buffer `{buf}` (default: current buffer).
+
+```vim
+let nr = bufnr('%')
+```
+
+**Return type:** `Number`
+
+## Type Conversion Functions
+
+#### `string({expr})`
+
+Returns a String representation of `{expr}`.
+
+```vim
+echo string([1, 2, 3])
+" Returns: "[1, 2, 3]"
+```
+
+**Return type:** `String`
+
+#### `str2nr({expr} [, {base} [, {quoted}]])`
+
+Converts String `{expr}` to a Number. Base can be 2-36.
+
+```vim
+echo str2nr('10')      " Returns: 10
+echo str2nr('ff', 16)  " Returns: 255
+```
+
+**Return type:** `Number`
+
+#### `str2float({expr} [, {quoted}])`
+
+Converts String `{expr}` to a Float.
+
+```vim
+echo str2float('3.14')
+" Returns: 3.14
+```
+
+**Return type:** `Float`
+
+#### `json_encode({expr})`
+
+Converts `{expr}` to a JSON string.
+
+```vim
+echo json_encode({'name': 'vim', 'version': 9})
+" Returns: "{\"name\":\"vim\",\"version\":9}"
+```
+
+**Return type:** `String`
+
+#### `json_decode({string})`
+
+Parses JSON string `{string}` and returns the corresponding Vim value.
+
+```vim
+let data = json_decode('{"name":"vim"}')
+echo data.name  " Returns: "vim"
+```
+
+**Return type:** `any`
+
+## Mathematical Functions
+
+#### `abs({expr})`
+
+Returns the absolute value of `{expr}`.
+
+```vim
+echo abs(-5)   " Returns: 5
+echo abs(3.14) " Returns: 3.14
+```
+
+**Return type:** `Number` or `Float`
+
+#### `max({list})`
+
+Returns the maximum value in `{list}`.
+
+```vim
+echo max([1, 5, 3, 9, 2])
+" Returns: 9
+```
+
+**Return type:** `Number`
+
+#### `min({list})`
+
+Returns the minimum value in `{list}`.
+
+```vim
+echo min([1, 5, 3, 9, 2])
+" Returns: 1
+```
+
+**Return type:** `Number`
+
+#### `pow({x}, {y})`
+
+Returns `{x}` to the power of `{y}`.
+
+```vim
+echo pow(2, 8)
+" Returns: 256.0
+```
+
+**Return type:** `Float`
+
+#### `sqrt({expr})`
+
+Returns the square root of `{expr}`.
+
+```vim
+echo sqrt(16)
+" Returns: 4.0
+```
+
+**Return type:** `Float`
+
+## Utility Functions
+
+#### `type({expr})`
+
+Returns the type of `{expr}` as a number:
+- `0` - Number
+- `1` - String
+- `2` - Funcref
+- `3` - List
+- `4` - Dictionary
+- `5` - Float
+- `6` - Boolean
+- `7` - None
+
+```vim
+echo type(42)        " Returns: 0
+echo type('hello')   " Returns: 1
+echo type([1, 2])    " Returns: 3
+```
+
+**Return type:** `Number`
+
+#### `typename({expr})`
+
+Returns a string representation of the type of `{expr}`.
+
+```vim
+echo typename(42)       " Returns: "number"
+echo typename([1, 2])   " Returns: "list<number>"
+```
+
+**Return type:** `String`
+
+#### `empty({expr})`
+
+Returns true if `{expr}` is empty (0, empty string, empty list/dict, etc.).
+
+```vim
+echo empty('')       " Returns: 1
+echo empty([])       " Returns: 1
+echo empty('hello')  " Returns: 0
+```
+
+**Return type:** `Number`
+
+#### `len({expr})`
+
+Returns the length of `{expr}` (String, List, Dict, or Blob).
+
+```vim
+echo len('hello')     " Returns: 5
+echo len([1, 2, 3])   " Returns: 3
+```
+
+**Return type:** `Number`
+
+#### `range({expr} [, {max} [, {stride}]])`
+
+Creates a List of numbers from `{expr}` to `{max}` with step `{stride}`.
+
+```vim
+echo range(5)        " Returns: [0, 1, 2, 3, 4]
+echo range(2, 8, 2)  " Returns: [2, 4, 6, 8]
+```
+
+**Return type:** `List`
+
+## See Also
+
+- [Vim9 Functions](/reference/vim9-functions) - Functions specific to Vim9 script
+- [Variables and Scopes](/reference/variables) - Variable declarations and scopes
+- [Channels and Jobs](/reference/channels-jobs) - Asynchronous programming API

@@ -1,0 +1,435 @@
+---
+title: Windows
+description: Installing and using Vim on Windows systems
+---
+
+## Overview
+
+Vim runs natively on Windows with full feature support. This guide covers installation methods, building from source, and Windows-specific considerations.
+
+## Installation Methods
+
+### Self-Installing Executable (Recommended)
+
+The easiest way to install Vim on Windows:
+
+1. Download the self-installing `.exe` from [vim-win32-installer](https://github.com/vim/vim-win32-installer)
+2. Run the installer and follow the prompts
+3. Select installation directory (e.g., `C:\Program Files\vim`)
+
+<Warning>
+  If an existing installation is detected, complete the uninstallation before continuing. Watch the taskbar for uninstall windows that may overlap with the installer.
+</Warning>
+
+### ZIP Archive Installation
+
+Manual installation from ZIP files:
+
+```batch
+# 1. Navigate to installation directory
+cd C:\
+
+# 2. Check existing Vim location
+set VIM
+
+# 3. Unpack the zip archives
+unzip vim92w32.zip
+# This creates vim\vim92 directory
+
+# 4. Run the installer
+cd vim\vim92
+install.exe
+```
+
+## Directory Structure
+
+Recommended directory layout to avoid version conflicts:
+
+```
+C:\vim\
+├── _vimrc              # Your personal vimrc
+├── _viminfo            # Session information
+├── vimfiles\           # Your custom files
+│   ├── ftplugin\       # Filetype plugins
+│   ├── colors\         # Color schemes
+│   └── plugin\         # Plugins
+└── vim92\              # Version 9.2 files (distributed)
+    ├── vim.exe         # Console Vim
+    ├── gvim.exe        # GUI Vim
+    ├── doc\            # Documentation
+    └── ...             # Runtime files
+```
+
+### Environment Variables
+
+<ParamField path="%VIM%" type="string" required>
+  Root Vim directory. Example: `C:\vim`
+</ParamField>
+
+<ParamField path="%VIMRUNTIME%" type="string">
+  Runtime files location. Automatically set to `%VIM%\vim92`.
+</ParamField>
+
+<Warning>
+  Set `%VIM%` to the root directory (e.g., `C:\vim`), not the version directory. Don't add `vim92` to `%VIM%`.
+</Warning>
+
+Set environment variables:
+
+```batch
+set VIM=C:\vim
+set PATH=%PATH%;C:\vim\vim92
+```
+
+## Building from Source
+
+Vim can be built on Windows using several compilers.
+
+### Visual Studio (Recommended)
+
+Using Visual Studio 2022 Community Edition:
+
+<Steps>
+  <Step title="Install Visual Studio">
+    Download Visual Studio 2022 Community Edition and select "Universal Windows App Development Tools" during installation.
+  </Step>
+  
+  <Step title="Setup Build Environment">
+    Run the appropriate batch file:
+    
+    ```batch
+    # For x64 builds
+    msvc-latest.bat x64
+    
+    # For x86 builds
+    msvc-latest.bat x86
+    ```
+  </Step>
+  
+  <Step title="Build Vim">
+    Use `Make_mvc.mak` for building:
+    
+    <CodeGroup>
+    
+    ```batch Console Version
+    nmake -f Make_mvc.mak
+    ```
+    
+    ```batch GUI Version
+    nmake -f Make_mvc.mak GUI=yes
+    ```
+    
+    ```batch With OLE Support
+    nmake -f Make_mvc.mak GUI=yes OLE=yes
+    ```
+    
+    ```batch With Language Support
+    nmake -f Make_mvc.mak GUI=yes PYTHON3=C:\Python39 DYNAMIC_PYTHON3=yes PYTHON3_VER=39
+    ```
+    
+    </CodeGroup>
+  </Step>
+</Steps>
+
+### MSYS2 with MinGW
+
+Using MSYS2 for building:
+
+<Steps>
+  <Step title="Install MSYS2">
+    Download from [msys2.org](https://www.msys2.org) and run:
+    
+    ```bash
+    pacman -Syu
+    # Restart MSYS2
+    pacman -Su
+    ```
+  </Step>
+  
+  <Step title="Install Build Tools">
+    ```bash
+    # For 64-bit build
+    pacman -S base-devel mingw-w64-x86_64-toolchain git
+    
+    # For 32-bit build
+    pacman -S base-devel mingw-w64-i686-toolchain git
+    ```
+  </Step>
+  
+  <Step title="Build Vim">
+    Open MSYS2 MinGW terminal and run:
+    
+    ```bash
+    make -f Make_ming.mak
+    make -f Make_ming.mak GUI=yes
+    ```
+  </Step>
+</Steps>
+
+<Note>
+  You cannot run `vim.exe` in the MSYS2 console. Use a normal Windows console instead.
+</Note>
+
+### MinGW (Standalone)
+
+Building from Windows Command Prompt:
+
+```batch
+# Ensure MinGW is in PATH
+set PATH=C:\msys64\mingw64\bin;%PATH%
+
+# Build
+cd vim\src
+mingw32-make -f Make_ming.mak ARCH=x86-64 gvim.exe
+```
+
+## Language Support
+
+### Python Support
+
+Build with Python integration:
+
+<CodeGroup>
+
+```batch MSVC
+nmake -f Make_mvc.mak \
+  PYTHON3=C:\Python39 \
+  DYNAMIC_PYTHON3=yes \
+  PYTHON3_VER=39
+```
+
+```bash MinGW
+mingw32-make -f Make_ming.mak \
+  PYTHON3=C:/Python39 \
+  DYNAMIC_PYTHON3=yes \
+  PYTHON3_VER=39
+```
+
+</CodeGroup>
+
+### Ruby Support
+
+Build with Ruby integration:
+
+```batch
+nmake -f Make_mvc.mak \
+  RUBY=C:\Ruby24 \
+  DYNAMIC_RUBY=yes \
+  RUBY_VER=24 \
+  RUBY_API_VER_LONG=2.4.0 \
+  RUBY_MSVCRT_NAME=msvcrt
+```
+
+### Perl Support
+
+Build with Perl integration:
+
+```batch
+nmake -f Make_mvc.mak \
+  PERL=C:\StrawberryPerl\perl \
+  DYNAMIC_PERL=yes \
+  PERL_VER=532
+```
+
+### Lua Support
+
+Build with Lua integration:
+
+```batch
+nmake -f Make_mvc.mak \
+  LUA=C:\projects\lua53 \
+  DYNAMIC_LUA=yes \
+  LUA_VER=53
+```
+
+## Windows-Specific Features
+
+### DirectWrite Support
+
+Enable DirectX/DirectWrite for better rendering:
+
+```batch
+nmake -f Make_mvc.mak DIRECTX=yes
+```
+
+This requires Windows SDK 8.1 or later for color emoji support.
+
+### Context Menu Integration
+
+The installer can add "Edit with Vim" to Windows Explorer's right-click menu. To manage this:
+
+```vim
+:help win32-popup-menu
+```
+
+Remove it by running `uninstall.exe` in the Vim directory.
+
+### Console vs GUI
+
+<CardGroup cols={2}>
+  <Card title="vim.exe" icon="terminal">
+    **Console Version**
+    
+    - Runs in Command Prompt
+    - No menu bar or toolbar
+    - Faster startup
+    - Uses console colors
+  </Card>
+  
+  <Card title="gvim.exe" icon="window-maximize">
+    **GUI Version**
+    
+    - Standalone window
+    - Menu bar and toolbars
+    - More font options
+    - Better mouse support
+  </Card>
+</CardGroup>
+
+<Warning>
+  The console version (vim.exe) is NOT recommended on Windows 95/98 due to limitations.
+</Warning>
+
+## Path Handling
+
+Windows uses backslashes, but Vim accepts both:
+
+<CodeGroup>
+
+```vim Backslashes
+:edit C:\Users\username\file.txt
+:set runtimepath+=C:\vim\vimfiles
+```
+
+```vim Forward Slashes
+:edit C:/Users/username/file.txt
+:set runtimepath+=C:/vim/vimfiles
+```
+
+</CodeGroup>
+
+<Tip>
+  Forward slashes are easier to type in Vim commands and work identically to backslashes.
+</Tip>
+
+## Common Issues
+
+### Runtime Files Not Found
+
+If `:help` doesn't work or GUI has no menubar:
+
+```batch
+# Set VIM environment variable
+set VIM=C:\vim
+```
+
+Vim will look for runtime files in `%VIM%\vim92`.
+
+### Missing DLL Errors
+
+#### Language Interface DLLs
+
+Copy required DLLs to the Vim directory or system directory:
+
+- Python: `python39.dll`
+- Ruby: `msvcrt-ruby240.dll`
+- Lua: `lua53.dll`
+
+#### gettext and iconv
+
+For internationalization support, install from [gettext-iconv-windows](https://github.com/mlocati/gettext-iconv-windows/releases):
+
+```
+vim92\
+├── libintl-8.dll
+├── libiconv-2.dll
+└── libgcc_s_sjlj-1.dll    (32-bit only)
+```
+
+### Build Errors
+
+<AccordionGroup>
+  <Accordion title="Windows XP Support">
+    Windows XP support was removed in patch 9.0.0496. Use older Vim sources and VS2017 or earlier.
+  </Accordion>
+  
+  <Accordion title="UCRT vs MSVCRT">
+    If building with MinGW fails with `undefined reference to __imp___iob_func`, you may be mixing UCRT and MSVCRT. Use `XPM=no` or switch MinGW flavors.
+  </Accordion>
+  
+  <Accordion title="Missing Windows SDK">
+    For older MSVC versions, manually add SDK include path:
+    
+    ```batch
+    set "INCLUDE=%INCLUDE%;C:\Program Files (x86)\Windows Kits\8.1\Include\um"
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Installation Post-Build
+
+After building from source:
+
+<Steps>
+  <Step title="Create vim92 directory">
+    If building from Git (not ZIP):
+    
+    ```batch
+    mkdir vim92
+    xcopy /s runtime\* vim92
+    ```
+  </Step>
+  
+  <Step title="Copy binaries">
+    ```batch
+    copy src\*.exe vim92
+    copy src\tee\tee.exe vim92
+    copy src\xxd\xxd.exe vim92
+    ```
+  </Step>
+  
+  <Step title="Copy GvimExt (optional)">
+    For "Edit with Vim" context menu:
+    
+    ```batch
+    # Build 32-bit first
+    mkdir vim92\GvimExt32
+    copy src\GvimExt\gvimext.dll vim92\GvimExt32
+    
+    # Then build 64-bit
+    mkdir vim92\GvimExt64
+    copy src\GvimExt\gvimext.dll vim92\GvimExt64
+    ```
+  </Step>
+  
+  <Step title="Run installer">
+    ```batch
+    cd vim92
+    install.exe
+    ```
+  </Step>
+</Steps>
+
+## Resources
+
+<CardGroup cols={2}>
+  <Card title="Windows Installer" icon="download" href="https://github.com/vim/vim-win32-installer">
+    Official Windows builds
+  </Card>
+  <Card title="Building Vim" icon="hammer" href="/getting-started/building">
+    Detailed build instructions
+  </Card>
+  <Card title="Configuration" icon="gear" href="/configuration/vimrc">
+    Configure your vimrc
+  </Card>
+  <Card title="Help System" icon="circle-question" href="/reference/help-system">
+    Using :help win32
+  </Card>
+</CardGroup>
+
+## See Also
+
+- `:help dos` - MS-DOS and Windows help
+- `:help win32` - Windows-specific features
+- `:help $VIM` - Environment variables
+- `:help win32-popup-menu` - Context menu integration

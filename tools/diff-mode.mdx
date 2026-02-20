@@ -1,0 +1,233 @@
+---
+title: Diff Mode
+description: Compare and merge files using Vim's diff mode and vimdiff
+---
+
+Vim's diff mode allows you to compare two to eight versions of the same file side by side, highlighting differences and providing commands to merge changes.
+
+## Starting Diff Mode
+
+### Using vimdiff
+
+The easiest way to start diff mode is with the `vimdiff` command:
+
+```bash
+vimdiff file1 file2 [file3 [file4]]
+```
+
+This is equivalent to:
+
+```bash
+vim -d file1 file2 [file3 [file4]]
+```
+
+### From Within Vim
+
+You can start diff mode from within Vim using these commands:
+
+```vim
+:diffsplit filename    " Open filename in a new window for diffing
+:diffthis              " Make the current window part of diff
+:diffpatch patchfile   " Apply a patch and diff the result
+```
+
+For vertical splits:
+
+```vim
+:vert diffsplit main.c~
+:vert diffpatch /tmp/diff
+```
+
+## Window Options in Diff Mode
+
+When in diff mode, these options are automatically set:
+
+- `diff` - on
+- `scrollbind` - on (windows scroll together)
+- `cursorbind` - on (cursor moves together)
+- `scrollopt` - includes "hor"
+- `wrap` - off (unless 'diffopt' includes "followwrap")
+- `foldmethod` - "diff"
+- `foldcolumn` - 2 (or value from 'diffopt')
+
+## Navigating Differences
+
+### Jump to Changes
+
+```vim
+]c    " Jump forwards to the next change
+[c    " Jump backwards to the previous change
+```
+
+Use a count to jump multiple changes:
+
+```vim
+3]c   " Jump forward 3 changes
+```
+
+## Copying Differences
+
+### Commands
+
+```vim
+:diffget [bufspec]     " Get changes from another buffer
+:diffput [bufspec]     " Put changes to another buffer
+
+do                     " Obtain diff (same as :diffget)
+dp                     " Put diff (same as :diffput)
+```
+
+### Example Workflow
+
+1. Position cursor on a difference
+2. Use `do` to obtain changes from the other buffer
+3. Use `dp` to put your changes to the other buffer
+
+To get all differences from another buffer:
+
+```vim
+:0,$+1diffget
+```
+
+## Updating the Diff
+
+Vim automatically updates differences as you make changes, but sometimes you need to force an update:
+
+```vim
+:diffupdate        " Update diff highlighting
+:diffupdate!       " Also check for external file changes
+```
+
+## Comparing Current Buffer with Original
+
+To see changes you've made since loading the file:
+
+```vim
+:command DiffOrig vert new | set bt=nofile | r ++edit # | 0d_
+  \ | diffthis | wincmd p | diffthis
+```
+
+Then use:
+
+```vim
+:DiffOrig
+```
+
+## Diff Highlighting
+
+Differences are highlighted with these groups:
+
+| Group | Description |
+|-------|-------------|
+| **DiffAdd** | Added (inserted) lines |
+| **DiffChange** | Changed lines |
+| **DiffText** | Changed text within a line |
+| **DiffTextAdd** | Added text within a changed line |
+| **DiffDelete** | Deleted lines (filler lines) |
+
+## Diff Options
+
+Configure diff behavior with the `diffopt` option:
+
+```vim
+" Set context to 3 lines
+:set diffopt=filler,context:3
+
+" Always use vertical splits
+:set diffopt+=vertical
+
+" Ignore whitespace
+:set diffopt+=iwhite
+
+" Use internal diff library
+:set diffopt+=internal
+```
+
+## Diff Anchors
+
+Control how the diff algorithm aligns text using diff anchors:
+
+```vim
+" Set anchors using marks
+:set diffanchors='a
+
+" Set anchors using patterns
+:set diffanchors=1/int\ foo(/
+
+" Set anchors using visual selection
+:set diffanchors='<,'>+1
+
+" Enable anchor support
+:set diffopt+=anchor
+```
+
+### Use Case: Moved Functions
+
+Anchors are useful when a function was moved and edited. By default, the diff shows the entire function as deleted and added. With anchors, you can pin the function to see actual changes.
+
+## Exiting Diff Mode
+
+```vim
+:diffoff         " Turn off diff mode for current window
+:diffoff!        " Turn off diff mode for all windows in tab
+```
+
+## Practical Examples
+
+### Compare Two Files
+
+```bash
+vimdiff config.yml config.yml.backup
+```
+
+### Three-Way Merge
+
+```bash
+vimdiff mine.txt theirs.txt base.txt
+```
+
+### Compare with Previous Version
+
+```vim
+:vert diffsplit %:p:h/%:t~
+```
+
+### Apply Patch and Review
+
+```vim
+:diffpatch changes.patch
+```
+
+## Using External Diff
+
+Customize the diff command with `diffexpr`:
+
+```vim
+set diffexpr=MyDiff()
+function MyDiff()
+  let opt = ""
+  if &diffopt =~ "icase"
+    let opt = opt .. "-i "
+  endif
+  if &diffopt =~ "iwhite"
+    let opt = opt .. "-b "
+  endif
+  silent execute "!diff -a --binary " .. opt .. v:fname_in .. " " .. v:fname_new ..
+    \  " > " .. v:fname_out
+  redraw!
+endfunction
+```
+
+## Tips
+
+<Tip>
+  Use `:set diffopt+=iwhite` to ignore whitespace differences, which is helpful when comparing code with different formatting.
+</Tip>
+
+<Tip>
+  Diffs are local to the current tab page. You can have multiple diffs open simultaneously in different tabs.
+</Tip>
+
+<Warning>
+  Up to 8 buffers can have `diff` set simultaneously.
+</Warning>

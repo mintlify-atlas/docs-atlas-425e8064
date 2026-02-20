@@ -1,0 +1,309 @@
+---
+title: Spell Checking
+description: Check spelling in Vim with support for multiple languages and dictionaries
+---
+
+Vim provides on-the-fly spell checking with support for multiple languages, custom word lists, and spelling suggestions.
+
+## Quick Start
+
+Enable spell checking for US English:
+
+```vim
+:setlocal spell spelllang=en_us
+```
+
+This turns on the `spell` option and sets the language to US English.
+
+## Highlighted Words
+
+Words are highlighted with different colors based on their status:
+
+| Highlight | Meaning |
+|-----------|----------|
+| **SpellBad** | Word not recognized |
+| **SpellCap** | Word not capitalized |
+| **SpellRare** | Rare word |
+| **SpellLocal** | Wrong spelling for selected region |
+
+<Note>
+  Vim checks spelling, not grammar. It validates individual words, not sentence structure.
+</Note>
+
+## Navigating Misspelled Words
+
+### Moving Between Errors
+
+```vim
+]s    " Move to next misspelled word
+[s    " Move to previous misspelled word
+]S    " Move to next bad word (skip rare words)
+[S    " Move to previous bad word
+```
+
+With count:
+
+```vim
+3]s   " Jump to third misspelled word ahead
+```
+
+### Finding Rare Words
+
+```vim
+]r    " Move to next rare word
+[r    " Move to previous rare word
+```
+
+## Managing Your Word List
+
+### Adding Words
+
+```vim
+zg    " Add word under cursor as good word
+zG    " Add word to internal word list (session only)
+
+2zg   " Add to second entry in 'spellfile'
+```
+
+In Visual mode, `zg` adds the selected text (including spaces).
+
+### Marking Bad Words
+
+```vim
+zw    " Mark word as wrong (bad)
+zW    " Mark word as wrong in internal list
+```
+
+### Undoing Word Changes
+
+```vim
+zug   " Undo zg or zw
+zuG   " Undo zG or zW
+```
+
+### Using Commands
+
+```vim
+:spellgood word      " Add as good word
+:spellgood! word     " Add to internal list
+:spellwrong word     " Mark as bad word
+:spellrare word      " Mark as rare word
+:spellundo word      " Undo word addition
+```
+
+## Getting Spelling Suggestions
+
+### Interactive Suggestions
+
+```vim
+z=    " Show spelling suggestions for word under cursor
+```
+
+This displays a numbered list of suggestions:
+
+```
+1 "example"
+2 "sample"
+3 "exemplar"
+Type number and <Enter> or click with mouse (empty cancels):
+```
+
+### Using a Suggestion
+
+```vim
+1z=   " Use first suggestion without prompting
+2z=   " Use second suggestion
+```
+
+### In Insert Mode
+
+```vim
+CTRL-X s   " Find spelling suggestions (completion)
+CTRL-N     " Next suggestion
+CTRL-P     " Previous suggestion
+```
+
+## Repeat Replacements
+
+Replace all occurrences of a misspelled word:
+
+```vim
+z=               " Choose replacement for first occurrence
+:spellrepall     " Replace all occurrences in window
+```
+
+## Language Regions
+
+### Common English Variants
+
+```vim
+:set spelllang=en        " All English regions
+:set spelllang=en_us     " US English
+:set spelllang=en_gb     " British English
+:set spelllang=en_ca     " Canadian English
+:set spelllang=en_au     " Australian English
+```
+
+### Multiple Languages
+
+```vim
+:set spelllang=en_us,es  " English and Spanish
+```
+
+### German Variants
+
+```vim
+:set spelllang=de        " All German
+:set spelllang=de_de     " Old and new spelling
+:set spelllang=de_19     " Old spelling
+:set spelllang=de_20     " New spelling
+:set spelllang=de_at     " Austria
+:set spelllang=de_ch     " Switzerland
+```
+
+## Spell Files
+
+Vim searches for spell files in the "spell" subdirectory of `runtimepath`:
+
+- Format: `LL.EEE.spl`
+- `LL` = language name (e.g., "en")
+- `EEE` = encoding (e.g., "utf-8")
+
+Example: `en.utf-8.spl`
+
+### Custom Word Lists
+
+The `spellfile` option specifies custom word lists:
+
+```vim
+:set spellfile=~/.vim/spell/en.utf-8.add
+```
+
+Manually edit and rebuild:
+
+```vim
+:edit ~/.vim/spell/en.utf-8.add
+" Add words, one per line
+:mkspell! %
+```
+
+## Creating Spell Files
+
+Generate a Vim spell file from word lists:
+
+```vim
+:mkspell /tmp/nl nl_NL.words
+```
+
+From Myspell/Hunspell files:
+
+```vim
+:mkspell ~/.vim/spell/en /tmp/en_US
+```
+
+Combine multiple regions:
+
+```vim
+:mkspell ~/.vim/spell/en /tmp/en_US /tmp/en_CA /tmp/en_AU
+```
+
+## Spell Options
+
+### spellcapcheck
+
+Check for capitalization at sentence start:
+
+```vim
+:set spellcapcheck=[.?!]\\_[\])'\"\	\ ]\\+
+```
+
+### spelloptions
+
+Additional spelling features:
+
+```vim
+:set spelloptions=camel     " Check CamelCase words separately
+```
+
+### spellsuggest
+
+Control suggestion generation:
+
+```vim
+:set spellsuggest=best       " Best suggestions
+:set spellsuggest=fast       " Faster, fewer suggestions  
+:set spellsuggest=double     " Use double scoring
+:set spellsuggest=best,10    " Limit to 10 suggestions
+```
+
+## Syntax-Aware Spelling
+
+Control where spell checking applies in syntax-highlighted files:
+
+```vim
+" Check spelling in comments only
+syn region Comment contains=@Spell
+
+" Don't check spelling in strings
+syn region String contains=@NoSpell
+```
+
+## Practical Examples
+
+### Per-Filetype Spelling
+
+```vim
+autocmd FileType text,markdown,gitcommit setlocal spell spelllang=en_us
+autocmd FileType tex setlocal spell spelllang=en_us,en_gb
+autocmd FileType mail setlocal spell spelllang=en_us
+```
+
+### Technical Writing
+
+```vim
+" English with programming terms
+:set spelllang=en_us
+:set spellfile=~/.vim/spell/en.utf-8.add,~/.vim/spell/tech.utf-8.add
+```
+
+### Quick Toggle
+
+```vim
+" Toggle spell checking
+nnoremap <F5> :setlocal spell!<CR>
+
+" Cycle through languages
+function! CycleSpellLang()
+  if &spelllang =~ 'en_us'
+    set spelllang=es
+  elseif &spelllang =~ 'es'
+    set spelllang=de
+  else
+    set spelllang=en_us
+  endif
+  echo 'spelllang:' &spelllang
+endfunction
+nnoremap <F6> :call CycleSpellLang()<CR>
+```
+
+## Viewing Spell Information
+
+```vim
+:spellinfo        " Show information about loaded spell files
+:spelldump        " List all valid words
+:spelldump!       " Include word count
+```
+
+## Tips
+
+<Tip>
+  Use `]s` and `z=` together for quick spell checking: jump to error, get suggestions.
+</Tip>
+
+<Tip>
+  For programming, enable spell checking only in comments by configuring syntax rules.
+</Tip>
+
+<Warning>
+  Spell checking uses significant memory. Loading multiple language files increases memory usage.
+</Warning>

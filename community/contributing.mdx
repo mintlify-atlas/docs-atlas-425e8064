@@ -1,0 +1,215 @@
+---
+title: Contributing to Vim
+description: Learn how to contribute patches, report issues, and participate in Vim development
+---
+
+Patches are welcome in whatever form. Discussions about patches happen on the vim-dev mailing list. If you create a pull request on GitHub it will be forwarded to the vim-dev mailing list.
+
+## Getting Started
+
+Contributions will be distributed with Vim under the Vim license. Providing a change to be included implies that you agree with this and your contribution does not cause us trouble with trademarks or patents. There is no CLA to sign.
+
+### Where to Contribute
+
+- **GitHub Pull Requests**: Create a PR on the [Vim repository](https://github.com/vim/vim)
+- **vim-dev Mailing List**: Send patches directly (initial posting subject to moderation)
+- **Issues**: Report bugs and problems on [GitHub Issues](https://github.com/vim/vim/issues)
+
+<Info>
+A pull request has the advantage that it will trigger the Continuous Integration tests, you will be warned of problems (you can ignore the coverage warning, it's noisy).
+</Info>
+
+## Contribution Workflow
+
+<Steps>
+  <Step title="Get the code">
+    Clone the Vim repository from GitHub. This makes it easier to keep your changed version in sync with the main code base.
+    
+    ```bash
+    git clone https://github.com/vim/vim.git
+    cd vim
+    ```
+  </Step>
+  
+  <Step title="Adjust the documentation">
+    Update the documentation first. This gives you an impression of how your changes affect the user.
+    
+    - Check if your change affects any items listed in `runtime/doc/todo.txt`
+    - Follow the documentation style guide in `runtime/doc/helphelp.txt`
+  </Step>
+  
+  <Step title="Make source code changes">
+    Implement your changes following the [coding style guidelines](/community/development#coding-style).
+    
+    - Use the distributed `.editorconfig` file with the editorconfig plugin
+    - Follow the C95 standard with select C99 features
+    - Maintain consistency with surrounding code
+  </Step>
+  
+  <Step title="Add tests">
+    Please always add a test, if possible. All new functionality should be tested and bug fixes should be tested for regressions: the test should fail before the fix and pass after the fix.
+    
+    ```bash
+    # Tests are located in src/testdir
+    cd src/testdir
+    # Look at recent tests for examples
+    ```
+    
+    See `:help testing` for more information.
+  </Step>
+  
+  <Step title="Create a patch">
+    Make a patch with git diff and create a pull request on GitHub.
+    
+    ```bash
+    git add .
+    git commit -s -m "Brief description of changes"
+    git push origin your-branch-name
+    ```
+  </Step>
+  
+  <Step title="Submit for review">
+    Open a pull request with an explanation of the changes. Include:
+    
+    - A clear description of the problem and solution
+    - References to related issues
+    - Test results
+  </Step>
+</Steps>
+
+### Pull Request Guidelines
+
+A PR should ideally contain a single commit for a single logical change. However, you can include several commits if you want to group multiple logical, atomic changes in one PR.
+
+- Describe the reasoning for your changes in each commit message
+- In cases where each commit handles different logical changes, they will be applied as separate patches
+- Do not submit a single PR that addresses multiple unrelated issues
+
+## Signing-off Commits
+
+While not required, it's recommended to use **signed-off commits** to ensure transparency, accountability, and compliance with open-source best practices.
+
+Signed-off commits follow the [Developer Certificate of Origin (DCO)](https://en.wikipedia.org/wiki/Developer_Certificate_of_Origin), which confirms that contributors have the right to submit their changes under the project's license.
+
+```bash
+git commit -s
+```
+
+This adds a `Signed-off-by` line to commit messages, verifying that the contributor agrees to the project's licensing terms.
+
+<Note>
+When merging PRs into Vim, the maintainer usually adds missing `Signed-off-by` trailers for contributors who explicitly ACK a pull request.
+</Note>
+
+## Using AI
+
+When using AI for contributions, please disclose this. Any AI-generated code must follow the Vim code style.
+
+<Warning>
+Ensure that `test_codestyle.vim` does not report any failures. Check the CI output for any test failures.
+</Warning>
+
+Key requirements:
+- Follow the Vim code style
+- Properly test all changes
+- Do not submit a single PR addressing multiple unrelated issues
+
+## Reporting Issues
+
+We use GitHub issues, but that is not a requirement. Writing to the Vim mailing list is also fine.
+
+### Before Reporting
+
+<Tip>
+Please use GitHub issues only for actual issues. If you are not 100% sure that your problem is a Vim issue, first discuss this on the Vim user mailing list.
+</Tip>
+
+Try reproducing the problem without any of your plugins or settings:
+
+```bash
+vim --clean
+```
+
+### How to Report
+
+If you report an issue, please describe exactly how to reproduce it. For example, don't say "insert some text" but say what you did exactly:
+
+```vim
+ahere is some text<Esc>
+```
+
+Ideally, the steps you list can be used to write a test to verify the problem is fixed.
+
+Feel free to report even the smallest problem, also typos in the documentation. You can find known issues in the todo file: `:help todo`
+
+## Runtime Files
+
+### Syntax, Indent and Other Runtime Files
+
+The latest version of these files can be obtained from the repository. They are usually not updated with numbered patches.
+
+If you find a problem with one of these files or have a suggestion for improvement:
+
+1. First try to contact the maintainer directly (check the file header or `MAINTAINERS` file)
+2. If the maintainer does not respond, contact the vim-dev mailing list or open an issue
+
+### Contributing New Runtime Files
+
+If you want to contribute new runtime files for Vim or Neovim:
+
+<Steps>
+  <Step title="Create the files">
+    Develop your syntax, indent, or ftplugin files following existing patterns.
+  </Step>
+  
+  <Step title="Add tests">
+    Add a new filetype test in `src/testdir/test_filetype.vim` (keep it similar to other filetype tests).
+  </Step>
+  
+  <Step title="Document configuration">
+    All configuration switches should be documented. Check `runtime/doc/filetype.txt` and `runtime/doc/syntax.txt` for examples.
+  </Step>
+  
+  <Step title="Add maintainer info">
+    - Add yourself as Maintainer to the top of file (keep the header similar to other runtime files)
+    - Add yourself to the `MAINTAINERS` file
+  </Step>
+  
+  <Step title="Ensure compatibility">
+    Add a guard `if has('vim9script')` if you want to maintain Neovim compatibility but use Vim9 script.
+    
+    ```vim
+    if has('vim9script')
+        " use Vim9 script implementation
+        [...]
+    endif
+    ```
+  </Step>
+</Steps>
+
+## Translations
+
+Translating messages and runtime files is very much appreciated! These things can be translated:
+
+- **Messages in Vim**: See `src/po/README.txt` (also used for desktop icons)
+- **Menus**: See `runtime/lang/README.txt`
+- **Vim tutor**: See `runtime/tutor/README.txt`
+- **Manual pages**: See `runtime/doc/*.1` for examples
+- **Installer**: See `nsis/lang/README.txt`
+
+The help files can be translated and made available separately. See [vim.org/translations](https://www.vim.org/translations.php) for examples.
+
+## Getting Help
+
+If you have questions:
+
+- **Style guide questions**: Contact the [vim-dev mailing list](http://www.vim.org/maillist.php#vim-dev)
+- **General questions**: Use [Vi Stack Exchange](https://vi.stackexchange.com)
+- **User questions**: Use the [vim-use mailing list](http://www.vim.org/maillist.php#vim-use)
+- **Discussions**: Use the [GitHub Discussions](https://github.com/vim/vim/discussions) feature
+
+## Related Resources
+
+- [Development Setup](/community/development)
+- [Testing Guidelines](/community/testing)
+- [Documentation Style](/community/documentation)

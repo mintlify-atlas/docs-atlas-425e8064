@@ -1,0 +1,635 @@
+---
+title: Variables and Scopes
+description: Understanding variable declarations, types, and scoping in Vim script
+---
+
+Vim provides multiple types of variables with different scopes and lifetimes. This guide covers variable declarations, scoping rules, and best practices for both legacy and Vim9 script.
+
+## Variable Types
+
+### Basic Types
+
+#### Number
+
+32 or 64-bit signed integers (check with `v:numbersize`).
+
+```vim
+let count = 42
+let hex = 0x10        " 16 in decimal
+let octal = 0o177     " 127 in decimal (Vim9 / scriptversion-4)
+let binary = 0b1011   " 11 in decimal
+```
+
+#### Float
+
+Floating-point numbers.
+
+```vim
+let pi = 3.14159
+let scientific = 1.5e-3  " 0.0015
+```
+
+#### String
+
+NUL-terminated string of bytes.
+
+```vim
+let double_quoted = "hello\nworld"  " Backslash special
+let single_quoted = 'it''s fine'    " Single quote doubled
+```
+
+#### Boolean
+
+In Vim9 script, use `true` and `false`. In legacy script, use numbers (0 = false, non-zero = true) or `v:true`/`v:false`.
+
+```vim
+" Vim9 script
+var flag: bool = true
+
+" Legacy script
+let flag = v:true
+```
+
+### Collection Types
+
+#### List
+
+Ordered sequence of items.
+
+```vim
+let numbers = [1, 2, 3, 4, 5]
+let mixed = [1, 'two', 3.0, [4, 5]]
+let empty = []
+```
+
+**List Operations:**
+
+```vim
+" Access
+echo numbers[0]        " First item: 1
+echo numbers[-1]       " Last item: 5
+
+" Slice
+let subset = numbers[1:3]   " [2, 3, 4]
+let copy = numbers[:]       " Copy entire list
+
+" Modification
+call add(numbers, 6)        " Append
+call insert(numbers, 0)     " Prepend
+let removed = remove(numbers, 2)  " Remove by index
+```
+
+#### Tuple
+
+Immutable ordered sequence (Vim9 only).
+
+```vim
+var point: tuple<number, number> = (10, 20)
+var data: tuple<string, number, bool> = ('test', 42, true)
+
+" Access
+echo point[0]  " 10
+
+" Cannot modify
+point[0] = 15  " Error!
+```
+
+#### Dictionary
+
+Associative array with string keys.
+
+```vim
+let person = {'name': 'Alice', 'age': 30}
+let config = #{debug: true, level: 5}  " Literal dict syntax
+```
+
+**Dictionary Operations:**
+
+```vim
+" Access
+echo person['name']     " Alice
+echo person.name        " Alice (dot notation)
+
+" Modification
+let person.email = 'alice@example.com'
+let person['phone'] = '555-1234'
+
+" Removal
+unlet person.age
+call remove(person, 'email')
+```
+
+#### Blob
+
+Binary data.
+
+```vim
+let data = 0zFFFF00
+let empty = 0z
+
+" Access bytes
+echo data[0]  " 255 (0xFF)
+```
+
+### Special Types
+
+#### Funcref
+
+Reference to a function.
+
+```vim
+" Legacy script
+let MyFunc = function('strlen')
+echo MyFunc('hello')  " 5
+
+" Vim9 script
+var MyFunc = strlen
+echo MyFunc('hello')  " 5
+```
+
+#### Special Values
+
+```vim
+v:true          " Boolean true
+v:false         " Boolean false
+v:null          " Null value
+v:none          " No value (different from null)
+
+" Vim9 script
+true            " Boolean true
+false           " Boolean false
+null            " Null value
+
+" Null types
+null_list
+null_dict
+null_string
+null_function
+null_blob
+null_channel
+null_job
+```
+
+## Variable Scopes
+
+### Scope Prefixes
+
+Vim uses prefixes to indicate variable scope:
+
+| Prefix | Scope | Description |
+|--------|-------|-------------|
+| `g:` | Global | Accessible everywhere |
+| `s:` | Script | Local to script file |
+| `l:` | Local | Function-local |
+| `a:` | Argument | Function argument |
+| `v:` | Vim | Predefined Vim variables |
+| `b:` | Buffer | Buffer-local |
+| `w:` | Window | Window-local |
+| `t:` | Tab | Tab-local |
+| `$` | Environment | Environment variable |
+
+### Global Variables
+
+Accessible from anywhere.
+
+```vim
+" Legacy script
+let g:my_plugin_enabled = 1
+
+" Vim9 script - must use g: prefix
+vim9script
+g:my_plugin_enabled = 1
+```
+
+### Script-Local Variables
+
+Local to the current script file.
+
+```vim
+" Legacy script
+let s:counter = 0
+
+function! s:IncrementCounter()
+  let s:counter += 1
+endfunction
+
+" Vim9 script - no prefix needed
+vim9script
+var counter = 0
+
+def IncrementCounter()
+  counter += 1
+enddef
+```
+
+### Function-Local Variables
+
+```vim
+" Legacy script
+function! MyFunc()
+  let l:temp = 'local'    " Explicit local
+  let temp = 'local'      " Implicit local
+  echo temp
+endfunction
+
+" Vim9 script
+def MyFunc()
+  var temp = 'local'      " Must use var
+  echo temp
+enddef
+```
+
+### Function Arguments
+
+```vim
+" Legacy script
+function! Greet(name)
+  return 'Hello, ' . a:name
+endfunction
+
+" Vim9 script - no a: prefix
+def Greet(name: string): string
+  return 'Hello, ' .. name
+enddef
+```
+
+### Buffer/Window/Tab Variables
+
+```vim
+" Buffer-local
+let b:file_type = 'custom'
+
+" Window-local
+let w:statusline_format = 'simple'
+
+" Tab-local
+let t:tab_title = 'Main'
+```
+
+### Vim Variables
+
+Predefined system variables (read-only).
+
+```vim
+echo v:version         " Vim version
+echo v:progname        " Program name
+echo v:count          " Last count
+echo v:exception      " Current exception
+echo v:numbersize     " Size of numbers (32 or 64)
+```
+
+### Environment Variables
+
+```vim
+" Read
+echo $HOME
+echo $PATH
+
+" Write
+let $MY_VAR = 'value'
+
+" Use getenv() for better handling
+let home = getenv('HOME')
+```
+
+## Variable Declaration
+
+### Legacy Script
+
+```vim
+" Declaration and assignment
+let myvar = 42
+let mylist = [1, 2, 3]
+
+" Multiple assignment (unpacking)
+let [first, second] = mylist
+let [a, b; rest] = [1, 2, 3, 4, 5]
+" a = 1, b = 2, rest = [3, 4, 5]
+
+" Increment/decrement
+let count += 1
+let count -= 1
+```
+
+### Vim9 Script
+
+```vim
+vim9script
+
+" Declaration with var
+var myvar = 42
+var mylist = [1, 2, 3]
+
+" Type annotations
+var count: number = 0
+var name: string = 'test'
+var items: list<number> = []
+var config: dict<any> = {}
+
+" Multiple assignment
+var [first, second] = mylist
+var [a, b; rest] = [1, 2, 3, 4, 5]
+
+" Increment/decrement
+count += 1
+count -= 1
+++count
+--count
+```
+
+## Constants
+
+### Using `final` (Vim9)
+
+Constant reference, mutable contents.
+
+```vim
+vim9script
+
+final myList = [1, 2, 3]
+myList = [4, 5]        " Error: Cannot reassign
+myList[0] = 10         " OK: Can modify contents
+myList->add(4)         " OK: Can modify contents
+```
+
+### Using `const` (Vim9)
+
+Fully immutable.
+
+```vim
+vim9script
+
+const MAX_SIZE = 100
+MAX_SIZE = 200         " Error: Cannot reassign
+
+const COLORS = ['red', 'green', 'blue']
+COLORS = ['yellow']    " Error: Cannot reassign
+COLORS[0] = 'yellow'   " Error: Cannot modify
+COLORS->add('yellow')  " Error: Cannot modify
+```
+
+## Variable Initialization
+
+### Default Values
+
+Uninitialized variables with types get default values:
+
+```vim
+vim9script
+
+var num: number        " 0
+var str: string        " ''
+var flag: bool         " false
+var mylist: list<any>  " []
+var mydict: dict<any>  " {}
+```
+
+### Null vs. Empty
+
+```vim
+" Empty list (can add items)
+var mylist: list<number>
+mylist->add(1)  " OK
+
+" Null list (cannot use until assigned)
+var mylist = null_list
+mylist->add(1)  " Error: Cannot add to null list
+```
+
+## Type Checking
+
+### Runtime Type Checking
+
+```vim
+" Get type as number
+let t = type(myvar)
+if t == type(0)
+  echo 'Number'
+elseif t == type('')
+  echo 'String'
+elseif t == type([])
+  echo 'List'
+elseif t == type({})
+  echo 'Dictionary'
+endif
+
+" Type constants
+echo type(0)    " v:t_number = 0
+echo type('')   " v:t_string = 1
+echo type([])   " v:t_list = 3
+echo type({})   " v:t_dict = 4
+```
+
+### Vim9 Type Information
+
+```vim
+vim9script
+
+" Get type as string
+echo typename(42)              " "number"
+echo typename([1, 2])          " "list<number>"
+echo typename({a: 1, b: 2})    " "dict<number>"
+echo typename((x) => x * 2)    " "func(any): any"
+```
+
+## Variable Patterns
+
+### Conditional Assignment
+
+```vim
+" Legacy script
+let value = exists('g:myvar') ? g:myvar : 'default'
+
+" Vim9 script - falsy operator
+var value = GetValue() ?? 'default'
+var count = dict.count ?? 0
+```
+
+### Swapping Values
+
+```vim
+let [a, b] = [b, a]
+```
+
+### Destructuring
+
+```vim
+" List destructuring
+let [x, y, z] = GetCoordinates()
+
+" Dict destructuring (via items())
+for [key, value] in items(mydict)
+  echo key .. ': ' .. value
+endfor
+```
+
+### Accumulation
+
+```vim
+" Sum list
+let total = 0
+for item in numbers
+  let total += item
+endfor
+
+" Or using reduce
+let total = reduce(numbers, {acc, val -> acc + val}, 0)
+```
+
+## Variable Lifetime
+
+### Script Variables
+
+Exist for the lifetime of Vim or until script is reloaded.
+
+```vim
+vim9script
+
+var counter = 0  " Persists across function calls
+
+def Increment(): number
+  counter += 1
+  return counter
+enddef
+```
+
+### Function Variables
+
+Created when function is called, destroyed when function returns.
+
+```vim
+def MyFunc()
+  var temp = 'value'  " Created
+  # use temp
+enddef  " temp destroyed
+```
+
+### Closures
+
+Inner functions can access outer function variables:
+
+```vim
+def MakeCounter(): func(): number
+  var count = 0
+  return () => {
+    count += 1
+    return count
+  }
+enddef
+
+var counter = MakeCounter()
+echo counter()  " 1
+echo counter()  " 2
+echo counter()  " 3
+```
+
+## Best Practices
+
+### Use Explicit Types (Vim9)
+
+```vim
+" Good
+var count: number = 0
+var items: list<string> = []
+
+" Less clear (inferred)
+var count = 0
+var items = []
+```
+
+### Use Appropriate Scope
+
+```vim
+" Good - script-local
+vim9script
+var privateData = {}
+
+" Avoid - unnecessary global
+g:private_data = {}
+```
+
+### Use Constants When Possible
+
+```vim
+" Good
+const MAX_RETRIES = 3
+const DEFAULT_CONFIG = {timeout: 1000}
+
+" Avoid - mutable when it shouldn't be
+var max_retries = 3
+```
+
+### Initialize Before Use
+
+```vim
+" Good
+var items: list<string> = []
+for line in lines
+  items->add(ProcessLine(line))
+endfor
+
+" Avoid
+var items: list<string>
+if condition
+  items = []  " Might not be initialized
+endif
+```
+
+### Use Null Checks
+
+```vim
+def GetConfig(key: string): any
+  return get(config, key, null)
+enddef
+
+var value = GetConfig('setting')
+if value != null
+  UseValue(value)
+else
+  echo 'Setting not found'
+endif
+```
+
+## Common Pitfalls
+
+### Type Mismatch
+
+```vim
+" Vim9 script
+var count: number = '42'   " Error: type mismatch
+var count: number = str2nr('42')  " OK
+```
+
+### Shadowing Variables
+
+```vim
+vim9script
+var name = 'outer'
+
+def MyFunc()
+  var name = 'inner'  " Error: variable shadows outer scope
+enddef
+```
+
+### Modifying Constants
+
+```vim
+const CONFIG = {debug: false}
+CONFIG.debug = true  " Error: cannot modify
+```
+
+### Uninitialized Variables
+
+```vim
+var result: string
+if condition
+  result = 'yes'
+endif
+echo result  " Error if condition is false
+```
+
+## See Also
+
+- [Built-in Functions](/reference/builtin-functions) - Functions for working with variables
+- [Vim9 Functions](/reference/vim9-functions) - Vim9-specific features
+- [Channels and Jobs](/reference/channels-jobs) - Variables in async contexts

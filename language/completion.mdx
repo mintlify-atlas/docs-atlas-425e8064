@@ -1,0 +1,385 @@
+---
+title: Insert mode completion
+description: Use Vim's powerful completion system for faster coding
+---
+
+Vim provides extensive insert mode completion for words, lines, file names, tags, and language-specific constructs.
+
+## Quick start
+
+In insert mode, trigger completion with `CTRL-N`:
+
+```vim
+" Type partial word
+func<CTRL-N>
+```
+
+Vim searches:
+1. Current buffer
+2. Other buffers
+3. Tags
+4. Included files
+
+## Completion types
+
+All completion is triggered in insert mode with `CTRL-X` followed by a key:
+
+| Keys | Completion type | Source |
+|------|----------------|--------|
+| `CTRL-N` | Keywords | Forward in buffer |
+| `CTRL-P` | Keywords | Backward in buffer |
+| `CTRL-X CTRL-L` | Whole lines | All buffers |
+| `CTRL-X CTRL-N` | Keywords | Current file |
+| `CTRL-X CTRL-K` | Dictionary | `'dictionary'` option |
+| `CTRL-X CTRL-T` | Thesaurus | `'thesaurus'` option |
+| `CTRL-X CTRL-I` | Keywords | Current + included files |
+| `CTRL-X CTRL-]` | Tags | Tag files |
+| `CTRL-X CTRL-F` | File names | File system |
+| `CTRL-X CTRL-D` | Definitions | Current + included files |
+| `CTRL-X CTRL-V` | Vim commands | Ex commands |
+| `CTRL-X CTRL-U` | User defined | `'completefunc'` |
+| `CTRL-X CTRL-O` | Omni | `'omnifunc'` |
+| `CTRL-X s` | Spelling | Spelling suggestions |
+
+## Basic completion
+
+### Keyword completion
+
+```vim
+" Forward search
+CTRL-N
+
+" Backward search
+CTRL-P
+```
+
+Navigate matches:
+- `CTRL-N` - Next match
+- `CTRL-P` - Previous match
+- `CTRL-E` - Cancel, restore original
+- `CTRL-Y` - Accept current match
+
+### Line completion
+
+Complete entire lines:
+
+```vim
+CTRL-X CTRL-L
+```
+
+Useful for:
+- Duplicating similar lines
+- Import statements
+- Configuration blocks
+
+## File name completion
+
+Complete file and directory names:
+
+```vim
+CTRL-X CTRL-F
+```
+
+Example:
+```vim
+" Type: /etc/pass
+" Press: CTRL-X CTRL-F
+" Result: /etc/passwd
+```
+
+Works with:
+- Absolute paths (`/etc/`)
+- Relative paths (`./src/`)
+- Home directory (`~/`)
+
+## Tag completion
+
+Complete from ctags:
+
+```vim
+CTRL-X CTRL-]
+```
+
+<Note>
+Requires tags file. Generate with: `ctags -R .`
+</Note>
+
+## Dictionary completion
+
+Use custom word lists:
+
+```vim
+" Set dictionary
+set dictionary+=/usr/share/dict/words
+
+" In insert mode
+CTRL-X CTRL-K
+```
+
+Add custom dictionaries:
+
+```vim
+set dictionary+=~/.vim/dict/technical.txt
+set dictionary+=~/.vim/dict/abbreviations.txt
+```
+
+## Thesaurus completion
+
+Suggest synonyms:
+
+```vim
+" Set thesaurus
+set thesaurus+=~/.vim/thesaurus/english.txt
+
+" In insert mode
+CTRL-X CTRL-T
+```
+
+## Omni completion
+
+Language-aware completion:
+
+```vim
+CTRL-X CTRL-O
+```
+
+### Enable for languages
+
+Vim includes omni-completion for many languages. Enable in ftplugin:
+
+```vim
+" ~/.vim/ftplugin/python.vim
+setlocal omnifunc=pythoncomplete#Complete
+
+" ~/.vim/ftplugin/javascript.vim
+setlocal omnifunc=javascriptcomplete#CompleteJS
+
+" ~/.vim/ftplugin/html.vim
+setlocal omnifunc=htmlcomplete#CompleteTags
+
+" ~/.vim/ftplugin/css.vim
+setlocal omnifunc=csscomplete#CompleteCSS
+```
+
+### Built-in omni functions
+
+- `pythoncomplete#Complete` - Python
+- `javascriptcomplete#CompleteJS` - JavaScript
+- `htmlcomplete#CompleteTags` - HTML
+- `csscomplete#CompleteCSS` - CSS
+- `xmlcomplete#CompleteTags` - XML
+- `rubycomplete#Complete` - Ruby
+- `phpcomplete#CompletePHP` - PHP
+
+## Popup menu customization
+
+Configure completion menu appearance:
+
+```vim
+" Show menu even for single match
+set completeopt=menuone
+
+" Don't auto-insert first match
+set completeopt+=noinsert
+
+" Don't auto-select first match
+set completeopt+=noselect
+
+" Show preview window
+set completeopt+=preview
+
+" Show extra info in popup
+set completeopt+=popup
+
+" Recommended settings
+set completeopt=menu,menuone,noselect
+```
+
+## Completion sources
+
+Control where Vim searches:
+
+```vim
+" Default sources
+set complete=.,w,b,u,t,i
+
+" Legend:
+" . = current buffer
+" w = buffers in other windows
+" b = other loaded buffers
+" u = unloaded buffers
+" t = tags
+" i = included files
+```
+
+Customize for performance:
+
+```vim
+" Fast: only current buffer and tags
+set complete=.,t
+
+" Thorough: all sources
+set complete=.,w,b,u,t,i,kspell
+```
+
+## Advanced configuration
+
+### Completion delay
+
+```vim
+" Trigger completion after typing (Vim 9+)
+set completepopup=align:menu,border:off,highlight:Pmenu
+```
+
+### Minimum pattern length
+
+```vim
+" Require 3 characters before completing
+set completeminlength=3
+```
+
+### Case sensitivity
+
+```vim
+" Smart case matching
+set infercase
+```
+
+## Custom completion functions
+
+### User-defined completion
+
+```vim
+" Set completion function
+set completefunc=MyComplete
+
+function! MyComplete(findstart, base)
+  if a:findstart
+    " Find start of word
+    let line = getline('.')
+    let start = col('.') - 1
+    while start > 0 && line[start - 1] =~ '\a'
+      let start -= 1
+    endwhile
+    return start
+  else
+    " Return list of matches
+    let matches = []
+    for word in ['alpha', 'beta', 'gamma', 'delta']
+      if word =~ '^' . a:base
+        call add(matches, word)
+      endif
+    endfor
+    return matches
+  endif
+endfunction
+```
+
+### Omni function
+
+```vim
+" Custom omni completion
+function! MyOmniComplete(findstart, base)
+  if a:findstart
+    return col('.') - 1
+  else
+    return {
+      \ 'words': [
+      \   {'word': 'function', 'menu': 'keyword', 'info': 'Define function'},
+      \   {'word': 'class', 'menu': 'keyword', 'info': 'Define class'},
+      \ ]
+      \ }
+  endif
+endfunction
+
+setlocal omnifunc=MyOmniComplete
+```
+
+## Integration with plugins
+
+Popular completion plugins:
+- **[coc.nvim](https://github.com/neoclide/coc.nvim)** - LSP client
+- **[YouCompleteMe](https://github.com/ycm-core/YouCompleteMe)** - Semantic completion
+- **[deoplete.nvim](https://github.com/Shougo/deoplete.nvim)** - Async completion
+- **[asyncomplete.vim](https://github.com/prabirshrestha/asyncomplete.vim)** - Async completion
+
+## Practical examples
+
+### Complete imports
+
+```python
+# Type: from os import p
+# Press: CTRL-X CTRL-O
+# Completes: path
+```
+
+### Complete HTML tags
+
+```html
+<!-- Type: <di -->
+<!-- Press: CTRL-X CTRL-O -->
+<!-- Completes: <div> -->
+```
+
+### Complete file paths
+
+```vim
+" Type: source ~/.vim/plug
+" Press: CTRL-X CTRL-F
+" Completes: source ~/.vim/plugin/
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="No completions shown">
+    Check settings:
+    ```vim
+    :set complete?
+    :set completeopt?
+    ```
+    
+    Verify completion sources exist (tags, dictionary, etc.).
+  </Accordion>
+
+  <Accordion title="Slow completion">
+    Reduce sources:
+    ```vim
+    set complete=.,t
+    ```
+    
+    Limit included file depth:
+    ```vim
+    set complete-=i
+    ```
+  </Accordion>
+
+  <Accordion title="Omni completion not working">
+    Check if omnifunc is set:
+    ```vim
+    :set omnifunc?
+    ```
+    
+    Enable in ftplugin or use LSP plugin.
+  </Accordion>
+
+  <Accordion title="Wrong completions">
+    Check completion context:
+    ```vim
+    :verbose set completefunc? omnifunc?
+    ```
+    
+    May need language-specific configuration.
+  </Accordion>
+</AccordionGroup>
+
+## See also
+
+<CardGroup cols={2}>
+  <Card title="Insert commands" href="/reference/insert-commands" icon="keyboard">
+    Insert mode reference
+  </Card>
+  <Card title="Tags" href="/tools/ctags" icon="tag">
+    Tag navigation
+  </Card>
+</CardGroup>

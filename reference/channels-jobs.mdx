@@ -1,0 +1,645 @@
+---
+title: Channels and Jobs API
+description: Asynchronous communication and job control in Vim
+---
+
+Vim's channels and jobs API enables asynchronous communication with external processes, allowing Vim to interact with servers, language servers, linters, formatters, and other tools without blocking the UI.
+
+## Overview
+
+### What are Channels?
+
+Channels provide bidirectional communication between Vim and external processes using:
+- **Sockets** - TCP/IP or Unix domain sockets
+- **Pipes** - stdin/stdout/stderr
+
+### What are Jobs?
+
+Jobs are background processes started by Vim that can communicate via channels.
+
+### Common Use Cases
+
+1. **Language Servers** - LSP communication
+2. **Linters** - Asynchronous syntax checking
+3. **Formatters** - Code formatting in background
+4. **REPLs** - Interactive programming
+5. **Build Systems** - Background compilation
+6. **Daemons** - Long-running services
+
+## Opening a Channel
+
+### Socket Connection
+
+```vim
+" Connect to a server
+let channel = ch_open('localhost:8765')
+
+if ch_status(channel) == 'open'
+  echo 'Connected!'
+else
+  echo 'Connection failed'
+endif
+```
+
+### Unix Domain Socket
+
+```vim
+let channel = ch_open('unix:/tmp/my-socket')
+```
+
+### Channel Options
+
+```vim
+let channel = ch_open('localhost:8765', {
+  \ 'mode': 'json',
+  \ 'callback': 'HandleMessage',
+  \ 'waittime': 1000,
+  \ 'timeout': 2000
+  \ })
+```
+
+#### Available Options
+
+| Option | Description | Default |
+|--------|-------------|--------|
+| `mode` | Communication mode: `json`, `js`, `nl`, `raw`, `lsp` | `json` |
+| `callback` | Function called for received messages | None |
+| `close_cb` | Function called when channel closes | None |
+| `waittime` | Time to wait for connection (ms) | 0 |
+| `timeout` | Time to wait for response (ms) | 2000 |
+| `drop` | When to drop messages: `auto`, `never` | `auto` |
+
+## Channel Modes
+
+### JSON Mode
+
+Messages are JSON-encoded with automatic numbering:
+
+```vim
+let channel = ch_open('localhost:8765', {'mode': 'json'})
+
+" Send expression
+let response = ch_evalexpr(channel, {'command': 'hello'})
+" Sends: [1, {"command": "hello"}]
+" Receives: [1, {"result": "hi"}]
+```
+
+### JS Mode
+
+JavaScript-style JSON encoding (more efficient):
+
+```vim
+let channel = ch_open('localhost:8765', {'mode': 'js'})
+call ch_sendexpr(channel, {'type': 'request', 'data': 'test'})
+```
+
+### NL Mode
+
+Messages terminated by newline:
+
+```vim
+let channel = ch_open('localhost:8765', {'mode': 'nl'})
+call ch_sendraw(channel, "command\n")
+let response = ch_read(channel)
+```
+
+### RAW Mode
+
+No message framing, raw byte stream:
+
+```vim
+let channel = ch_open('localhost:8765', {'mode': 'raw'})
+call ch_sendraw(channel, "raw data")
+let data = ch_readraw(channel)
+```
+
+### LSP Mode
+
+Language Server Protocol encoding:
+
+```vim
+let channel = ch_open('localhost:9257', {'mode': 'lsp'})
+
+let request = {
+  \ 'method': 'textDocument/hover',
+  \ 'params': {'textDocument': {'uri': 'file:///path/to/file.py'}}
+  \ }
+
+let response = ch_evalexpr(channel, request)
+```
+
+## Sending and Receiving
+
+### Synchronous Communication
+
+#### `ch_evalexpr()` - Send and Wait
+
+```vim
+" Send request and wait for response
+let response = ch_evalexpr(channel, {'request': 'getData'})
+echo response
+```
+
+#### `ch_evalraw()` - Raw Send and Wait
+
+```vim
+let response = ch_evalraw(channel, "GET /data\n")
+```
+
+### Asynchronous Communication
+
+#### `ch_sendexpr()` - Send Without Waiting
+
+```vim
+" Send and handle response with callback
+call ch_sendexpr(channel, {'request': 'getData'}, {
+  \ 'callback': 'HandleResponse'
+  \ })
+
+function! HandleResponse(channel, msg)
+  echo 'Got: ' . string(a:msg)
+endfunction
+```
+
+#### `ch_sendraw()` - Send Raw Data
+
+```vim
+call ch_sendraw(channel, "command\n", {
+  \ 'callback': 'HandleRaw'
+  \ })
+
+function! HandleRaw(channel, msg)
+  echo 'Received: ' . a:msg
+endfunction
+```
+
+### Reading from Channel
+
+#### `ch_read()` - Read One Message
+
+```vim
+" Wait up to default timeout
+let msg = ch_read(channel)
+
+" Wait 500ms
+let msg = ch_read(channel, {'timeout': 500})
+
+" Non-blocking read
+let msg = ch_read(channel, {'timeout': 0})
+```
+
+#### `ch_readraw()` - Read Raw Data
+
+```vim
+" Read from stdout
+let data = ch_readraw(channel)
+
+" Read from stderr
+let errors = ch_readraw(channel, {'part': 'err'})
+```
+
+#### `ch_canread()` - Check for Data
+
+```vim
+if ch_canread(channel)
+  let msg = ch_read(channel, {'timeout': 0})
+endif
+```
+
+## Starting Jobs
+
+### Basic Job
+
+```vim
+" Start job and get output
+let job = job_start('ls -la')
+```
+
+### Job with Channel
+
+```vim
+let job = job_start(['python', 'server.py'], {
+  \ 'out_cb': 'HandleOutput',
+  \ 'err_cb': 'HandleError',
+  \ 'exit_cb': 'HandleExit'
+  \ })
+
+function! HandleOutput(channel, msg)
+  echo 'Output: ' . a:msg
+endfunction
+
+function! HandleError(channel, msg)
+  echohl ErrorMsg
+  echo 'Error: ' . a:msg
+  echohl None
+endfunction
+
+function! HandleExit(job, status)
+  echo 'Job exited with status: ' . a:status
+endfunction
+```
+
+### Job Options
+
+```vim
+let job = job_start(command, {
+  \ 'mode': 'nl',
+  \ 'callback': 'HandleAny',
+  \ 'out_cb': 'HandleOut',
+  \ 'err_cb': 'HandleErr',
+  \ 'exit_cb': 'HandleExit',
+  \ 'close_cb': 'HandleClose',
+  \ 'timeout': 2000,
+  \ 'out_timeout': 100,
+  \ 'err_timeout': 100,
+  \ 'stoponexit': 'term',
+  \ 'cwd': '/path/to/dir',
+  \ 'env': {'VAR': 'value'}
+  \ })
+```
+
+#### Option Reference
+
+| Option | Description |
+|--------|-------------|
+| `mode` | Channel mode: `nl`, `raw`, `json`, `js`, `lsp` |
+| `callback` | Handler for any channel message |
+| `out_cb` | Handler for stdout |
+| `err_cb` | Handler for stderr |
+| `exit_cb` | Handler when job exits |
+| `close_cb` | Handler when channel closes |
+| `timeout` | Default timeout (ms) |
+| `stoponexit` | Signal to send on exit: `term`, `hup`, `quit`, `int`, `kill` |
+| `cwd` | Working directory |
+| `env` | Environment variables |
+
+## Job Control
+
+### Check Job Status
+
+```vim
+let status = job_status(job)
+" Returns: 'run', 'fail', or 'dead'
+
+if status == 'run'
+  echo 'Job is running'
+endif
+```
+
+### Stop Job
+
+```vim
+" Graceful termination (SIGTERM on Unix)
+call job_stop(job)
+
+" Immediate termination (SIGKILL on Unix)
+call job_stop(job, 'kill')
+
+" Send signal
+call job_stop(job, 'int')   " SIGINT
+call job_stop(job, 'hup')   " SIGHUP
+call job_stop(job, 'quit')  " SIGQUIT
+```
+
+### Get Job Info
+
+```vim
+let info = job_info(job)
+" Returns dict with: status, channel, cmd, process, exitval, etc.
+
+echo info.status
+echo info.cmd
+echo info.exitval
+```
+
+### Get Channel from Job
+
+```vim
+let channel = job_getchannel(job)
+
+if ch_status(channel) == 'open'
+  call ch_sendexpr(channel, {'command': 'test'})
+endif
+```
+
+## I/O Redirection
+
+### Write to File
+
+```vim
+" Redirect stdout to file
+let job = job_start('build.sh', {
+  \ 'out_io': 'file',
+  \ 'out_name': 'build.log'
+  \ })
+
+" Redirect stderr to file
+let job = job_start('build.sh', {
+  \ 'err_io': 'file',
+  \ 'err_name': 'build.err'
+  \ })
+```
+
+### Write to Buffer
+
+```vim
+" Create buffer and write output there
+let job = job_start('tail -f /var/log/app.log', {
+  \ 'out_io': 'buffer',
+  \ 'out_name': 'logview'
+  \ })
+
+" View buffer
+sbuf logview
+```
+
+### Read from Buffer
+
+```vim
+" Send buffer contents to job stdin
+let job = job_start('python -', {
+  \ 'in_io': 'buffer',
+  \ 'in_name': 'script.py',
+  \ 'in_top': 1,
+  \ 'in_bot': '$'
+  \ })
+```
+
+### Null I/O
+
+```vim
+" Start detached job with no I/O
+let job = job_start('daemon.sh', {
+  \ 'in_io': 'null',
+  \ 'out_io': 'null',
+  \ 'err_io': 'null'
+  \ })
+```
+
+## Channel Management
+
+### Close Channel
+
+```vim
+" Close entire channel
+call ch_close(channel)
+
+" Close only input
+call ch_close_in(channel)
+```
+
+### Change Channel Options
+
+```vim
+" Change timeout
+call ch_setoptions(channel, {'timeout': 5000})
+
+" Change callback
+call ch_setoptions(channel, {'callback': 'NewHandler'})
+```
+
+### Get Channel Info
+
+```vim
+let info = ch_info(channel)
+echo info.status
+echo info.sock_mode
+echo info.hostname
+echo info.port
+```
+
+### Check Channel Status
+
+```vim
+let status = ch_status(channel)
+" Returns: 'fail', 'open', 'buffered', or 'closed'
+```
+
+## Logging
+
+### Enable Logging
+
+```vim
+" Start logging to file
+call ch_logfile('channel.log', 'w')
+
+" Append to existing log
+call ch_logfile('channel.log', 'a')
+
+" Stop logging
+call ch_logfile('')
+```
+
+### Write to Log
+
+```vim
+call ch_log('Custom message')
+call ch_log('Event: ' . event, channel)
+```
+
+## Practical Examples
+
+### Language Server Client
+
+```vim
+function! StartLSP()
+  let s:lsp_job = job_start(['pyright-langserver', '--stdio'], {
+    \ 'mode': 'lsp',
+    \ 'callback': 'HandleLSPMessage',
+    \ 'exit_cb': 'HandleLSPExit'
+    \ })
+  
+  let s:lsp_channel = job_getchannel(s:lsp_job)
+  
+  " Initialize
+  let init = {
+    \ 'method': 'initialize',
+    \ 'params': {
+    \   'rootUri': 'file://' . getcwd(),
+    \   'capabilities': {}
+    \ }
+    \ }
+  
+  call ch_sendexpr(s:lsp_channel, init, {'callback': 'HandleInit'})
+endfunction
+
+function! HandleLSPMessage(channel, msg)
+  if has_key(a:msg, 'method')
+    " Handle notification/request
+    call HandleMethod(a:msg.method, a:msg.params)
+  endif
+endfunction
+
+function! HandleInit(channel, msg)
+  echo 'LSP initialized'
+endfunction
+
+function! HandleLSPExit(job, status)
+  echo 'LSP exited with status: ' . a:status
+endfunction
+```
+
+### Async Linter
+
+```vim
+function! RunLinter()
+  if exists('s:linter_job')
+    call job_stop(s:linter_job)
+  endif
+  
+  let s:linter_job = job_start(['pylint', expand('%:p')], {
+    \ 'out_cb': 'HandleLintOutput',
+    \ 'err_cb': 'HandleLintError',
+    \ 'exit_cb': 'HandleLintExit'
+    \ })
+endfunction
+
+let s:lint_lines = []
+
+function! HandleLintOutput(channel, msg)
+  call add(s:lint_lines, a:msg)
+endfunction
+
+function! HandleLintError(channel, msg)
+  echohl ErrorMsg
+  echo 'Linter error: ' . a:msg
+  echohl None
+endfunction
+
+function! HandleLintExit(job, status)
+  if a:status == 0
+    echo 'No issues found'
+    let s:lint_lines = []
+  else
+    " Parse and display issues
+    call setqflist([], 'r', {'lines': s:lint_lines})
+    copen
+  endif
+endfunction
+
+" Auto-run on save
+autocmd BufWritePost *.py call RunLinter()
+```
+
+### Background Build
+
+```vim
+function! BuildProject()
+  let s:build_job = job_start('make', {
+    \ 'out_io': 'buffer',
+    \ 'out_name': 'build-output',
+    \ 'err_io': 'buffer',
+    \ 'err_name': 'build-errors',
+    \ 'exit_cb': 'HandleBuildExit'
+    \ })
+  
+  echo 'Building...'
+endfunction
+
+function! HandleBuildExit(job, status)
+  if a:status == 0
+    echo 'Build successful!'
+  else
+    echo 'Build failed with status: ' . a:status
+    " Show errors
+    execute 'sbuf build-errors'
+  endif
+endfunction
+```
+
+### REPL Integration
+
+```vim
+function! StartREPL()
+  let s:repl_job = job_start(['python', '-i'], {
+    \ 'mode': 'raw',
+    \ 'out_cb': 'HandleREPLOutput',
+    \ 'in_mode': 'nl'
+    \ })
+  
+  let s:repl_channel = job_getchannel(s:repl_job)
+endfunction
+
+function! SendToREPL(line)
+  if !exists('s:repl_channel') || ch_status(s:repl_channel) != 'open'
+    call StartREPL()
+    sleep 100m
+  endif
+  
+  call ch_sendraw(s:repl_channel, a:line . "\n")
+endfunction
+
+function! HandleREPLOutput(channel, msg)
+  echo a:msg
+endfunction
+
+" Send current line to REPL
+nnoremap <leader>e :call SendToREPL(getline('.'))<CR>
+
+" Send visual selection
+vnoremap <leader>e "vy:call SendToREPL(@v)<CR>
+```
+
+## Error Handling
+
+### Channel Errors
+
+```vim
+try
+  let channel = ch_open('localhost:9999', {'waittime': 1000})
+  
+  if ch_status(channel) != 'open'
+    throw 'Failed to connect'
+  endif
+  
+  let response = ch_evalexpr(channel, {'cmd': 'test'})
+  
+catch /^Failed to connect/
+  echohl ErrorMsg
+  echo 'Could not connect to server'
+  echohl None
+catch /E630/  " Read failed
+  echo 'Channel read failed'
+catch /E631/  " Write failed
+  echo 'Channel write failed'
+finally
+  if exists('channel')
+    call ch_close(channel)
+  endif
+endtry
+```
+
+### Job Errors
+
+```vim
+let job = job_start('nonexistent-command')
+
+if job_status(job) == 'fail'
+  echohl ErrorMsg
+  echo 'Failed to start job'
+  echohl None
+else
+  " Monitor job
+  let info = job_info(job)
+  echo 'Job PID: ' . info.process
+endif
+```
+
+## Best Practices
+
+1. **Always check status** after opening channels or starting jobs
+2. **Use appropriate timeouts** to avoid blocking
+3. **Clean up resources** - close channels and stop jobs when done
+4. **Handle callbacks carefully** - they run asynchronously
+5. **Enable logging** during development
+6. **Use typed modes** (JSON/LSP) when possible for structure
+7. **Set stoponexit** to clean up jobs on Vim exit
+8. **Use buffer I/O** for large outputs
+9. **Implement error handlers** for production code
+10. **Test timeout scenarios** - network issues, slow responses
+
+## See Also
+
+- [Built-in Functions](/reference/builtin-functions) - Channel and job functions
+- [Vim9 Functions](/reference/vim9-functions) - Using channels in Vim9 script
+- [Variables and Scopes](/reference/variables) - Storing channel/job references

@@ -1,0 +1,356 @@
+---
+title: Working with Multiple Files
+description: Master Vim's argument list and buffer management for efficient multi-file editing
+---
+
+Vim provides powerful tools for working with multiple files simultaneously through the argument list and buffer system. Understanding these concepts is essential for efficient file management.
+
+## Understanding Buffers
+
+A **buffer** is the in-memory text of a file. A **window** is a viewport on a buffer. This separation allows you to work with multiple files efficiently.
+
+### Buffer States
+
+Buffers can be in three states:
+
+- **Active**: Displayed in a window, loaded into memory
+- **Hidden**: Not displayed but loaded (requires `:set hidden`)
+- **Inactive**: Not displayed, no content in memory (only metadata)
+
+```vim
+state       displayed   loaded      :buffers
+                                    shows
+active      yes         yes         'a'
+hidden      no          yes         'h'
+inactive    no          no          ' '
+```
+
+## The Argument List
+
+The argument list is a subset of your buffer list, representing files you explicitly want to work with.
+
+### Opening Files
+
+Start Vim with multiple files:
+
+```bash
+# Open three files
+vim file1.txt file2.txt file3.txt
+
+# Open all .c files
+vim *.c
+
+# Recursive search with ** wildcard
+vim **/*.txt
+```
+
+<Tip>
+The `**` wildcard searches up to 100 directories deep! Use `:n /usr/inc**/types.h` to find files like `/usr/include/sys/types.h`.
+</Tip>
+
+### Managing the Argument List
+
+| Command | Description |
+|---------|-------------|
+| `:args` | List all argument files |
+| `:args file1 file2` | Set new argument list |
+| `:args **/*.py` | Add all Python files recursively |
+| `:argadd file.txt` | Add file to argument list |
+| `:argdelete %` | Remove current file from list |
+
+### Navigating Arguments
+
+```vim
+" Move through argument list
+:argument [N]     " Go to Nth argument
+:next             " Next file
+:Next             " Previous file (or :previous)
+:first            " First file
+:last             " Last file
+
+" Split window and navigate
+:snext            " Split window and go to next
+:sprevious        " Split window and go to previous
+```
+
+<Steps>
+  <Step title="Load files into argument list">
+    Start with multiple files:
+    ```bash
+    vim *.c
+    ```
+    Or set them from within Vim:
+    ```vim
+    :args src/*.c
+    ```
+  </Step>
+  
+  <Step title="View your argument list">
+    Check which files you're working with:
+    ```vim
+    :args
+    ```
+    The current file is shown in brackets `[file.c]`.
+  </Step>
+  
+  <Step title="Navigate between files">
+    Use `:next` and `:previous` to move through files:
+    ```vim
+    :next      " Go to next file
+    :previous  " Go to previous file
+    ```
+  </Step>
+  
+  <Step title="Execute commands on all files">
+    Apply a command to all files in the argument list:
+    ```vim
+    :argdo %s/old/new/ge | update
+    ```
+    This replaces "old" with "new" in all files and saves them.
+  </Step>
+</Steps>
+
+## Buffer Management
+
+### Viewing Buffers
+
+```vim
+:buffers     " List all buffers (also :ls or :files)
+:buffers!    " Include unlisted buffers
+```
+
+Output example:
+```
+  1 #h   "/test/text"         line 1
+  2u     "asdf"               line 0
+  3 %a + "version.c"         line 1
+```
+
+Indicators:
+- `%` - Current buffer
+- `#` - Alternate buffer (toggle with `CTRL-^`)
+- `a` - Active (loaded and visible)
+- `h` - Hidden (loaded but not visible)
+- `+` - Modified
+- `-` - Not modifiable
+- `=` - Readonly
+
+### Switching Buffers
+
+```vim
+:buffer [N]       " Edit buffer N
+:buffer file.txt  " Edit buffer by name (partial names work)
+:bnext            " Next buffer
+:bprevious        " Previous buffer (also :bNext)
+:bfirst           " First buffer
+:blast            " Last buffer
+:bmodified        " Next modified buffer
+
+" Quick toggle
+CTRL-^            " Toggle between current and alternate buffer
+3 CTRL-^          " Switch to buffer 3
+```
+
+### Buffer Operations
+
+```vim
+" Add files to buffer list
+:badd file.txt            " Add without loading
+:badd +25 file.txt        " Remember line position
+
+" Delete buffers
+:bdelete [N]              " Delete buffer (keep in unlisted)
+:bwipeout [N]             " Completely remove buffer
+:1,3bdelete               " Delete buffers 1-3
+:%bdelete                 " Delete all buffers
+
+" Unload buffer (free memory)
+:bunload [N]              " Unload but keep in list
+```
+
+<Warning>
+`:bwipeout` permanently deletes all buffer data including marks, options, and history. Use `:bdelete` unless you specifically need complete removal.
+</Warning>
+
+## Working with Multiple Files
+
+### Opening Files in All Buffers/Arguments
+
+```vim
+:all             " Open window for each argument
+:ball            " Open window for each buffer
+:unhide          " Open window for each loaded buffer
+
+:vertical ball   " Use vertical splits
+:tab ball        " Open in separate tab pages
+```
+
+### Executing Commands Across Files
+
+```vim
+" In all argument files
+:argdo {cmd}              " Example: :argdo %s/foo/bar/g | update
+
+" In all buffers
+:bufdo {cmd}              " Example: :bufdo set number
+
+" In all windows
+:windo {cmd}              " Example: :windo set cursorline
+```
+
+Practical examples:
+
+```vim
+" Update copyright in all files
+:argdo %s/2023/2024/ge | update
+
+" Set file encoding for all buffers
+:bufdo set fileencoding= | update
+
+" Disable line numbers in all windows
+:windo set nonumber
+```
+
+## The Alternate File
+
+Vim remembers your previous file as the **alternate file**, accessible with `#`:
+
+```vim
+CTRL-^           " Toggle between current and alternate file
+:e #             " Edit alternate file
+:e #3            " Edit 3rd buffer
+```
+
+## Hidden Buffers
+
+By default, Vim won't let you switch files with unsaved changes. Enable hidden buffers:
+
+```vim
+:set hidden      " Allow hidden buffers with unsaved changes
+```
+
+With `hidden` set, you can:
+- Switch files without saving
+- Keep multiple modified buffers
+- Return to any buffer later
+
+Check for unsaved changes before quitting:
+
+```vim
+:quitall         " Fails if any buffer has changes
+:quitall!        " Quit and discard all changes (dangerous!)
+:wall            " Write all changed buffers
+:wqall           " Write all and quit
+```
+
+## Practical Workflows
+
+### Project-Wide Search and Replace
+
+```vim
+" 1. Load all project files
+:args **/*.js
+
+" 2. Search and replace in all files
+:argdo %s/oldFunction/newFunction/ge | update
+
+" 3. Review changes (before saving)
+:argdo %s/oldFunction/newFunction/ge
+:argdo write
+```
+
+### Multiple File Comparison
+
+```vim
+" Open files side by side
+:args file1.txt file2.txt
+:all
+:windo diffthis
+```
+
+### Batch File Operations
+
+```vim
+" Add headers to multiple files
+:args *.c
+:argdo 0r header.txt | update
+
+" Remove trailing whitespace from all files
+:bufdo %s/\s\+$//e | update
+```
+
+<Tip>
+Use `:grep` or `:vimgrep` to populate the quickfix list, then use `:cdo` to execute commands on matching lines across files. See [Quickfix](/advanced/quickfix) for more details.
+</Tip>
+
+## Buffer-Local Variables
+
+Store data specific to each buffer:
+
+```vim
+" Set buffer-local variable
+:let b:project_type = 'web'
+
+" Access in another buffer
+:echo getbufvar(3, 'project_type')
+```
+
+## Special Buffers
+
+Vim has special buffer types:
+
+| Type | Description | Settings |
+|------|-------------|---------|
+| Quickfix | Error/location lists | `buftype=quickfix` |
+| Help | Help documentation | Internal flag |
+| Scratch | Temporary content | `buftype=nofile bufhidden=hide` |
+| Terminal | Terminal emulator | `buftype=terminal` |
+
+## Tips and Tricks
+
+### Quick Buffer Access
+
+Map keys for faster buffer navigation:
+
+```vim
+" In your .vimrc
+nnoremap <Leader>n :bnext<CR>
+nnoremap <Leader>p :bprevious<CR>
+nnoremap <Leader>d :bdelete<CR>
+```
+
+### Filter Buffer List
+
+Use `:filter` to find specific buffers:
+
+```vim
+:filter /\.vim/ ls     " Show only .vim files
+:filter /+/ ls         " Show only modified buffers
+```
+
+### Buffer Completion
+
+Vim provides tab-completion for buffer names:
+
+```vim
+:buffer <Tab>          " Cycle through buffer names
+:buffer src<Tab>       " Complete buffers starting with 'src'
+```
+
+## Best Practices
+
+<Check>Use `:args` for files you're actively working with in a session</Check>
+<Check>Enable `:set hidden` to work with multiple files efficiently</Check>
+<Check>Use `:argdo` and `:bufdo` with `update` instead of `write` (only saves if modified)</Check>
+<Check>Leverage `CTRL-^` for quick file toggling</Check>
+<Check>Use `:bdelete` instead of `:bwipeout` unless you need complete removal</Check>
+
+<Warning>
+Be cautious with `:argdo` and `:bufdo` commands that modify files. Test on copies first or use version control.
+</Warning>
+
+## See Also
+
+- [Windows and Tabs](/advanced/windows-tabs) - Split windows and tab pages
+- [Quickfix](/advanced/quickfix) - Navigate search results across files
+- [Macros](/advanced/macros) - Automate edits across multiple files

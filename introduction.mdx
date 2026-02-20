@@ -1,0 +1,132 @@
+---
+title: Introduction to Vim
+description: Vim is a highly configurable text editor built to enable efficient text editing. Learn what makes Vim the editor of choice for developers worldwide.
+---
+
+# Introduction to Vim
+
+Vim is a greatly improved version of the good old UNIX editor [Vi](https://en.wikipedia.org/wiki/Vi_(text_editor)). Many new features have been added: multi-level undo, syntax highlighting, command line history, on-line help, spell checking, filename completion, block operations, script language, and more. There is also a Graphical User Interface (GUI) available.
+
+<Note>
+  Vim maintains Vi compatibility, so those who have Vi "in the fingers" will feel at home. All commands are given with normal keyboard characters, enabling fast editing for touch typists.
+</Note>
+
+## What makes Vim special
+
+<CardGroup cols={2}>
+  <Card title="Modal editing" icon="keyboard">
+    Separate modes for inserting text and executing commands means your entire keyboard becomes a powerful command interface.
+  </Card>
+  
+  <Card title="Highly efficient" icon="bolt">
+    Once learned, Vim enables lightning-fast text editing. Function keys can be mapped to commands, and the mouse is fully supported.
+  </Card>
+  
+  <Card title="Infinitely extensible" icon="puzzle-piece">
+    Built-in script language, extensive plugin ecosystem, and deep customization options let you build your perfect editor.
+  </Card>
+  
+  <Card title="Cross-platform" icon="globe">
+    Runs on MS-Windows (7, 8, 10, 11), macOS, Haiku, VMS and almost all flavours of UNIX.
+  </Card>
+</CardGroup>
+
+## Key features
+
+### Multi-level undo
+
+Unlike Vi's single level of undo, Vim provides a complete undo tree. You can undo and redo changes, and even branch to explore alternative editing paths without losing any work.
+
+### Syntax highlighting
+
+Built-in syntax highlighting for hundreds of programming languages and file formats. Vim automatically detects file types and applies appropriate highlighting, indentation, and formatting rules.
+
+### Powerful search and replace
+
+Regular expression support, incremental search, and sophisticated pattern matching make finding and replacing text across files efficient and precise.
+
+### Command line history
+
+All commands entered are remembered. Use arrow keys to recall and edit previous commands, making repetitive tasks faster.
+
+### Block operations
+
+Visual block mode enables rectangular selections and operations, perfect for editing columnar data or making the same change across multiple lines simultaneously.
+
+### Extensible through scripting
+
+Vim includes a full scripting language (Vimscript) plus support for Python, Perl, Ruby, Lua, and more. The plugin ecosystem provides solutions for virtually any editing task.
+
+## POSIX compatibility
+
+Vim aims to provide a (mostly) POSIX-compatible vi implementation when compiled with a minimal feature set (typically called `vim.tiny`), which is used by many Linux distributions as the default vi editor.
+
+## Getting started guide
+
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/installation">
+    Install Vim on your platform: Windows, macOS, Linux, or build from source
+  </Card>
+  
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Get editing your first file in under 5 minutes with this hands-on guide
+  </Card>
+  
+  <Card title="First steps" icon="map" href="/first-steps">
+    Learn the essential commands every Vim user should know
+  </Card>
+  
+  <Card title="Vim tutor" icon="graduation-cap" href="#vim-tutor">
+    Complete the interactive one-hour training course for beginners
+  </Card>
+</CardGroup>
+
+## Vim tutor
+
+The Vim tutor is a one-hour interactive training course for beginners included with Vim. It provides hands-on practice with the most essential commands and workflows.
+
+Once Vim is installed, you can start the tutor by running:
+
+```bash
+vimtutor
+```
+
+Or from within Vim:
+
+```vim
+:help tutor
+```
+
+<Tip>
+  The tutor is the best way to learn Vim. It provides guided practice with immediate feedback, helping you build muscle memory for essential commands.
+</Tip>
+
+## Philosophy
+
+This editor is very useful for editing programs and other plain text files. All commands are given with normal keyboard characters, so those who can type with ten fingers can work very fast. Additionally, function keys can be mapped to commands by the user, and the mouse can be used.
+
+Vim's modal editing model separates the act of entering text from manipulating it. This might feel unusual at first, but it enables powerful command combinations and eliminates the need for complex key chords that strain your hands.
+
+## License and community
+
+Vim is Charityware. You can use and copy it as much as you like, but you are encouraged to make a donation to help orphans in Uganda. See `:help uganda` for details.
+
+<Note>
+  There are no restrictions on using or distributing an unmodified copy of Vim. The license is GPL compatible, allowing you to compile Vim with GPL libraries and distribute it.
+</Note>
+
+## Version
+
+This documentation covers Vim version 9.2 and later.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/installation">
+    Get Vim installed on your system
+  </Card>
+  
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Start editing immediately with this 5-minute guide
+  </Card>
+</CardGroup>

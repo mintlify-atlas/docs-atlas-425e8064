@@ -1,0 +1,553 @@
+---
+title: Macros
+description: Record and replay command sequences to automate repetitive editing tasks
+---
+
+Macros in Vim allow you to record a sequence of commands and replay them, enabling powerful automation of repetitive editing tasks. Mastering macros is one of the hallmarks of Vim proficiency.
+
+## What Are Macros?
+
+A macro is a recorded sequence of keystrokes stored in a register that can be replayed. Think of it as recording yourself performing a task and then playing it back.
+
+**Key Concept**: Macros are stored in the same registers used for copy/paste (`a-z`, `A-Z`, `0-9`).
+
+## Recording Macros
+
+### Basic Recording
+
+<Steps>
+  <Step title="Start recording">
+    Press `q` followed by a register name (a-z):
+    ```vim
+    qa  " Start recording into register 'a'
+    ```
+    You'll see `recording @a` in the status line.
+  </Step>
+  
+  <Step title="Perform your edits">
+    Execute the commands you want to record:
+    ```vim
+    0       " Go to start of line
+    w       " Move to first word
+    ciw     " Change inner word
+    Hello   " Type replacement text
+    <Esc>   " Return to normal mode
+    j       " Move down one line
+    ```
+  </Step>
+  
+  <Step title="Stop recording">
+    Press `q` again:
+    ```vim
+    q  " Stop recording
+    ```
+    The recording indicator disappears.
+  </Step>
+  
+  <Step title="Replay the macro">
+    Execute the recorded macro:
+    ```vim
+    @a  " Play macro in register 'a'
+    ```
+  </Step>
+</Steps>
+
+<Tip>
+The `q` that stops recording is NOT included in the macro. This allows you to end the recording at any time.
+</Tip>
+
+### Recording Workflow
+
+```vim
+" Example: Convert multiple lines to uppercase
+qq          " Start recording into register 'q'
+gUU         " Make current line uppercase
+j           " Move down
+q           " Stop recording
+
+" Replay
+@q          " Execute once
+3@q         " Execute 3 times
+100@q       " Execute 100 times
+```
+
+## Playing Macros
+
+### Execution Methods
+
+```vim
+@a           " Execute macro in register 'a'
+@@           " Repeat last executed macro
+3@a          " Execute macro 'a' three times
+100@a        " Execute macro 'a' one hundred times
+
+" Execute on visual selection
+:'<,'>normal @a  " Run macro on each line of selection
+```
+
+<Note>
+If a macro encounters an error (like trying to move past the end of file), execution stops. This is useful for applying a macro "until it fails".
+</Note>
+
+### Recursive Macros
+
+A macro can call itself:
+
+```vim
+" Record a recursive macro
+qa          " Start recording into 'a'
+" ... your commands ...
+@a          " Call macro 'a' (itself)
+q           " Stop recording
+
+" Execute (will run until error)
+@a
+```
+
+**Example: Process all lines**
+
+```vim
+" Clear register a first
+qaq         " Record empty macro into 'a'
+
+qa          " Start recording
+I// <Esc>   " Add comment at line start
+j           " Move down
+@a          " Call itself recursively
+q           " Stop recording
+
+@a          " Execute (adds // to all remaining lines)
+```
+
+<Warning>
+Recursive macros will run until they hit an error (like end of file). Make sure you have an exit condition!
+</Warning>
+
+## Editing Macros
+
+Macros are just text in registers. You can view and edit them!
+
+### View Macro Contents
+
+```vim
+:reg a       " Display contents of register 'a'
+:reg         " Display all registers
+```
+
+Output:
+```
+--- Registers ---
+"a   0Iwdef<Esc>j
+```
+
+### Edit a Macro
+
+<Steps>
+  <Step title="Paste macro to a line">
+    ```vim
+    "ap  " Paste contents of register 'a'
+    ```
+  </Step>
+  
+  <Step title="Edit the text">
+    Modify the macro commands as regular text:
+    ```vim
+    I" Start of macro content
+    0   " Go to start of line
+    $   " Go to end
+    ```
+    Make your edits...
+  </Step>
+  
+  <Step title="Yank back into register">
+    ```vim
+    0"ay$  " Yank from start to end into register 'a'
+    ```
+    Or select in visual mode:
+    ```vim
+    V"ay   " Visual line select and yank to 'a'
+    ```
+  </Step>
+  
+  <Step title="Test the edited macro">
+    ```vim
+    @a  " Execute modified macro
+    ```
+  </Step>
+</Steps>
+
+### Special Characters
+
+When viewing macros, you'll see special characters:
+
+- `^[` = Escape key
+- `^M` = Enter/Return key
+- `^I` = Tab key
+
+To enter these when editing:
+
+```vim
+" In insert mode:
+CTRL-V ESC   " Insert literal Escape (shows as ^[)
+CTRL-V Enter " Insert literal Enter (shows as ^M)
+CTRL-V Tab   " Insert literal Tab (shows as ^I)
+```
+
+## Appending to Macros
+
+Use uppercase register names to append:
+
+```vim
+qa          " Record macro in register 'a'
+" ... commands ...
+q           " Stop
+
+qA          " Append to register 'a' (uppercase!)
+" ... more commands ...
+q           " Stop
+
+@a          " Execute complete macro
+```
+
+## Practical Macro Examples
+
+### Add Quotes Around Words
+
+```vim
+" Record macro to quote words
+qa          " Start recording
+ciw"<C-R>""<Esc>  " Change word, add quotes
+q           " Stop recording
+
+" Use on multiple words
+@a          " First word
+w@a         " Move and apply to next word
+w@a         " And another...
+```
+
+### Format CSV to Table
+
+```vim
+" Input: name,age,city
+" Output: | name | age | city |
+
+qa              " Start recording
+I| <Esc>        " Add | at start
+:s/,/ | /g<CR>  " Replace commas with |
+$a |<Esc>      " Add | at end
+j0              " Next line, start
+q               " Stop recording
+
+" Apply to all lines
+100@a
+```
+
+### Increment Numbers
+
+```vim
+" Add incrementing numbers to lines
+qa          " Start recording
+I1. <Esc>   " Add "1. " at start
+j           " Move down
+q           " Stop recording
+
+" First line gets "1. "
+" Then use this macro:
+qb          " Start new macro
+0           " Go to start
+CTRL-A      " Increment number
+j           " Move down
+q           " Stop recording
+
+@a          " Apply first macro (add 1.)
+10@b        " Apply incrementing macro
+```
+
+### Clean Up Code
+
+```vim
+" Remove trailing whitespace and blank lines
+qa              " Start recording
+:s/\s\+$//e<CR> " Remove trailing whitespace
+j               " Next line
+q               " Stop recording
+
+999@a           " Apply to many lines (stops at end)
+```
+
+### HTML Tag Wrapping
+
+```vim
+" Wrap word in <strong> tags
+qa          " Start recording
+ciw<strong><C-R>"</strong><Esc>  " Change word, wrap in tags
+q           " Stop
+
+" Wrap line in <div> tags
+qd          " Start recording
+I<div><Esc> " Add <div> at start
+A</div><Esc>" Add </div> at end
+q           " Stop
+```
+
+## Advanced Techniques
+
+### Parallel Macros
+
+Record different macros for different tasks:
+
+```vim
+qa          " Macro 'a': Format header
+" ... 
+q
+
+qb          " Macro 'b': Format content
+" ...
+q
+
+qc          " Macro 'c': Format footer
+" ...
+q
+
+" Apply sequentially
+@a
+@b
+@b
+@b
+@c
+```
+
+### Using Marks in Macros
+
+Macros can use marks for sophisticated navigation:
+
+```vim
+qa          " Start recording
+mm          " Set mark 'm' at current position
+/pattern<CR>" Search for pattern
+cw          " Change word
+replacement<Esc>
+`m          " Return to mark 'm'
+q           " Stop recording
+```
+
+### Macros with Search
+
+```vim
+" Find and modify pattern
+qa                  " Start recording
+/function<CR>       " Search for 'function'
+ww                  " Move to function name
+cw                  " Change word
+new_name<Esc>       " Type new name
+n                   " Next search result
+q                   " Stop
+
+@@                  " Repeat (processes next match)
+```
+
+### Conditional Macros
+
+Macros stop on errors—use this for conditional behavior:
+
+```vim
+" Only process lines starting with '#'
+qa              " Start recording
+0               " Start of line
+f#              " Find '#' (fails if not present)
+www             " Move forward
+" ... more commands ...
+j0              " Next line
+q               " Stop
+
+999@a           " Runs until 'f#' fails
+```
+
+## Saving Macros
+
+### In Your .vimrc
+
+Save frequently-used macros:
+
+```vim
+" In .vimrc
+let @q = '0Wciw"^R""^[j'  " Quote word macro
+let @c = 'I// ^[j'          " Comment line macro
+
+" Note: ^[ is literal Escape (type CTRL-V ESC)
+```
+
+### To a File
+
+```vim
+" Save all registers
+:wviminfo! ~/.vim/macros.txt
+
+" Load registers
+:rviminfo ~/.vim/macros.txt
+```
+
+## Running Macros on Multiple Files
+
+Combine macros with `:argdo` or `:bufdo`:
+
+```vim
+" Apply macro to all argument files
+:args **/*.txt
+:argdo normal @a | update
+
+" Apply to all buffers
+:bufdo normal @q | update
+```
+
+<Steps>
+  <Step title="Record your macro">
+    ```vim
+    qa
+    " ... edit commands ...
+    q
+    ```
+  </Step>
+  
+  <Step title="Load files">
+    ```vim
+    :args *.txt
+    ```
+  </Step>
+  
+  <Step title="Apply to all files">
+    ```vim
+    :argdo normal @a
+    ```
+  </Step>
+  
+  <Step title="Save all changes">
+    ```vim
+    :argdo update
+    ```
+  </Step>
+</Steps>
+
+## Debugging Macros
+
+### View Execution
+
+See each command as it executes:
+
+```vim
+:set debug=msg  " Show messages
+@a              " Execute macro
+:set debug=     " Turn off
+```
+
+### Step Through Manually
+
+Paste the macro and execute step-by-step:
+
+```vim
+"ap             " Paste macro contents
+" Execute each command manually
+```
+
+### Test on Single Line
+
+Always test on one line first:
+
+```vim
+@a              " Test once
+uu              " Undo if needed
+@a              " Try again
+```
+
+## Performance Tips
+
+<Check>Use motions instead of repetitive h/j/k/l movements</Check>
+<Check>Prefer `w`, `W`, `e`, `b` over multiple character moves</Check>
+<Check>Use search (`/pattern`) to jump to targets</Check>
+<Check>Avoid unnecessary screen updates with `:set lazyredraw`</Check>
+<Check>Test macros on a copy first when working with important data</Check>
+
+### Speed Up Macro Execution
+
+```vim
+:set lazyredraw   " Don't redraw while executing macros
+@a                " Execute macro (faster)
+:set nolazyredraw " Restore normal drawing
+```
+
+## Common Pitfalls
+
+<Warning>
+**Don't record with count prefixes**: Record `j` not `10j`. Apply the count when executing: `10@a`.
+</Warning>
+
+<Warning>
+**Position matters**: Always start macros from a consistent position (like `0` for line start).
+</Warning>
+
+<Warning>
+**Relative motions**: Use `j`/`k` for moving lines, not absolute line numbers.
+</Warning>
+
+## Best Practices
+
+<Check>Start and end at predictable positions</Check>
+<Check>Use simple, readable operations</Check>
+<Check>Test on a few lines before applying to hundreds</Check>
+<Check>Use meaningful register names (q for quick, a for add, etc.)</Check>
+<Check>Document complex macros by saving them in .vimrc with comments</Check>
+
+## Macro vs. Dot Command
+
+| Feature | Dot (`.`) | Macro (`@a`) |
+|---------|-----------|---------------|
+| Scope | Single change | Multiple commands |
+| Flexibility | Last change only | Any sequence |
+| Multiple files | No | Yes (with :argdo) |
+| Editable | No | Yes |
+| Storage | Temporary | In register |
+
+Use `.` for simple repetition, macros for complex sequences.
+
+## Real-World Examples
+
+### Refactor Function Calls
+
+```vim
+" Change: oldFunc(arg)
+" To: newFunc(arg, true)
+
+qa                      " Start recording
+/oldFunc(<CR>           " Find function call
+cw                      " Change word
+newFunc<Esc>            " New name
+f)                      " Jump to closing paren
+i, true<Esc>            " Add parameter
+n                       " Next match
+q                       " Stop
+
+@@                      " Repeat for next occurrence
+```
+
+### Generate Test Data
+
+```vim
+" Create 100 test records
+O{<CR>  "name": "Test0",<CR>  "id": 0<CR>}<Esc>
+
+qa              " Start recording
+yyp             " Duplicate record
+CTRL-A          " Increment "Test0" to "Test1"
+j               " Next line
+CTRL-A          " Increment id
+kkk             " Back to start of record
+q               " Stop
+
+99@a            " Generate 99 more records
+```
+
+## See Also
+
+- [Multiple Files](/advanced/multiple-files) - Apply macros across files
+- [Quickfix](/advanced/quickfix) - Use with :cdo for precise editing
+- [Visual Mode](/basics/visual-mode) - Combine with visual selections

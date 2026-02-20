@@ -1,0 +1,558 @@
+---
+title: Writing Documentation in Vim
+description: Features and workflows for writing and maintaining documentation
+---
+
+Vim excels at writing documentation, whether it's README files, technical docs, or long-form content. This guide covers the complete workflow for documentation writing.
+
+## Quick Setup for Writing
+
+Configure Vim for a better writing experience in your `.vimrc`:
+
+```vim
+" Writing-specific settings
+augroup writing
+    autocmd!
+    " Text and Markdown files
+    autocmd FileType text,markdown,rst setlocal wrap
+    autocmd FileType text,markdown,rst setlocal linebreak
+    autocmd FileType text,markdown,rst setlocal spell spelllang=en_us
+    autocmd FileType text,markdown,rst setlocal textwidth=80
+    autocmd FileType text,markdown,rst setlocal formatoptions+=t
+augroup END
+
+" Better display for wrapped lines
+set display+=lastline
+set breakindent
+set breakindentopt=shift:2
+```
+
+## Text Editing Essentials
+
+### Line Wrapping and Display
+
+Control how text appears on screen:
+
+```vim
+" Soft wrap (visual only, no line breaks)
+:set wrap
+:set linebreak          " Wrap at word boundaries
+:set breakindent        " Maintain indentation of wrapped lines
+
+" Hard wrap (insert line breaks)
+:set textwidth=80       " Auto-wrap at 80 characters
+:set formatoptions+=t   " Auto-wrap text using textwidth
+
+" Navigate wrapped lines naturally
+nnoremap j gj
+nnoremap k gk
+nnoremap 0 g0
+nnoremap $ g$
+```
+
+### Reformatting Text
+
+Reflow and format paragraphs:
+
+- `gq{motion}` - Format text covered by motion
+- `gqap` - Format current paragraph
+- `gqq` - Format current line
+- `gw{motion}` - Format and keep cursor position
+- `gwap` - Format paragraph and keep cursor position
+- `gqG` - Format from cursor to end of file
+- `gg gq G` - Format entire document
+
+### Working with Paragraphs
+
+Navigate and manipulate text blocks:
+
+- `{` - Jump to previous paragraph
+- `}` - Jump to next paragraph
+- `dap` - Delete a paragraph
+- `cip` - Change inner paragraph (keep surrounding blank lines)
+- `vap` - Select a paragraph
+- `>ap` - Indent a paragraph
+
+## Spell Checking
+
+### Enable and Use Spell Checking
+
+Vim has powerful built-in spell checking:
+
+```vim
+" Enable spell checking
+:set spell
+:set spelllang=en_us
+
+" Multiple languages
+:set spelllang=en_us,de_de
+
+" Disable spell checking
+:set nospell
+```
+
+Navigate and fix spelling:
+
+- `]s` - Move to next misspelled word
+- `[s` - Move to previous misspelled word
+- `z=` - Show spelling suggestions
+- `zg` - Add word to dictionary (good word)
+- `zw` - Mark word as incorrect (wrong word)
+- `zug` - Undo `zg` (remove from dictionary)
+- `zuw` - Undo `zw`
+- `1z=` - Use first spelling suggestion
+
+### Custom Dictionaries
+
+Manage project-specific vocabulary:
+
+```vim
+" Add custom dictionary
+set spellfile=~/.vim/en.utf-8.add
+
+" Multiple custom dictionaries
+set spellfile=~/.vim/en.utf-8.add,~/project/.vim-spell.add
+```
+
+## Markdown Editing
+
+### Markdown-Specific Features
+
+Vim provides good Markdown support out of the box:
+
+```vim
+" In .vimrc - enhance Markdown editing
+augroup markdown
+    autocmd!
+    autocmd FileType markdown setlocal conceallevel=2
+    autocmd FileType markdown setlocal concealcursor=nc
+    autocmd FileType markdown setlocal foldmethod=expr
+    autocmd FileType markdown setlocal foldexpr=MarkdownLevel()
+augroup END
+```
+
+### Creating Lists and Structure
+
+Efficient list creation:
+
+```vim
+" Auto-continue lists (built-in)
+set formatoptions+=r    " Continue comments/lists on Enter
+set formatoptions+=o    " Continue comments/lists with o/O
+
+" In Markdown files, typing:
+" - Item 1<Enter>
+" Automatically creates:
+" - Item 2
+```
+
+### Headings Navigation
+
+Quickly navigate through document structure:
+
+```vim
+" Search for headings
+/^#\+        " Find any heading
+/^## \+      " Find level 2 headings
+
+" Jump between sections
+:g/^#/       " List all headings
+```
+
+### Table Editing
+
+Create and maintain Markdown tables:
+
+```markdown
+| Column 1 | Column 2 | Column 3 |
+|----------|----------|----------|
+| Data 1   | Data 2   | Data 3   |
+```
+
+Use visual block mode to align columns:
+
+1. `CTRL-V` to enter visual block mode
+2. Select column
+3. `I` to insert spaces for alignment
+
+## Working with Long Documents
+
+### Folding Sections
+
+Hide and show document sections:
+
+```vim
+" Enable folding
+set foldmethod=expr
+set foldexpr=getline(v:lnum)=~'^#'?'>'.(matchend(getline(v:lnum),'#\+')):"="
+set foldlevelstart=99
+
+" Or use manual folding
+set foldmethod=manual
+
+" Fold commands
+zf{motion}      " Create fold
+zf}             " Fold current section
+zc              " Close fold
+zo              " Open fold
+za              " Toggle fold
+zM              " Close all folds
+zR              " Open all folds
+```
+
+### Marks and Bookmarks
+
+Mark important locations in your document:
+
+- `ma` - Set mark 'a' at cursor
+- `'a` - Jump to mark 'a'
+- `` `a `` - Jump to exact position of mark 'a'
+- `marks` - List all marks
+- `'0` - Jump to position where Vim was last exited
+- `''` - Jump to position before last jump
+
+### Table of Contents
+
+Generate a table of contents from headings:
+
+```vim
+" Extract all headings
+:g/^#/t$
+
+" Or use a more sophisticated approach
+:g/^##\s/s/^##\s/- /
+```
+
+## Formatting and Editing
+
+### Text Width and Wrapping
+
+Control document width:
+
+```vim
+" Set line width for auto-formatting
+:set textwidth=80
+
+" Format to specific width
+:set textwidth=100
+gggqG           " Reformat entire file
+
+" Format specific paragraph
+gqap
+```
+
+### Indentation for Structure
+
+Indent text blocks:
+
+- `>>` - Indent current line
+- `<<` - Unindent current line
+- `>ap` - Indent paragraph
+- `<ap` - Unindent paragraph
+- `>}` - Indent to end of paragraph
+- `3>>` - Indent 3 lines
+
+### Joining Lines
+
+Combine lines intelligently:
+
+- `J` - Join line below to current line
+- `gJ` - Join without adding space
+- `3J` - Join next 3 lines
+- `vipJ` - Join entire paragraph into one line
+
+## Search and Replace in Documentation
+
+### Finding Text
+
+Efficient searching:
+
+```vim
+" Basic search
+/pattern        " Search forward
+?pattern        " Search backward
+n               " Next match
+N               " Previous match
+*               " Search for word under cursor
+
+" Case-insensitive search
+/pattern\c
+:set ignorecase
+:set smartcase  " Case-sensitive if pattern has uppercase
+```
+
+### Global Substitution
+
+Find and replace across the document:
+
+```vim
+" Basic substitution
+:s/old/new/         " Replace first occurrence on line
+:s/old/new/g        " Replace all occurrences on line
+:%s/old/new/g       " Replace in entire file
+:%s/old/new/gc      " Replace with confirmation
+
+" Common documentation edits
+:%s/  / /g          " Replace double spaces with single
+:%s/\s\+$//         " Remove trailing whitespace
+:%s/^\s\+//         " Remove leading whitespace
+```
+
+## Managing Multiple Documents
+
+### Working with Multiple Files
+
+Organize documentation projects:
+
+```vim
+" Open multiple docs
+:args docs/*.md
+:args docs/**/*.md  " Recursive
+
+" Navigate files
+:next               " Next file
+:previous           " Previous file
+:first              " First file
+:last               " Last file
+
+" Apply changes to all
+:argdo %s/old/new/ge | update
+```
+
+### Split Windows for Reference
+
+View multiple documents simultaneously:
+
+```vim
+" Split windows
+:split reference.md     " Horizontal split
+:vsplit notes.md        " Vertical split
+
+" Navigate splits
+CTRL-W h                " Left window
+CTRL-W l                " Right window
+CTRL-W w                " Next window
+```
+
+## Links and References
+
+### Working with URLs
+
+Handle links in documentation:
+
+```vim
+" Open URL under cursor (requires external command)
+nnoremap gx :execute '!open ' . shellescape(expand('<cfile>'), 1)<CR>
+
+" Find all links
+:g/http\\|https
+```
+
+### Cross-References
+
+Manage internal document references:
+
+```vim
+" Find all references to a section
+:g/\[.*\](#section-name)
+
+" List all anchors/headers
+:g/^##\|\[.*\](#
+```
+
+## Version Control Integration
+
+### Git Integration
+
+Manage documentation versions:
+
+```vim
+" Check file status
+:!git status %
+
+" View diff
+:!git diff %
+
+" Commit current file
+:!git add % && git commit -m "Update documentation"
+
+" View file history
+:!git log -p %
+```
+
+## Specialized Documentation Tasks
+
+### API Documentation
+
+Structure API docs efficiently:
+
+```markdown
+## Function: getUserData
+
+**Syntax:**
+```javascript
+getUserData(userId: string): Promise<User>
+```
+
+**Parameters:**
+- `userId` (string): The unique identifier for the user
+
+**Returns:**
+Promise\<User\> - A promise resolving to a User object
+
+**Example:**
+```javascript
+const user = await getUserData('123');
+```
+```
+
+Use snippets or abbreviations:
+
+```vim
+" In .vimrc
+abbrev funcapi ## Function:<CR><CR>**Syntax:**<CR>```<CR>```<CR><CR>**Parameters:**<CR><CR>**Returns:**<CR><CR>**Example:**<CR>```<CR>```
+```
+
+### README Files
+
+Quickly structure README content:
+
+```vim
+" Template for README
+augroup readme_template
+    autocmd!
+    autocmd BufNewFile README.md 0r ~/.vim/templates/README.md
+augroup END
+```
+
+### Code Documentation
+
+Extract and document code:
+
+```vim
+" Read code file into current document
+:r !cat src/main.c
+
+" Extract function signatures
+:g/^\w\+\s\+\w\+(.*)/t$
+```
+
+## Practical Workflows
+
+### Writing Tutorial Content
+
+1. Start with outline using headings
+2. Use folding to focus on one section at a time
+3. Add code examples with proper fencing
+4. Check spelling as you write
+5. Format before committing
+
+### Technical Specification Workflow
+
+```vim
+" 1. Create structure
+:r ~/.vim/templates/spec.md
+
+" 2. Navigate with marks
+ma          " Mark current position
+'a          " Return to mark
+
+" 3. Generate TOC
+:g/^##/t$   " Copy all h2 headings to end
+
+" 4. Final formatting
+gg gq G     " Format entire document
+```
+
+### Documentation Review
+
+Compare versions:
+
+```vim
+" Open diff mode
+:vert diffsplit old-version.md
+
+" Navigate differences
+]c          " Next difference
+[c          " Previous difference
+
+" Accept changes
+do          " Obtain from other file
+dp          " Put to other file
+```
+
+## Useful Mappings for Writing
+
+Add to your `.vimrc`:
+
+```vim
+" Quick spell check toggle
+nnoremap <Leader>s :set spell!<CR>
+
+" Fix last spelling error from insert mode
+inoremap <C-s> <Esc>[s1z=`]a
+
+" Format paragraph
+nnoremap <Leader>q gqap
+
+" Word count
+nnoremap <Leader>w :!wc -w %<CR>
+
+" Toggle line wrapping
+nnoremap <Leader>W :set wrap!<CR>
+
+" Insert current date
+nnoremap <Leader>d i<C-R>=strftime("%Y-%m-%d")<CR><Esc>
+
+" Convert markdown to HTML (requires pandoc)
+nnoremap <Leader>h :!pandoc -s % -o %.html<CR>
+```
+
+## Content Creation Tips
+
+### Writing Flow
+
+1. **Draft mode**: Turn off spell check initially
+   ```vim
+   :set nospell
+   ```
+
+2. **Write continuously**: Use `i` for insert mode and stay in flow
+
+3. **Edit mode**: After drafting, enable spell check and formatting
+   ```vim
+   :set spell
+   gggqG
+   ```
+
+### Distraction-Free Writing
+
+```vim
+" Minimal interface for writing
+set laststatus=0    " Hide status line
+set nonumber        " Hide line numbers
+set norelativenumber
+set wrap
+set linebreak
+```
+
+## Related Topics
+
+<CardGroup cols={2}>
+  <Card title="Spell Checking" icon="spell-check" href="/tools/spell-checking">
+    Master Vim's spelling features
+  </Card>
+  <Card title="File Operations" icon="file" href="/commands/file-operations">
+    Manage multiple documentation files
+  </Card>
+  <Card title="Search and Replace" icon="magnifying-glass" href="/commands/search-replace">
+    Advanced search and substitution
+  </Card>
+  <Card title="Diff Mode" icon="code-compare" href="/tools/diff-mode">
+    Compare document versions
+  </Card>
+</CardGroup>
+
+<Note>
+Consider using plugins like vim-pandoc for enhanced Markdown support, or goyo.vim and limelight.vim for distraction-free writing environments.
+</Note>
